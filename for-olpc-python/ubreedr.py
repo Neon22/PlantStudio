@@ -16,12 +16,14 @@ import ubmpsupport
 import udomain
 import updcom
 
+import ucursor
+
 """
 import utimeser
 import ucommand
 import umain
 import umath
-import ucursor
+
 import ubrdopt
 import updform
 """
@@ -63,12 +65,12 @@ class DrawGrid(gtk.DrawingArea):
         if mouseDownMethod:
             self.add_events(gtk.gdk.BUTTON_PRESS_MASK)
             self.connect("button_press_event", mouseDownMethod)
-        self.set_size_request(11 * 64, 30 * 64) 
-        
+        self.set_size_request(11 * 64, 30 * 64)
+
     #def get_child_requisition(self):
     #    # a little extra big for first column with number
     #    return self.ColCount * self.DefaultRowHeight, self.RowCount * self.DefaultColWidth
-            
+
     def boundsForCell(self, colTarget, rowTarget):
         usedHeight = self.DefaultRowHeight * rowTarget
         usedWidth = 0
@@ -84,22 +86,22 @@ class DrawGrid(gtk.DrawingArea):
             bottom = usedHeight + self.DefaultRowHeight
         cellBounds = Rect(left, top, right, bottom)
         return cellBounds
-        
+
     def updateForChanges(self):
         cellBounds = self.boundsForCell(self.ColCount - 1, self.RowCount - 1)
         usedWidth = cellBounds.right
         usedHeight = cellBounds.bottom
         self.set_size_request(max(usedWidth, 100), max(usedHeight, 100))
         self.queue_resize()
-        
+
     def expose(self, widget, event):
         gc = widget.window.new_gc()
-        context = (widget.window, gc) 
-        
+        context = (widget.window, gc)
+
         if not self.OnDrawCell:
             return
-        
-        Cursor_StartWait()
+
+        ucursor.cursor_startWait()
         try:
             usedHeight = 0
             for row in range(self.RowCount):
@@ -113,14 +115,14 @@ class DrawGrid(gtk.DrawingArea):
                     top = usedHeight
                     usedWidth += colWidth
                     right = usedWidth
-                    bottom = usedHeight + self.DefaultRowHeight 
+                    bottom = usedHeight + self.DefaultRowHeight
                     cellBounds = Rect(left, top, right, bottom)
                     state = None
                     self.OnDrawCell(self, gc, col, row, cellBounds, state)
-                usedHeight += self.DefaultRowHeight  
+                usedHeight += self.DefaultRowHeight
         finally:
-            Cursor_StopWait()
-            
+            ucursor.cursor_stopWait()
+
     def MouseToCell(self, x, y):
         usedHeight = 0
         for row in range(self.RowCount):
@@ -134,43 +136,43 @@ class DrawGrid(gtk.DrawingArea):
                 top = usedHeight
                 usedWidth += colWidth
                 right = usedWidth
-                bottom = usedHeight + self.DefaultRowHeight 
+                bottom = usedHeight + self.DefaultRowHeight
                 if left <= x and x < right:
                     if top <= y and y < bottom:
                         return col, row
-            usedHeight += self.DefaultRowHeight   
-        return None , None    
-    
+            usedHeight += self.DefaultRowHeight
+        return None , None
+
     def Invalidate(self):
-        InvalidateWidget(self)   
-            
+        InvalidateWidget(self)
+
 class TBreederForm:
     def __init__(self):
         self.generations = ucollect.TListCollection()
         self.lightUpCell = delphi_compatability.TPoint(0, 0)
         self.selectedRow = 0
         self.font = gtk.gdk.Font('fixed')
-        
+
         self.BuildWindow()
         self.plantsDrawGrid.ColWidths[0] = kFirstColumnWidth
-        
+
         ShowWindow(self.window)
-        
+
         # PDF PORT FOR TESTING
         import uplant
         self.fileName = "Garden plants.pla"
         plants = uplant.PlantLoader().loadPlantsFromFile(self.fileName, inPlantMover=1, justLoad=1)
-        
+
         lastPlant = None
         for plant in plants:
             newGeneration = ugener.PdGeneration().createWithParents(plant, lastPlant, 0.5)
             self.addGeneration(newGeneration)
             lastPlant = plant
-            
+
         ucursor.windowsToWaitWith.append(self.window.window)
-        
+
         return
-    
+
         self.BreederMenu = TMainMenu()
         self.BreederMenuEdit = TMenuItem()
         self.BreederMenuCopy = TMenuItem()
@@ -237,13 +239,13 @@ class TBreederForm:
         self.internalChange = False
         self.drawing = False
         self.needToRedrawFromChangeToDrawOptions = False
-        
+
     def FormCreate(self, Sender):
         tempBoundsRect = TRect()
-        
+
         self.plantsDrawGrid.DragCursor = ucursor.crDragPlant
         self.Position = delphi_compatability.TPosition.poDesigned
-        # keep window on screen - left corner of title bar 
+        # keep window on screen - left corner of title bar
         tempBoundsRect = udomain.domain.breederWindowRect
         if (tempBoundsRect.Left != 0) or (tempBoundsRect.Right != 0) or (tempBoundsRect.Top != 0) or (tempBoundsRect.Bottom != 0):
             if tempBoundsRect.Left > delphi_compatability.Screen.Width - umain.kMinWidthOnScreen:
@@ -268,20 +270,20 @@ class TBreederForm:
 
     def BuildWindow(self):
         self.window = MakeWindow("Breeder", 750, 500)
-        
+
         scrolled_window = gtk.ScrolledWindow()
         scrolled_window.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.window.add(scrolled_window)
         scrolled_window.show()
         self.scrolledWindow = scrolled_window
-                
+
         self.plantsDrawGrid = DrawGrid(self.plantsDrawGridMouseDown)
         self.plantsDrawGrid.RowCount = 30
         self.plantsDrawGrid.DefaultRowHeight = 64
         self.plantsDrawGrid.DefaultColWidth = 64
         self.plantsDrawGrid.OnDrawCell = self.plantsDrawGridDrawCell
         self.plantsDrawGrid.updateForChanges()
-        
+
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.OnEndDrag = self.plantsDrawGridEndDrag
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.OnDragOver = self.plantsDrawGridDragOver
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.FixedRows = 0
@@ -289,14 +291,14 @@ class TBreederForm:
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.FixedCols = 0
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.OnDblClick = self.plantsDrawGridDblClick
         #  --------------- UNHANDLED ATTRIBUTE: self.plantsDrawGrid.Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect]
-    
+
         self.plantsDrawGrid.show()
         scrolled_window.add_with_viewport(self.plantsDrawGrid)
         viewport = scrolled_window.get_child()
         viewport.set_shadow_type(gtk.SHADOW_NONE)
-        
+
         return
-                
+
         ### PORT toolkit = java.awt.Toolkit.getDefaultToolkit()
         #  --------------- UNHANDLED ATTRIBUTE: self.KeyPreview = True
         #  --------------- UNHANDLED ATTRIBUTE: self.OnResize = FormResize
@@ -304,20 +306,20 @@ class TBreederForm:
         #  --------------- UNHANDLED ATTRIBUTE: self.OnActivate = FormActivate
         #  --------------- UNHANDLED ATTRIBUTE: self.Menu = BreederMenu
         #  --------------- UNHANDLED ATTRIBUTE: self.OnCreate = FormCreate
-        
+
         self.Label1 = JLabel('The breeder is empty. To make some breeder plants, select a plant (or two plants) in the main window and choose Breed from the Plant menu.', font=buttonFont)
         self.Label1.setBounds(10, 8, 152, 70)
-        
+
         self.emptyWarningPanel = JPanel(layout=None)
         # -- self.emptyWarningPanel.setLayout(BoxLayout(self.emptyWarningPanel, BoxLayout.Y_AXIS))
         self.emptyWarningPanel.add(self.Label1)
         self.emptyWarningPanel.setBounds(362, 46, 183, 93)
-        
+
         self.variationLowImage = toolkit.createImage("../resources/BreederForm_variationLow.png")
         self.variationLow = SpeedButton(ImageIcon(self.variationLowImage), 1, actionPerformed=self.variationLowClick, font=buttonFont, margin=buttonMargin)
         self.variationLow.setBounds(74, 4, 25, 25)
         #  --------------- UNHANDLED ATTRIBUTE: self.variationLow.GroupIndex = 1
-        
+
         self.variationMediumImage = toolkit.createImage("../resources/BreederForm_variationMedium.png")
         self.variationMedium = SpeedButton(ImageIcon(self.variationMediumImage), actionPerformed=self.variationMediumClick, font=buttonFont, margin=buttonMargin)
         self.variationMedium.setBounds(102, 4, 25, 25)
@@ -361,7 +363,7 @@ class TBreederForm:
         self.breederToolbarPanel.add(self.variationNoneNumeric)
         self.breederToolbarPanel.add(self.breedButton)
         self.breederToolbarPanel.setBounds(2, 10, 339, 33)
-        
+
         self.BreederMenu = JMenuBar()
         self.setJMenuBar(self.BreederMenu)
 
@@ -373,7 +375,7 @@ class TBreederForm:
         self.BreederMenuCopyAction = createAction(self.BreederMenuCopyClick, "Copy", None, self.BreederMenuEdit, KeyEvent.VK_C, None, None, "standard")
         self.BreederMenuPasteAction = createAction(self.BreederMenuPasteClick, "Paste", None, self.BreederMenuEdit, KeyEvent.VK_P, None, None, "standard")
         self.BreederMenuSendCopyToMainWindowAction = createAction(self.BreederMenuSendCopyToMainWindowClick, "Send Copy to Main Window", None, self.BreederMenuEdit, KeyEvent.VK_S, None, None, "standard")
-        
+
         self.BreederMenuPlant = self.createMenu("Breed", "B", self.BreederMenu)
         self.BreederMenuBreedAction = createAction(self.BreederMenuBreedClick, "Breed", None, self.BreederMenuPlant, KeyEvent.VK_B, None, None, "standard")
         self.BreederMenuMakeTimeSeriesAction = createAction(self.BreederMenuMakeTimeSeriesClick, "Make Time Series", None, self.BreederMenuPlant, KeyEvent.VK_T, None, None, "standard")
@@ -383,7 +385,7 @@ class TBreederForm:
         self.BreederMenuPlant.addSeparator()
         self.BreederMenuRandomizeAction = createAction(self.BreederMenuRandomizeClick, "Randomize", None, self.BreederMenuPlant, KeyEvent.VK_R, None, None, "standard")
         self.BreederMenuRandomizeAllAction = createAction(self.BreederMenuRandomizeAllClick, "Randomize All", None, self.BreederMenuPlant, KeyEvent.VK_L, None, None, "standard")
-        
+
         self.BreederMenuOptions = self.createMenu("Options", "O", self.BreederMenu)
         self.BreederMenuOptionsDrawAs = JMenu("Draw Using")
         self.BreederMenuOptionsDrawAs.setMnemonic(KeyEvent.VK_D)
@@ -430,15 +432,15 @@ class TBreederForm:
         #  --------------- UNHANDLED ATTRIBUTE: self.BreederMenuVary3DObjects.GroupIndex = 1
         self.BreederMenuOptions.addSeparator()
         self.BreederMenuOtherOptionsAction = createAction(self.BreederMenuOtherOptionsClick, "More Options...", None, self.BreederMenuOptions, KeyEvent.VK_M, None, None, "standard")
-        
+
         self.MenuBreederHelp = self.createMenu("Help", "H", self.BreederMenu)
         self.BreederMenuHelpOnBreedingAction = createAction(self.BreederMenuHelpOnBreedingClick, "Help on Breeding", None, self.MenuBreederHelp, KeyEvent.VK_B, None, None, "standard")
         self.MenuBreederHelp.addSeparator()
         self.BreederMenuHelpTopicsAction = createAction(self.BreederMenuHelpTopicsClick, "Help Topics", None, self.MenuBreederHelp, KeyEvent.VK_H, None, None, "standard")
-        
+
         #  --------------- UNHANDLED ATTRIBUTE: self.BreederMenu.Top = 16
         #  --------------- UNHANDLED ATTRIBUTE: self.BreederMenu.Left = 360
-        
+
         self.BreederPopupMenu = JPopupMenu()
         self.BreederPopupMenuBreedAction = createAction(self.BreederPopupMenuBreedClick, "Breed", None, self.BreederPopupMenu, KeyEvent.VK_B, None, None, "standard")
         self.BreederPopupMenu.addSeparator()
@@ -456,7 +458,7 @@ class TBreederForm:
         contentPane.add(self.plantsDrawGrid)
         contentPane.add(self.emptyWarningPanel)
         contentPane.add(self.breederToolbarPanel)
-    
+
     def FormActivate(self, Sender):
         if delphi_compatability.Application.terminated:
             return
@@ -474,8 +476,8 @@ class TBreederForm:
         if menuBar:
             menuBar.add(menu)
         return menu
-        
-    # -------------------------------------------------------------------------------------- grid 
+
+    # -------------------------------------------------------------------------------------- grid
     def updateForChangeToDomainOptions(self):
         if self.plantsDrawGrid.ColCount != udomain.domain.breedingAndTimeSeriesOptions.plantsPerGeneration + 1:
             self.plantsDrawGrid.ColCount = udomain.domain.breedingAndTimeSeriesOptions.plantsPerGeneration + 1
@@ -508,13 +510,13 @@ class TBreederForm:
         atLeastOnePlantHasChangedAge = False
         for generation in self.generations:
             for plant in generation.plants:
-                newAge = intround(udomain.domain.breedingAndTimeSeriesOptions.percentMaxAge / 100.0 * plant.pGeneral.ageAtMaturity)
+                newAge = int(udomain.domain.breedingAndTimeSeriesOptions.percentMaxAge / 100.0 * plant.pGeneral.ageAtMaturity)
                 if plant.age != newAge:
                     plant.setAge(newAge)
                     atLeastOnePlantHasChangedAge = True
         if atLeastOnePlantHasChangedAge:
             self.redrawPlants(kDontConsiderIfPreviewCacheIsUpToDate)
-    
+
     def redrawPlants(self, considerIfPreviewCacheIsUpToDate):
         if not considerIfPreviewCacheIsUpToDate:
             for generation in self.generations:
@@ -522,7 +524,7 @@ class TBreederForm:
                     plant.previewCacheUpToDate = False
         self.plantsDrawGrid.Invalidate()
         self.plantsDrawGrid.Update()
-    
+
     def plantsDrawGridDrawCell(self, widget, gc, Col, Row, cellRect, State):
         width = usupport.rWidth(cellRect)
         height = usupport.rHeight(cellRect)
@@ -537,7 +539,7 @@ class TBreederForm:
             DrawRectangle(widget.window, gc, cellRect, penWidth, penColor, brushColor)
             if Row > len(self.generations) - 1:
                 return
-            text = IntToStr(Row + 1)
+            text = "%d" % (Row + 1)
             textWidth = MeasureTextWidth(widget, gc, text)
             textHeight = MeasureTextHeight(widget, gc, "0")
             textDrawRect = Rect(0, 0, 0, 0)
@@ -565,13 +567,13 @@ class TBreederForm:
                 plant.previewCache.pixmap.widget = widget.window
                 plant.previewCache.Fill(gc, delphi_compatability.clWhite)
                 plant.previewCache.pixmap.widget = None
-            # draw plant 
+            # draw plant
             # draw gray solid box to show delay for drawing plant cache
             penWidth = 1
             penColor = delphi_compatability.clSilver
             brushColor = delphi_compatability.clSilver
             DrawRectangle(widget.window, gc, cellRect, penWidth, penColor, brushColor, filled=1)
-            
+
             # draw plant preview cache
             plant.fixedPreviewScale = False
             plant.fixedDrawPosition = False
@@ -584,7 +586,7 @@ class TBreederForm:
         plant.previewCache.Transparent = False
         ubmpsupport.copyBitmapToCanvasWithGlobalPalette(gc, plant.previewCache, self.plantsDrawGrid.window, cellRect)
 
-        # draw selection rectangle 
+        # draw selection rectangle
         #self.plantsDrawGrid.Canvas.Brush.Style = delphi_compatability.TFPBrushStyle.bsClear
         penWidth = 2
         if (Col == self.lightUpCell.X) and (Row == self.lightUpCell.Y):
@@ -603,7 +605,7 @@ class TBreederForm:
         DrawRectangle(widget.window, gc, aRect, penWidth, penColor, penColor, filled=0)
         label = ""
         if plant == generation.firstParent:
-            # draw parent indicator 
+            # draw parent indicator
             label = "p1"
         elif plant == generation.secondParent:
             label = "p2"
@@ -614,24 +616,24 @@ class TBreederForm:
             brushColor = delphi_compatability.clBlack
             DrawText(widget.window, gc, textDrawRect, label, font, brushColor)
 
-    
+
     def invalidateGridCell(self, column, row):
         if (column < 0) and (row < 0):
             return
         cellRectOver = self.plantsDrawGrid.CellRect(column, row)
         UNRESOLVED.invalidateRect(self.plantsDrawGrid.Handle, cellRectOver, True)
-    
+
     def invalidateGridRow(self, row):
         if row < 0:
             return
         rowRectOver = self.plantsDrawGrid.CellRect(0, row)
         rowRectOver.Right = self.plantsDrawGrid.Width
         UNRESOLVED.invalidateRect(self.plantsDrawGrid.Handle, rowRectOver, True)
-    
+
     def plantsDrawGridDblClick(self, Sender):
         self.BreederMenuBreedClick(self)
-    
-    # ------------------------------------------------------------------------ dragging 
+
+    # ------------------------------------------------------------------------ dragging
     def plantsDrawGridMouseDown(self, widget, event):
         # GTK BUG __ SEEMS TO CALL THREE TIMES IF DOUBLE CLICK 9only last is double click)
         isDoubleClick = event.type == gtk.gdk._2BUTTON_PRESS
@@ -652,7 +654,7 @@ class TBreederForm:
                         generation.selectPlant(plant, shiftHeldDown)
                     else:
                         generation.deselectAllPlants()
-                    # in first column or past them on right 
+                    # in first column or past them on right
                 else:
                     generation.deselectAllPlants()
             else:
@@ -673,7 +675,7 @@ class TBreederForm:
         """ PDF DRAG RELATED FIX
         self.plantsDrawGrid.BeginDrag(False)
         """
-    
+
     def plantsDrawGridDragOver(self, Sender, Source, X, Y, State, Accept):
         Accept = (Source != None) and (Sender != None) and ((Sender == Source) or (Source == umain.MainForm.drawingPaintBox) or (Source == umain.MainForm.plantListDrawGrid) or (Source == utimeser.TimeSeriesForm.grid))
         if (Accept):
@@ -687,7 +689,7 @@ class TBreederForm:
                 self.lightUpCell = Point(col, row)
                 self.invalidateGridCell(col, row)
         return Accept
-    
+
     def plantsDrawGridEndDrag(self, Sender, Target, X, Y):
         if delphi_compatability.Application.terminated:
             return
@@ -696,15 +698,15 @@ class TBreederForm:
         self.lightUpCell = Point(-1, -1)
         if Target == None:
             return
-        # get plant being dragged 
+        # get plant being dragged
         plant = self.plantAtMouse(self.dragPlantStartPoint.X, self.dragPlantStartPoint.Y)
         if plant == None:
             return
         if (Target == umain.MainForm.drawingPaintBox) or (Target == umain.MainForm.plantListDrawGrid):
-            # make paste command - wants list of plants 
+            # make paste command - wants list of plants
             newPlant = plant.makeCopy()
             self.numBreederPlantsCopiedThisSession += 1
-            newPlant.setName("Breeder plant " + IntToStr(self.numBreederPlantsCopiedThisSession))
+            newPlant.setName("Breeder plant %d" % (self.numBreederPlantsCopiedThisSession))
             if (Target == umain.MainForm.drawingPaintBox):
                 newPlant.moveTo(Point(X, Y))
             else:
@@ -727,7 +729,7 @@ class TBreederForm:
         elif Target == utimeser.TimeSeriesForm.grid:
             utimeser.TimeSeriesForm.copyPlantToPoint(plant, X, Y)
         elif Target == Sender:
-            # get plant being replaced 
+            # get plant being replaced
             col, row = self.plantsDrawGrid.MouseToCell(X, Y, col, row)
             if not self.inGrid(row, col):
                 return
@@ -736,14 +738,14 @@ class TBreederForm:
                 return
             if plantToReplace == plant:
                 return
-            # make replace command 
+            # make replace command
             newCommand = updcom.PdReplaceBreederPlant().createWithPlantRowAndColumn(plant, row, col)
             try:
                 ucursor.cursor_startWait()
                 umain.MainForm.doCommand(newCommand)
             finally:
                 ucursor.cursor_stopWait()
-    
+
     def copyPlantToPoint(self, aPlant, x, y):
         col, row = self.plantsDrawGrid.MouseToCell(x, y, col, row)
         plant = self.plantForRowAndColumn(row, col)
@@ -751,46 +753,46 @@ class TBreederForm:
             return
         newCommand = updcom.PdReplaceBreederPlant().createWithPlantRowAndColumn(aPlant, row, col)
         umain.MainForm.doCommand(newCommand)
-    
-    # ------------------------------------------------------------- responding to commands 
+
+    # ------------------------------------------------------------- responding to commands
     def replacePlantInRow(self, oldPlant, newPlant, row):
         generation = self.generationForIndex(row)
         if generation == None:
             raise GeneralException.create("Problem: Invalid row in method TBreederForm.replacePlantInRow.")
         generation.replacePlant(oldPlant, newPlant)
         self.updateForChangeToPlant(newPlant)
-    
+
     def forgetGenerationsListBelowRow(self, aRow):
         while len(self.generations) - 1 > aRow:
             self.forgetLastGeneration()
-    
+
     def addGenerationsFromListBelowRow(self, aRow, aGenerationsList):
         if aRow + 1 <= len(aGenerationsList) - 1:
             for i in range(aRow + 1, len(aGenerationsList)):
                 self.addGeneration(aGenerationsList[i])
-    
+
     def addGeneration(self, newGeneration):
         self.generations.Add(newGeneration)
-    
+
     def forgetLastGeneration(self):
         if len(self.generations) <= 0:
             return
         lastGeneration = self.generations[len(self.generations) - 1]
         self.generations.Remove(lastGeneration)
-    
+
     def selectGeneration(self, aGeneration):
         self.selectedRow = self.generations.IndexOf(aGeneration)
         self.ensureRowIsCompletelyVisible(self.selectedRow)
-    
+
     def ensureRowIsCompletelyVisible(self, row):
         if row < 0:
             return
         allocation = self.scrolledWindow.get_allocation()
         adjustment = self.scrolledWindow.get_vadjustment()
         scrollPosition = adjustment.get_value()
-        
+
         rowBounds = self.plantsDrawGrid.boundsForCell(0, row)
-           
+
         # if viewport inside scroll window has a shadow, would neeed a fudge factor
         if rowBounds.top < scrollPosition:
             adjustment.set_value(rowBounds.top)
@@ -806,13 +808,13 @@ class TBreederForm:
         if self.selectedRow < self.plantsDrawGrid.TopRow:
             self.plantsDrawGrid.TopRow = self.selectedRow
         """
-        pass       
-        
+        pass
+
     def deselectAllGenerations(self):
         self.selectedRow = -1
         for generation in self.generations:
             generation.deselectAllPlants()
-    
+
     def updateForChangeToGenerations(self):
         self.updateMenusForChangeToGenerations()
         self.internalChange = True
@@ -838,7 +840,7 @@ class TBreederForm:
         else:
             self.emptyWarningPanel.SendToBack()
         """
-    
+
     def updateForChangeToPlant(self, aPlant):
         genCount = -1
         for generation in self.generations:
@@ -850,7 +852,7 @@ class TBreederForm:
                     cellRectOver = self.plantsDrawGrid.CellRect(plCount, genCount)
                     self.plantsDrawGridDrawCell(self, plCount, genCount, cellRectOver, [UNRESOLVED.gdFocused, UNRESOLVED.gdSelected, ])
                     return
-    
+
     def updateForChangeToSelections(self, selectionIsInFirstColumn):
         self.updateMenusForChangeToSelection()
         #
@@ -860,10 +862,10 @@ class TBreederForm:
         #      plant := PdPlant(selectedPlants.items[i]);
         #      self.updateForChangeToPlant(plant);
         #      end;
-        #      
+        #
         #if selectionIsInFirstColumn then
         self.plantsDrawGrid.Invalidate()
-    
+
     #
     #procedure TBreederForm.updateForChangeToSelections;
     #  begin
@@ -880,13 +882,13 @@ class TBreederForm:
     #      end;
     #    end;
     #  end;
-    #    
+    #
     def redoCaption(self):
         if len(self.generations) == 1:
             # new v1.4
             self.Caption = "Breeder (1 generation)"
         else:
-            self.Caption = "Breeder (" + IntToStr(len(self.generations)) + " generations)"
+            self.Caption = "Breeder (%d generations)" % (len(self.generations))
         #
         #  self.caption := self.caption + ', numbers ';
         #  case domain.breedingAndTimeSeriesOptions.variationType of
@@ -904,8 +906,8 @@ class TBreederForm:
         #    self.caption := self.caption + ', 3D objects on'
         #  else
         #    self.caption := self.caption + ', 3D objects off'
-        #    
-    
+        #
+
     def updateMenusForChangeToGenerations(self):
         # PDF PORT FIX LATER!!!
         #print "menu updatign unfinished"
@@ -916,7 +918,7 @@ class TBreederForm:
         self.BreederMenuRandomizeAll.enabled = havePlants
         self.updateMenusForChangeToSelection()
         """
-    
+
     def updateMenusForChangeToSelection(self):
         haveSelection = (self.primarySelectedPlant() != None)
         self.BreederMenuRandomize.enabled = haveSelection
@@ -931,21 +933,21 @@ class TBreederForm:
         self.BreederPopupMenuCopy.enabled = self.BreederMenuCopy.enabled
         self.BreederPopupMenuRandomize.enabled = self.BreederMenuRandomize.enabled
         self.updatePasteMenuForClipboardContents()
-        # must paste onto a selected plant 
+        # must paste onto a selected plant
         self.BreederMenuPaste.enabled = self.BreederMenuPaste.enabled and haveSelection
         self.BreederPopupMenuPaste.enabled = self.BreederMenuPaste.enabled
-    
+
     def updatePasteMenuForClipboardContents(self):
         self.BreederMenuPaste.enabled = (self.primarySelectedPlant() != None) and (udomain.domain.plantManager.privatePlantClipboard.Count > 0)
         self.BreederPopupMenuPaste.enabled = self.BreederMenuPaste.enabled
-    
+
     def selectedGeneration(self):
         result = None
         if (self.selectedRow < 0) or (self.selectedRow > len(self.generations) - 1):
             return result
         result = self.generations[self.selectedRow]
         return result
-    
+
     def primarySelectedPlant(self):
         result = None
         generation = self.selectedGeneration()
@@ -953,7 +955,7 @@ class TBreederForm:
             return result
         result = generation.firstSelectedPlant()
         return result
-    
+
     def plantAtMouse(self, x, y):
         result = None
         col, row = self.plantsDrawGrid.MouseToCell(x, y)
@@ -961,36 +963,36 @@ class TBreederForm:
             return result
         result = self.plantForRowAndColumn(row, col)
         return result
-    
-    # ----------------------------------------------------------------------------- menu 
+
+    # ----------------------------------------------------------------------------- menu
     def BreederMenuUndoClick(self, Sender):
         umain.MainForm.MenuEditUndoClick(Sender)
-    
+
     def BreederMenuRedoClick(self, Sender):
         umain.MainForm.MenuEditRedoClick(Sender)
-    
+
     def BreederMenuCopyClick(self, Sender):
         plant = self.primarySelectedPlant()
         if plant == None:
             return
         copyList = delphi_compatability.TList()
         copyList.Add(plant)
-        # temporarily change plant name to make copy, then put back 
+        # temporarily change plant name to make copy, then put back
         saveName = plant.getName()
         self.numBreederPlantsCopiedThisSession += 1
-        plant.setName("Breeder plant " + IntToStr(self.numBreederPlantsCopiedThisSession))
+        plant.setName("Breeder plant %d" % (self.numBreederPlantsCopiedThisSession))
         udomain.domain.plantManager.copyPlantsInListToPrivatePlantClipboard(copyList)
         plant.setName(saveName)
         #sets our paste menu also
         umain.MainForm.updatePasteMenuForClipboardContents()
-    
+
     def BreederMenuSendCopyToMainWindowClick(self, Sender):
         self.BreederMenuCopyClick(self)
         umain.MainForm.MenuEditPasteClick(umain.MainForm)
-    
+
     def BreederMenuUndoRedoListClick(self, Sender):
         umain.MainForm.UndoMenuEditUndoRedoListClick(umain.MainForm)
-    
+
     def BreederMenuPasteClick(self, Sender):
         if udomain.domain.plantManager.privatePlantClipboard.Count <= 0:
             return
@@ -1006,12 +1008,12 @@ class TBreederForm:
         newCommand = updcom.PdReplaceBreederPlant().createWithPlantRowAndColumn(newPlant, self.selectedRow, column)
         umain.MainForm.doCommand(newCommand)
         #command will free plant if paste is undone
-    
+
     def BreederMenuBreedClick(self, Sender):
         if (self.selectedRow < 0) or (self.selectedRow > len(self.generations) - 1):
             return
         if self.selectedRow >= udomain.domain.breedingAndTimeSeriesOptions.maxGenerations - 1:
-            # check if there is room in the breeder - this command will make one new generation 
+            # check if there is room in the breeder - this command will make one new generation
             self.fullWarning()
             return
         generationToBreed = self.generations[self.selectedRow]
@@ -1023,31 +1025,31 @@ class TBreederForm:
         # PDF PORT FIX LATER __ FOR TESTING
         #umain.MainForm.doCommand(newCommand)
         #newCommand.doCommand()
-        Cursor_StartWait()
+        ucursor.cursor_startWait()
         gobject.idle_add(newCommand.doCommand)
-        gobject.idle_add(Cursor_StopWait)
-    
+        gobject.idle_add(ucursor.cursor_stopWait())
+
     def BreederMenuMakeTimeSeriesClick(self, Sender):
         if self.primarySelectedPlant() == None:
             return
         newCommand = updcom.PdMakeTimeSeriesCommand().createWithNewPlant(self.primarySelectedPlant())
         umain.MainForm.doCommand(newCommand)
-    
+
     def fullWarning(self):
         MessageDialog("The breeder is full. " + chr(13) + chr(13) + "You must delete some rows" + chr(13) + "(or increase the number of rows allowed in the breeder options) " + chr(13) + "before you can breed more plants.", mtWarning, [mbOK, ], 0)
-    
+
     def BreederMenuDeleteRowClick(self, Sender):
         if self.selectedGeneration() == None:
             return
         newCommand = updcom.PdDeleteBreederGenerationCommand().createWithGeneration(self.selectedGeneration())
         umain.MainForm.doCommand(newCommand)
-    
+
     def BreederMenuDeleteAllClick(self, Sender):
         if len(self.generations) <= 0:
             return
         newCommand = updcom.PdDeleteAllBreederGenerationsCommand().create()
         umain.MainForm.doCommand(newCommand)
-    
+
     def BreederMenuRandomizeClick(self, Sender):
         aGeneration = self.selectedGeneration()
         if aGeneration == None:
@@ -1065,7 +1067,7 @@ class TBreederForm:
         finally:
             #command has another list, so we must free this one
             ucursor.cursor_stopWait()
-    
+
     def BreederMenuRandomizeAllClick(self, Sender):
         if len(self.generations) <= 0:
             return
@@ -1083,22 +1085,22 @@ class TBreederForm:
         finally:
             randomizeList.free
             ucursor.cursor_stopWait()
-    
+
     def BreederMenuVariationNoneClick(self, Sender):
         udomain.domain.breedingAndTimeSeriesOptions.variationType = udomain.kBreederVariationNoNumeric
         self.BreederMenuVariationNone.checked = True
         self.redoCaption()
-    
+
     def BreederMenuVariationLowClick(self, Sender):
         udomain.domain.breedingAndTimeSeriesOptions.variationType = udomain.kBreederVariationLow
         self.BreederMenuVariationLow.checked = True
         self.redoCaption()
-    
+
     def BreederMenuVariationMediumClick(self, Sender):
         udomain.domain.breedingAndTimeSeriesOptions.variationType = udomain.kBreederVariationMedium
         self.BreederMenuVariationMedium.checked = True
         self.redoCaption()
-    
+
     def BreederMenuVariationHighClick(self, Sender):
         udomain.domain.breedingAndTimeSeriesOptions.variationType = udomain.kBreederVariationHigh
         # this is to deal with if it was turned off by not having a library
@@ -1106,27 +1108,27 @@ class TBreederForm:
         # domain.breedingAndTimeSeriesOptions.chooseTdosRandomlyFromCurrentLibrary := True;
         self.BreederMenuVariationHigh.checked = True
         self.redoCaption()
-    
+
     def BreederMenuVariationCustomClick(self, Sender):
         self.changeBreederAndTimeSeriesOptions(kOptionTabMutation)
-    
+
     def BreederMenuOtherOptionsClick(self, Sender):
         self.changeBreederAndTimeSeriesOptions(kOptionTabSize)
-    
+
     def BreederMenuVaryColorsClick(self, Sender):
         self.BreederMenuVaryColors.checked = not self.BreederMenuVaryColors.checked
         options = udomain.domain.breedingAndTimeSeriesOptions
         options.mutateAndBlendColorValues = self.BreederMenuVaryColors.checked
         newCommand = updcom.PdChangeBreedingAndTimeSeriesOptionsCommand().createWithOptionsAndDomainOptions(options, udomain.domain.options)
         umain.MainForm.doCommand(newCommand)
-    
+
     def BreederMenuVary3DObjectsClick(self, Sender):
         self.BreederMenuVary3DObjects.checked = not self.BreederMenuVary3DObjects.checked
         options = udomain.domain.breedingAndTimeSeriesOptions
         options.chooseTdosRandomlyFromCurrentLibrary = self.BreederMenuVary3DObjects.checked
         newCommand = updcom.PdChangeBreedingAndTimeSeriesOptionsCommand().createWithOptionsAndDomainOptions(options, udomain.domain.options)
         umain.MainForm.doCommand(newCommand)
-    
+
     def changeBreederAndTimeSeriesOptions(self, tabIndexToShow):
         if tabIndexToShow == kOptionTabMutation:
             udomain.domain.breedingAndTimeSeriesOptions.variationType = udomain.kBreederVariationCustom
@@ -1145,53 +1147,53 @@ class TBreederForm:
         finally:
             optionsForm.free
             optionsForm = None
-    
+
     def variationLowClick(self, Sender):
         self.BreederMenuVariationLowClick(self)
-    
+
     def variationNoneNumericClick(self, Sender):
         self.BreederMenuVariationNoneClick(self)
-    
+
     def variationMediumClick(self, Sender):
         self.BreederMenuVariationMediumClick(self)
-    
+
     def variationHighClick(self, Sender):
         self.BreederMenuVariationHighClick(self)
-    
+
     def variationCustomClick(self, Sender):
         self.BreederMenuVariationCustomClick(self)
-    
+
     def varyColorsClick(self, Sender):
         self.BreederMenuVaryColorsClick(self)
-    
+
     def vary3DObjectsClick(self, Sender):
         self.BreederMenuVary3DObjectsClick(self)
-    
+
     def BreederPopupMenuRandomizeClick(self, Sender):
         self.BreederMenuRandomizeClick(self)
-    
+
     def BreederPopupMenuBreedClick(self, Sender):
         self.BreederMenuBreedClick(self)
-    
+
     def breedButtonClick(self, Sender):
         self.BreederMenuBreedClick(self)
-    
+
     def BreederPopupMenuMakeTimeSeriesClick(self, Sender):
         self.BreederMenuMakeTimeSeriesClick(self)
-    
+
     def BreederPopupMenuCopyClick(self, Sender):
         self.BreederMenuCopyClick(self)
-    
+
     def BreederPopupMenuPasteClick(self, Sender):
         self.BreederMenuPasteClick(self)
-    
+
     def BreederPopupMenuSendCopytoMainWindowClick(self, Sender):
         self.BreederMenuSendCopyToMainWindowClick(self)
-    
+
     def BreederPopupMenuDeleteRowClick(self, Sender):
         self.BreederMenuDeleteRowClick(self)
-    
-    # --------------------------------------------------------------------------- utilities 
+
+    # --------------------------------------------------------------------------- utilities
     def inGrid(self, row, column):
         result = True
         if (row < 0) or (row > len(self.generations) - 1):
@@ -1199,7 +1201,7 @@ class TBreederForm:
         if (column < 1) or (column - 1 > self.plantsDrawGrid.ColCount - 1):
             result = False
         return result
-    
+
     def generationForIndex(self, index):
         result = None
         if index < 0:
@@ -1210,7 +1212,7 @@ class TBreederForm:
             return result
         result = self.generations[index]
         return result
-    
+
     def plantForRowAndColumn(self, row, column):
         result = None
         generation = self.generationForIndex(row)
@@ -1218,8 +1220,8 @@ class TBreederForm:
             return result
         result = generation.plantForIndex(column - 1)
         return result
-    
-    # ---------------------------------------------------------------------------- resizing 
+
+    # ---------------------------------------------------------------------------- resizing
     def FormResize(self, Sender):
         if delphi_compatability.Application.terminated:
             return
@@ -1229,61 +1231,61 @@ class TBreederForm:
         self.helpButton.SetBounds(self.breederToolbarPanel.Width - self.helpButton.Width - 4, self.helpButton.Top, self.helpButton.Width, self.helpButton.Height)
         self.plantsDrawGrid.SetBounds(0, self.breederToolbarPanel.Height, self.ClientWidth, self.ClientHeight - self.breederToolbarPanel.Height)
         self.emptyWarningPanel.SetBounds(self.ClientWidth / 2 - self.emptyWarningPanel.Width / 2, self.ClientHeight / 2 - self.emptyWarningPanel.Height / 2, self.emptyWarningPanel.Width, self.emptyWarningPanel.Height)
-    
+
     def WMGetMinMaxInfo(self, MSG):
         PdForm.WMGetMinMaxInfo(self)
         # FIX unresolved WITH expression: UNRESOLVED.PMinMaxInfo(MSG.lparam).PDF_FIX_POINTER_ACCESS
         UNRESOLVED.ptMinTrackSize.x = 250
         UNRESOLVED.ptMinTrackSize.y = 150
-    
+
     def helpButtonClick(self, Sender):
         delphi_compatability.Application.HelpJump("Breeding_plants_using_the_breeder")
-    
-    # ----------------------------------------------------------------------------- *palette stuff 
+
+    # ----------------------------------------------------------------------------- *palette stuff
     def GetPalette(self):
         result = umain.MainForm.paletteImage.Picture.Bitmap.Palette
         return result
-    
+
     def PaletteChanged(self, Foreground):
         palette = self.GetPalette()
         if palette != 0:
             DC = self.GetDeviceContext(windowHandle)
             oldPalette = UNRESOLVED.selectPalette(DC, palette, not Foreground)
             if (UNRESOLVED.realizePalette(DC) != 0) and (not delphi_compatability.Application.terminated) and (self.plantsDrawGrid != None):
-                # if palette changed, repaint drawing 
+                # if palette changed, repaint drawing
                 self.plantsDrawGrid.Invalidate()
             UNRESOLVED.selectPalette(DC, oldPalette, True)
             UNRESOLVED.realizePalette(DC)
             UNRESOLVED.releaseDC(windowHandle, DC)
         result = PdForm.PaletteChanged(self, Foreground)
         return result
-    
+
     def BreederMenuHelpOnBreedingClick(self, Sender):
         delphi_compatability.Application.HelpJump("Breeding_plants_using_the_breeder")
-    
+
     def BreederMenuHelpTopicsClick(self, Sender):
         delphi_compatability.Application.HelpCommand(UNRESOLVED.HELP_FINDER, 0)
-    
+
     def BreederMenuOptionsFastDrawClick(self, Sender):
         umain.MainForm.MenuOptionsFastDrawClick(umain.MainForm)
-    
+
     def BreederMenuOptionsMediumDrawClick(self, Sender):
         umain.MainForm.MenuOptionsMediumDrawClick(umain.MainForm)
-    
+
     def BreederMenuOptionsBestDrawClick(self, Sender):
         umain.MainForm.MenuOptionsBestDrawClick(umain.MainForm)
-    
+
     def BreederMenuOptionsCustomDrawClick(self, Sender):
         umain.MainForm.MenuOptionsCustomDrawClick(umain.MainForm)
-  
+
 # refernced by commands
 BreederForm = None
 
-def main(): 
-    global BreederForm           
+def main():
+    global BreederForm
     BreederForm = TBreederForm()
     gtk.main()
-    
+
 if __name__ == "__main__":
     main()
-      
+

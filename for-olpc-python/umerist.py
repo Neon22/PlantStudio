@@ -12,11 +12,12 @@ import usupport
 import uinflor
 import u3dexport
 
+import udebug
 """
 import uclasses
 import utdo
 import uturtle
-import udebug
+
 import ufiler
 import delphi_compatability
 """
@@ -24,17 +25,19 @@ import delphi_compatability
 class PdMeristem(upart.PdPlantPart):
     def __init__(self):
         upart.PdPlantPart.__init__(self)
+        # structure
         self.phytomerAttachedTo = None
+        #
         self.daysCreatingThisPlantPart = 0L
         self.isActive = False
         self.isApical = False
         self.isReproductive = False
         self.gender = 0
-    
+
     def newWithPlant(self, aPlant):
         self.InitializeWithPlant(aPlant)
         return self
-    
+
     def destroy(self):
         if self.isReproductive:
             if self.isActive:
@@ -50,12 +53,12 @@ class PdMeristem(upart.PdPlantPart):
                     self.plant.numApicalInactiveReproductiveMeristems -= 1
                 else:
                     self.plant.numAxillaryInactiveReproductiveMeristems -= 1
-        PdPlantPart.destroy(self)
-    
+        upart.PdPlantPart.destroy(self)
+
     def InitializeWithPlant(self, aPlant):
         # v1.6b1 removed inherited
         self.initialize(aPlant)
-        # don't need to call any setIf... functions here because lists don't need to be changed yet 
+        # don't need to call any setIf... functions here because lists don't need to be changed yet
         self.isApical = True
         self.liveBiomass_pctMPB = 0.0
         self.deadBiomass_pctMPB = 0.0
@@ -66,15 +69,18 @@ class PdMeristem(upart.PdPlantPart):
         self.gender = uplant.kGenderFemale
         if self.plant.floweringHasStarted and (self.plant.randomNumberGenerator.zeroToOne() <= self.plant.pMeristem.determinateProbability):
             self.setIfReproductive(True)
-    
+
     def getName(self):
-        result = ""
+        #result = ""
         result = "meristem"
         return result
-    
+
     def nextDay(self):
+        ''' make decision on create phytomer or inflorescence
+            contemplate branching
+        '''
         try:
-            upart.PdPlantPart.nextDay(self)
+            upart.PdPlantPart.nextDay(self) # age+1
             if self.isActive:
                 self.daysCreatingThisPlantPart += 1
                 if not self.isReproductive:
@@ -88,27 +94,27 @@ class PdMeristem(upart.PdPlantPart):
             # PDF PORT ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdMeristem.nextDay")
-    
+
     def contemplateBranching(self):
+        ''' Decide if this meristem is going to become active and branch (start demanding photosynthate).
+            This method is called once per day to create a large pool of random tests, each with
+            very small probability, leading to a small number of occurrences with small variation.
+            - True or False.
+        '''
         if self.plant.pMeristem.branchingIndex == 0:
-            #Decide if this meristem is going to become active and branch (start demanding photosynthate).
-            #This method is called once per day to create a large pool of random tests, each with
-            #very small probability, leading to a small number of occurrences with small variation.
-            result = False
-            return result
+            return False
         if not self.plant.pMeristem.secondaryBranchingIsAllowed:
             firstOnBranch = self.phytomerAttachedTo.firstPhytomerOnBranch()
             if (firstOnBranch != self.plant.firstPhytomer):
-                result = False
-                return result
+                return False
         if self.plant.pMeristem.branchingIndex == 100:
-            result = True
-            return result
+            return True
+        #
         if self.phytomerAttachedTo.distanceFromApicalMeristem() < self.plant.pMeristem.branchingDistance:
             if self.plant.pMeristem.branchingDistance == 0:
                 decisionPercent = self.plant.pMeristem.branchingIndex
             else:
-                decisionPercent = self.plant.pMeristem.branchingIndex * umath.min(1.0, umath.max(0.0, umath.safedivExcept(self.phytomerAttachedTo.distanceFromApicalMeristem(), self.plant.pMeristem.branchingDistance, 0)))
+                decisionPercent = self.plant.pMeristem.branchingIndex * min(1.0, max(0.0, umath.safedivExcept(self.phytomerAttachedTo.distanceFromApicalMeristem(), self.plant.pMeristem.branchingDistance, 0)))
             randomPercent = self.plant.randomNumberGenerator.randomPercent()
             result = randomPercent < decisionPercent
         else:
@@ -116,21 +122,25 @@ class PdMeristem(upart.PdPlantPart):
             randomPercent = self.plant.randomNumberGenerator.randomPercent()
             result = randomPercent < decisionPercent
         return result
-    
+
     def optimalInitialPhytomerBiomass_pctMPB(self):
+        ''' Add up % available biomass for new phytomer '''
         result = uintern.PdInternode.optimalInitialBiomass_pctMPB(self.plant) + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
         if self.plant.pMeristem.branchingAndLeafArrangement == uplant.kArrangementOpposite:
             result = result + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
         return result
-    
+
     def accumulateOrCreatePhytomer(self):
+        ''' calc biomass
+            - create phytomer if enough juice
+        '''
         optimalInitialBiomass_pctMPB = 0.0
         minBiomassNeeded_pctMPB = 0.0
         fractionOfOptimalSize = 0.0
         shouldCreatePhytomer = False
-        
+        #
         try:
-            shouldCreatePhytomer = False
+            shouldCreatePhytomer = False #!!
             optimalInitialBiomass_pctMPB = self.optimalInitialPhytomerBiomass_pctMPB()
             if (self.liveBiomass_pctMPB >= optimalInitialBiomass_pctMPB):
                 shouldCreatePhytomer = True
@@ -147,17 +157,20 @@ class PdMeristem(upart.PdPlantPart):
             #PDF PORT ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdMeristem.accumulateOrCreatePhytomer")
-    
+
     def accumulateOrCreateInflorescence(self):
+        ''' calc biomass
+            - create Inflorescence if enough juice
+        '''
         optimalInitialBiomass_pctMPB = 0.0
         minBiomassNeeded_pctMPB = 0.0
         fractionOfOptimalSize = 0.0
         shouldCreateInflorescence = False
-        
+
         try:
             if self.phytomerAttachedTo.isFirstPhytomer or not self.isReproductive or not self.isActive:
                 return
-            shouldCreateInflorescence = False
+            shouldCreateInflorescence = False #!!
             optimalInitialBiomass_pctMPB = uinflor.PdInflorescence.optimalInitialBiomass_pctMPB(self.plant, self.gender)
             if (self.liveBiomass_pctMPB >= optimalInitialBiomass_pctMPB):
                 shouldCreateInflorescence = True
@@ -174,14 +187,21 @@ class PdMeristem(upart.PdPlantPart):
             # PDF PORT __ ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdMeristem.accumulateOrCreateInflorescence")
-    
+
     def traverseActivity(self, mode, traverserProxy):
+        ''' active when:
+            - draw, calc triangles..
+            - next day calcs
+            - reproduction and vegetative biomass, addition,removal
+        '''
+        # do part aspect first
         upart.PdPlantPart.traverseActivity(self, mode, traverserProxy)
         traverser = traverserProxy
         if traverser == None:
             return
         if self.hasFallenOff and (mode != utravers.kActivityStream) and (mode != utravers.kActivityFree):
             return
+        #
         try:
             if mode == utravers.kActivityNone:
                 pass
@@ -250,28 +270,28 @@ class PdMeristem(upart.PdPlantPart):
             elif mode == utravers.kActivityVegetativeBiomassThatCanBeRemoved:
                 if not self.isActive:
                     #called by phytomer
-                    # free called by phytomer or inflorescence 
+                    # free called by phytomer or inflorescence
                     return
                 if (mode == utravers.kActivityVegetativeBiomassThatCanBeRemoved) and (self.isReproductive):
                     return
                 if (mode == utravers.kActivityReproductiveBiomassThatCanBeRemoved) and (not self.isReproductive):
                     return
                 try:
-                    # a meristem can lose all of its biomass 
+                    # a meristem can lose all of its biomass
                     traverser.total = traverser.total + self.liveBiomass_pctMPB
                 except Exception, e:
                     usupport.messageForExceptionType(e, "PdMeristem.traverseActivity (removal request)")
             elif mode == utravers.kActivityReproductiveBiomassThatCanBeRemoved:
                 if not self.isActive:
                     #called by phytomer
-                    # free called by phytomer or inflorescence 
+                    # free called by phytomer or inflorescence
                     return
                 if (mode == utravers.kActivityVegetativeBiomassThatCanBeRemoved) and (self.isReproductive):
                     return
                 if (mode == utravers.kActivityReproductiveBiomassThatCanBeRemoved) and (not self.isReproductive):
                     return
                 try:
-                    # a meristem can lose all of its biomass 
+                    # a meristem can lose all of its biomass
                     traverser.total = traverser.total + self.liveBiomass_pctMPB
                 except Exception, e:
                     usupport.messageForExceptionType(e, "PdMeristem.traverseActivity (removal request)")
@@ -323,7 +343,7 @@ class PdMeristem(upart.PdPlantPart):
             # PDF PORT __ TEMORARILY ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdMeristem.traverseActivity")
-    
+
     def countPointsAndTrianglesFor3DExportAndAddToTraverserTotals(self, traverser):
         if traverser == None:
             return
@@ -331,13 +351,12 @@ class PdMeristem(upart.PdPlantPart):
             traverser.total3DExportPointsIn3DObjects += self.plant.pAxillaryBud.tdoParams.object3D.pointsInUse * self.plant.pAxillaryBud.tdoParams.repetitions
             traverser.total3DExportTrianglesIn3DObjects += len(self.plant.pAxillaryBud.tdoParams.object3D.triangles) * self.plant.pAxillaryBud.tdoParams.repetitions
             self.addExportMaterial(traverser, u3dexport.kExportPartMeristem, -1)
-    
+
     def report(self):
-        PdPlantPart.report(self)
-        #debugPrint('meristem, age ' + IntToStr(age) + ' biomass ' + floatToStr(liveBiomass_pctMPB));
-        #DebugForm.printNested(plant.turtle.stackSize, 'meristem, age ' + IntToStr(age) + ' biomass '
-        #    + floatToStr(liveBiomass_pctMPB));
-    
+        upart.PdPlantPart.report(self)
+        #udebug.DebugPrint('meristem, age %d biomass %f' % ( upart.PdPlantPart.age,  upart.PdPlantPart.liveBiomass_pctMPB))
+        #DebugForm.printNested(plant.turtle.stackSize, 'meristem, age %d biomass %f' % (age, liveBiomass_pctMPB))
+
     def createAxillaryMeristem(self, direction):
         # create new axillary meristem attached to the same phytomer as this apical meristem is attached to.
         newMeristem = PdMeristem()
@@ -350,7 +369,7 @@ class PdMeristem(upart.PdPlantPart):
             self.phytomerAttachedTo.rightBranchPlantPart = newMeristem
         result = newMeristem
         return result
-    
+
     def setIfActive(self, active):
         if self.isActive != active:
             self.isActive = active
@@ -372,7 +391,7 @@ class PdMeristem(upart.PdPlantPart):
                     else:
                         self.plant.numAxillaryInactiveReproductiveMeristems += 1
                         self.plant.numAxillaryActiveReproductiveMeristemsOrInflorescences -= 1
-    
+
     def setIfApical(self, apical):
         if self.isApical != apical:
             self.isApical = apical
@@ -394,7 +413,7 @@ class PdMeristem(upart.PdPlantPart):
                     else:
                         self.plant.numAxillaryInactiveReproductiveMeristems += 1
                         self.plant.numApicalInactiveReproductiveMeristems -= 1
-    
+
     def setIfReproductive(self, reproductive):
         if self.isReproductive != reproductive:
             #assume can only become reproductive and not go other way
@@ -412,7 +431,7 @@ class PdMeristem(upart.PdPlantPart):
                     self.plant.numApicalInactiveReproductiveMeristems += 1
                 else:
                     self.plant.numAxillaryInactiveReproductiveMeristems += 1
-    
+
     # create first phytomer of plant with optimal biomass. return phytomer created so plant can hold on to it.
     def createFirstPhytomer(self):
         result = None
@@ -428,7 +447,7 @@ class PdMeristem(upart.PdPlantPart):
             raise
             usupport.messageForExceptionType(e, "PdMeristem.createFirstPhytomer")
         return result
-    
+
     # create new inflorescence. attach new inflor to phytomer this meristem is attached to,
     # then unattach this meristem from the phytomer and tell inflor pointer to self so inflor can free self
     # when it is freed.
@@ -449,7 +468,7 @@ class PdMeristem(upart.PdPlantPart):
         else:
             raise GeneralException.create("Problem: Branching incorrect in method PdMeristem.createInflorescence.")
         self.phytomerAttachedTo = None
-    
+
     def createPhytomer(self, fractionOfFullSize):
         max_parts = udomain.domain.options.maxPartsPerPlant_thousands * 1000
         if self.plant.partsCreated > max_parts:
@@ -464,7 +483,7 @@ class PdMeristem(upart.PdPlantPart):
                 self.phytomerAttachedTo.nextPlantPart = newPhytomer
                 if (self.plant.pMeristem.branchingIsSympodial):
                     self.setIfActive(False)
-                # axillary 
+                # axillary
             else:
                 if self.phytomerAttachedTo.leftBranchPlantPart == self:
                     self.phytomerAttachedTo.leftBranchPlantPart = newPhytomer
@@ -506,7 +525,7 @@ class PdMeristem(upart.PdPlantPart):
                         leftMeristem.setIfActive(True)
                     else:
                         rightMeristem.setIfActive(True)
-    
+
     def draw(self):
         if (self.plant.pAxillaryBud.tdoParams.scaleAtFullSize == 0):
             return
@@ -522,7 +541,7 @@ class PdMeristem(upart.PdPlantPart):
         else:
             self.applyAmendmentRotations()
         daysToFullSize = 5
-        scale = (self.plant.pAxillaryBud.tdoParams.scaleAtFullSize / 100.0) * (umath.min(1.0, umath.safedivExcept(self.age, daysToFullSize, 0)))
+        scale = (self.plant.pAxillaryBud.tdoParams.scaleAtFullSize / 100.0) * (min(1.0, umath.safedivExcept(self.age, daysToFullSize, 0)))
         if self.isApical:
             return
         try:
@@ -552,7 +571,7 @@ class PdMeristem(upart.PdPlantPart):
             # PDF PORT TEMP ADDED RAISE FOR TESTIGN
             raise
             usupport.messageForExceptionType(e, "PdMeristem.draw")
-    
+
     def startReproduction(self):
         if (self.plant.randomNumberGenerator.zeroToOne() <= self.plant.pMeristem.determinateProbability):
             #Decide gender and activity based on whether the plant has hermaphroditic or separate flowers, and if
@@ -572,7 +591,7 @@ class PdMeristem(upart.PdPlantPart):
                 self.gender = uplant.kGenderFemale
         if self.willCreateInflorescence():
             self.setIfActive(True)
-    
+
     def decideIfActiveFemale(self):
         result = False
         #For the case of separate male and female flowers, decide if this meristem will be able to create
@@ -583,7 +602,7 @@ class PdMeristem(upart.PdPlantPart):
         if result and (self.gender == uplant.kGenderMale):
             result = (self.plant.randomNumberGenerator.zeroToOne() < 0.5)
         return result
-    
+
     def decideIfActiveHermaphroditic(self):
         result = False
         #For the case of hermaphroditic flowers, decide if this meristem will be able to create
@@ -591,25 +610,25 @@ class PdMeristem(upart.PdPlantPart):
         #  Called by decideReproductiveGenderAndActivity.
         result = (self.isApical == self.plant.pInflor[uplant.kGenderFemale].isTerminal)
         return result
-    
+
     def decideIfActiveMale(self):
         result = False
         #For the case of separate male and female flowers, decide if this meristem will be able to create
         #  a male inflorescence. Called by decideReproductiveGenderAndActivity.
         result = (self.isApical == self.plant.pInflor[uplant.kGenderMale].isTerminal)
         return result
-    
+
     def partType(self):
         result = 0
         result = uplant.kPartTypeMeristem
         return result
-    
+
     def willCreateInflorescence(self):
         result = False
         inflorProb = 0.0
         numExpected = 0.0
         numAlready = 0.0
-        
+
         try:
             if (self.phytomerAttachedTo.isFirstPhytomer) and (not self.isApical):
                 #Determine probability that this meristem will produce an inflorescence, which is
@@ -641,17 +660,17 @@ class PdMeristem(upart.PdPlantPart):
             result = False
             usupport.messageForExceptionType(e, "PdMeristem.willCreateInflorescence")
         return result
-    
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdMeristem
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
-        PdPlantPart.streamDataWithFiler(self, filer, cvir)
+        upart.PdPlantPart.streamDataWithFiler(self, filer, cvir)
         self.daysCreatingThisPlantPart = filer.streamLongint(self.daysCreatingThisPlantPart)
         self.isActive = filer.streamBoolean(self.isActive)
         self.isApical = filer.streamBoolean(self.isApical)
         self.isReproductive = filer.streamBoolean(self.isReproductive)
         self.gender = filer.streamSmallint(self.gender)
-    
+

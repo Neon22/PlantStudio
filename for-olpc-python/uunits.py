@@ -275,48 +275,48 @@ deg_to_rad = 0.0
 frn_to_pct = 0.0
 pct_to_frn = 0.0
 
-# if change any unit string to make it longer than this, update 
-# unit sets  
-# obsolete 
-# obsolete 
-#length (base unit: m) 
+# if change any unit string to make it longer than this, update
+# unit sets
+# obsolete
+# obsolete
+#length (base unit: m)
 # note: length used to be split into small and large,
-#  but these two have been combined so the user doesn't see them. 
-# was inches 
-# was feet 
-# was yards 
-# was large meters 
-# was large km 
-# 10 was large yards 
-# 11 was large miles 
+#  but these two have been combined so the user doesn't see them.
+# was inches
+# was feet
+# was yards
+# was large meters
+# was large km
+# 10 was large yards
+# 11 was large miles
 # angle (base unit: radians)
-# temperature (base unit: deg C)  
-# Mass (base unit: kg) (both small and large) 
-# note: these two have been combined so the user doesn't see them. 
-# was ounces 
-# was pounds 
-# was large kg 
-# was large metric tons 
-# 8 was large pounds 
-# 9 was large english tons 
-# area (base unit: m2)  
-# Mass over area (base unit: kg/ha) 
-# radiation (base unit: MJ/m2) 
-# volume (base unit: liter) 
-# depth of water (precipitation) (base unit: mm) 
-# velocity (base unit: m/sec) 
+# temperature (base unit: deg C)
+# Mass (base unit: kg) (both small and large)
+# note: these two have been combined so the user doesn't see them.
+# was ounces
+# was pounds
+# was large kg
+# was large metric tons
+# 8 was large pounds
+# 9 was large english tons
+# area (base unit: m2)
+# Mass over area (base unit: kg/ha)
+# radiation (base unit: MJ/m2)
+# volume (base unit: liter)
+# depth of water (precipitation) (base unit: mm)
+# velocity (base unit: m/sec)
 # pressure (base unit: Pa)
-# density (base unit: g/cm3) (also concentration) 
-# concentration (base unit: g/t) 
-# length 
-# mass 
-# area 
-# energy 
-# volume 
-# pressure 
-# other 
+# density (base unit: g/cm3) (also concentration)
+# concentration (base unit: g/t)
+# length
+# mass
+# area
+# energy
+# volume
+# pressure
+# other
 def setUnitConstants():
-    # length 
+    # length
     m_to_microns = 1000000.0
     microns_to_m = 1.0 / m_to_microns
     m_to_mm = 1000.0
@@ -335,7 +335,7 @@ def setUnitConstants():
     ft_to_yd = 1.0 / yd_to_ft
     mi_to_ft = 5280.0
     ft_to_mi = 1.0 / mi_to_ft
-    # mass 
+    # mass
     t_to_kg = 1000.0
     kg_to_t = 1.0 / t_to_kg
     kg_to_g = 1000.0
@@ -348,7 +348,7 @@ def setUnitConstants():
     oz_to_lb = 1.0 / lb_to_oz
     T_to_lb = 2000.0
     lb_to_T = 1.0 / T_to_lb
-    # area 
+    # area
     ha_to_m2 = 10000.0
     m2_to_ha = 1.0 / ha_to_m2
     km2_to_m2 = 1000000.0
@@ -365,7 +365,7 @@ def setUnitConstants():
     ft2_to_ac = 1.0 / ac_to_ft2
     mi2_to_ac = 640.0
     ac_to_mi2 = 1.0 / mi2_to_ac
-    # energy 
+    # energy
     kWh_to_MJ = 3.6
     MJ_to_kWh = 1.0 / kWh_to_MJ
     MJ_to_joule = 1000000.0
@@ -374,7 +374,7 @@ def setUnitConstants():
     joule_to_cal = 1.0 / cal_to_joule
     MJPm2_to_langleys = 23.8846
     langleys_to_MJPm2 = 1.0 / MJPm2_to_langleys
-    # volume 
+    # volume
     l_to_ml = 1000.0
     ml_to_l = 1.0 / l_to_ml
     m3_to_l = 1000.0
@@ -389,7 +389,7 @@ def setUnitConstants():
     ft3_to_m3 = 1.0 / m3_to_ft3
     acft_to_ft3 = 43560.0
     ft3_to_acft = 1.0 / acft_to_ft3
-    # pressure 
+    # pressure
     kPa_to_pa = 1000.0
     pa_to_kPa = 1.0 / kPa_to_pa
     MPa_to_kPa = 1000.0
@@ -400,7 +400,7 @@ def setUnitConstants():
     pa_to_atm = 1.0 / atm_to_pa
     bars_to_pa = 100000
     pa_to_bars = 1.0 / bars_to_pa
-    # other 
+    # other
     hr_to_min = 60.0
     min_to_hr = 1.0 / hr_to_min
     min_to_sec = 60.0
@@ -413,15 +413,15 @@ def setUnitConstants():
 def Convert(unitSet, unitFrom, unitTo, value):
     result = 0.0
     base = 0.0
-    
+
     base = 0.0
-    # default result to same value if something goes wrong 
+    # default result to same value if something goes wrong
     result = value
     if (unitFrom == unitTo) or (value == usupport.kMaxSingle) or (value == usupport.kMinSingle):
-        # if no conversion, exit 
+        # if no conversion, exit
         return result
     if value == usupport.kMaxSingle:
-        # special check for overflow (for bounds) to avoid exception-handling system 
+        # special check for overflow (for bounds) to avoid exception-handling system
         result = usupport.kMaxSingle
         return result
     if value == -usupport.kMaxSingle:
@@ -764,7 +764,7 @@ def Convert(unitSet, unitFrom, unitTo, value):
 def LoadUnitsInSetIntoComboBox(units, unitSet):
     unitEnum = 0
     unitString = ""
-    
+
     unitEnum = GetNextUnitEnumInUnitSet(unitSet, 0)
     if unitEnum != 0:
         unitString = UnitStringForEnum(unitSet, unitEnum)
@@ -780,11 +780,11 @@ def LoadUnitsInSetIntoComboBox(units, unitSet):
     else:
         units.Enabled = false
 
-# if any unit set string in this function becomes longer than 12 chars, update constant at top of file 
+# if any unit set string in this function becomes longer than 12 chars, update constant at top of file
 def UnitStringForEnum(unitSetEnum, unitEnum):
     result = ""
     problem = false
-    
+
     problem = false
     result = "(no unit)"
     if unitSetEnum == kDimensionless:
@@ -845,7 +845,7 @@ def UnitStringForEnum(unitSetEnum, unitEnum):
         if unitEnum == kAreaHectares:
             result = "ha"
         elif unitEnum == kAreaSquareMeters:
-            # superscript 2 is chr(178); superscript 3 is chr(179) 
+            # superscript 2 is chr(178); superscript 3 is chr(179)
             result = "m2"
         elif unitEnum == kAreaSquareKilometers:
             result = "km2"
@@ -1009,19 +1009,18 @@ def UnitStringForEnum(unitSetEnum, unitEnum):
         result = "True/False"
     else :
         result = "(no unit)"
-        #  raise Exception.create('Unsupported unit set: ' + intToStr(unitSetEnum));  
+        #  raise Exception.create('Unsupported unit set: %d' % (unitSetEnum))
     if problem:
-        #  raise Exception.create('Unsupported unit ' + intToStr(unitEnum)
-        #      + ' for unit set ' + intToStr(unitSetEnum)); 
+        #  raise Exception.create('Unsupported unit %d for unit set %d' % (unitEnum, unitSetEnum))
         # PDF PORT -- added null statement
-        None
+        pass
     return result
 
 def calcMaxUnitStringLengthForSet(unitSet, unitStart, unitEnd):
     result = 0
     unitString = ""
     i = 0
-    
+
     result = 0
     for i in range(unitStart, unitEnd + 1):
         unitString = UnitStringForEnum(unitSet, i)
@@ -1066,7 +1065,7 @@ def maxUnitStringLengthForSet(unitSet):
     result = 0
     result = 0
     if (unitSet < kDimensionless) or (unitSet >= kLastUnitSet):
-        raise GeneralException.create("Problem: Unsupported unit set " + IntToStr(unitSet) + " in method maxUnitStringLengthForSet.")
+        raise GeneralException.create("Problem: Unsupported unit set %d in method maxUnitStringLengthForSet." % (unitSet))
     else:
         result = maxUnitStringLengths[unitSet]
     return result
@@ -1141,7 +1140,7 @@ def GetNextUnitEnumInUnitSet(unitSet, currentUnit):
         else:
             result = currentUnit + 1
     else :
-        # non-changing unit set 
+        # non-changing unit set
         result = currentUnit
     return result
 
@@ -1156,13 +1155,13 @@ def GetPreviousUnitEnumInUnitSet(unitSet, currentUnit):
             result = currentUnit - 1
     elif unitSet == kAngle:
         if (currentUnit == kAngleRadians):
-            # same as next 
+            # same as next
             result = kAngleDegrees
         else:
             result = kAngleRadians
     elif unitSet == kTemperature:
         if (currentUnit == kTemperatureDegreesC):
-            # same as next 
+            # same as next
             result = kTemperatureDegreesF
         else:
             result = kTemperatureDegreesC
@@ -1193,7 +1192,7 @@ def GetPreviousUnitEnumInUnitSet(unitSet, currentUnit):
             result = currentUnit - 1
     elif unitSet == kDepthOfWater:
         if (currentUnit == kDepthOfWaterInches):
-            # same as next 
+            # same as next
             result = kDepthOfWaterMillimeters
         else:
             result = kDepthOfWaterInches
@@ -1218,7 +1217,7 @@ def GetPreviousUnitEnumInUnitSet(unitSet, currentUnit):
         else:
             result = currentUnit - 1
     else :
-        # non-changing unit set 
+        # non-changing unit set
         result = currentUnit
     return result
 
@@ -1288,7 +1287,7 @@ def GetUnitSetString(unitSet):
         result = "kNonChangingUnitBoolean"
     else :
         result = ""
-        raise GeneralException.create("Problem: Unsupported unit set " + IntToStr(unitSet) + " in method GetUnitSetString.")
+        raise GeneralException.create("Problem: Unsupported unit set %d in method GetUnitSetString." % (unitSet))
     return result
 
 def DisplayUnitSetString(unitSet):
@@ -1357,7 +1356,7 @@ def DisplayUnitSetString(unitSet):
         result = "yes/no"
     else :
         result = ""
-        raise GeneralException.create("Problem: Unsupported unit set " + IntToStr(unitSet) + " in method DisplayUnitSetString.")
+        raise GeneralException.create("Problem: Unsupported unit set %d in method DisplayUnitSetString." % (unitSet))
     return result
 
 def GetLastUnitEnumInUnitSet(unitSet):

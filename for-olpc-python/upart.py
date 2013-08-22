@@ -1,5 +1,11 @@
 # unit upart
 
+###
+# Base class for Plant parts.
+# Inherited by PdInternode, PdMeristem, PdInflorescence, PdFlowerFruit, PdLeaf
+
+
+
 from conversion_common import *
 import ufiler
 import uplant
@@ -9,9 +15,11 @@ import udomain
 import u3dexport
 import usupport
 
+import udebug
+
 """
 import umain
-import udebug
+
 import uclasses
 import u3dsupport
 import uturtle
@@ -37,24 +45,26 @@ kRotateZ = 2
 # const
 kMaxLineOutputPoints = 200
 
-class PdPlantPart(ufiler.PdStreamableObject):
+class PdPlantPart(ufiler.PdStreamableObject): # object):#!! removed
     def __init__(self):
+        # structure
         self.plant = None
+        #
         self.liveBiomass_pctMPB = 0.0
         self.deadBiomass_pctMPB = 0.0
         self.biomassDemand_pctMPB = 0.0
         self.gender = 0
-        self.age = 0L
+        self.age = 0  #0L
         self.randomSwayIndex = 0.0
         self.hasFallenOff = False
         self.isSeedlingLeaf = False
-        self.partID = 0L
+        self.partID = 0 #0L
         self.boundsRect = delphi_compatability.TRect()
         self.amendment = None
         self.parentAmendment = None
         self.biomassOfMeAndAllPartsAboveMe_pctMPB = 0.0
-    
-    # ---------------------------------------------------------------------------------- initialize 
+
+    # ---------------------------------------------------------------------------------- initialize
     def initialize(self, thePlant):
         #initialize generic plant part
         self.plant = thePlant
@@ -65,24 +75,29 @@ class PdPlantPart(ufiler.PdStreamableObject):
         self.gender = uplant.kGenderFemale
         self.hasFallenOff = False
         self.randomSwayIndex = self.plant.randomNumberGenerator.zeroToOne()
-    
+
     def nextDay(self):
         #next day procedure for generic plant part
         self.age += 1
-    
+
     def getName(self):
         result = ""
         # subclasses should override
         result = "plant part"
         return result
-    
+
     def getFullName(self):
         result = ""
-        result = "part " + IntToStr(self.partID) + " (" + self.getName() + ")"
+        result = "part %d (" % (self.partID) + self.getName() + ")"
         return result
-    
-    # ---------------------------------------------------------------------------------- traversing 
+
+    # ---------------------------------------------------------------------------------- traversing
     def traverseActivity(self, mode, traverserProxy):
+        ''' first thing each phytomer part does when traversing is call here
+            then process their own
+            - deals with Biomass and veg or reproductive %
+            - also used for finding a part, or counting triangles
+        '''
         traverser = traverserProxy
         if traverser == None:
             return
@@ -141,16 +156,16 @@ class PdPlantPart(ufiler.PdStreamableObject):
             traverser.totalPlantParts += 1
         else :
             raise GeneralException.create("Problem: Unhandled mode in method PdPlantPart.traverseActivity.")
-    
+
     # procedure fillInInfoForDXFPart(index: smallint; var realIndex: smallint; var longName: string; var shortName: string);
     def position(self):
         result = TPoint()
         result = Point(self.boundsRect.Left + (self.boundsRect.Right - self.boundsRect.Left) / 2, self.boundsRect.Top + (self.boundsRect.Bottom - self.boundsRect.Top) / 2)
         return result
-    
+
     def addExportMaterial(self, traverserProxy, femaleIndex, maleIndex):
         traverser = PdTraverser()
-        
+
         # remember that this is not a true count; each part only adds at LEAST one
         # if you wanted to use this for a true export-type-part count you would have to amend some code
         traverser = traverserProxy
@@ -163,10 +178,10 @@ class PdPlantPart(ufiler.PdStreamableObject):
             traverser.exportTypeCounts[femaleIndex] += 1
         else:
             traverser.exportTypeCounts[maleIndex] += 1
-    
+
     def addToStatistics(self, statisticsProxy, partType):
         statistics = PdPlantStatistics()
-        
+
         statistics = utravers.PdPlantStatistics(statisticsProxy)
         if statistics == None:
             return
@@ -175,12 +190,12 @@ class PdPlantPart(ufiler.PdStreamableObject):
         statistics.count[partType] = statistics.count[partType] + 1
         statistics.liveBiomass_pctMPB[partType] = statistics.liveBiomass_pctMPB[partType] + self.liveBiomass_pctMPB
         statistics.deadBiomass_pctMPB[partType] = statistics.deadBiomass_pctMPB[partType] + self.deadBiomass_pctMPB
-    
+
     def totalBiomass_pctMPB(self):
         result = 0.0
         result = self.liveBiomass_pctMPB + self.deadBiomass_pctMPB
         return result
-    
+
     def fractionLive(self):
         result = 0.0
         result = 0.0
@@ -192,26 +207,24 @@ class PdPlantPart(ufiler.PdStreamableObject):
         except Exception, e:
             usupport.messageForExceptionType(e, "PdPlantPart.fractionLive")
         return result
-    
+
     def draw(self):
         pass
-        # implemented by subclasses 
-    
+        # implemented by subclasses
+
     def isPhytomer(self):
-        result = False
-        result = False
-        return result
-    
+        return False
+
     def addOrRemove(self, addOrRemoveFlag):
         if addOrRemoveFlag == kAddingBiomassToPlant:
             self.hasFallenOff = False
         else:
             self.hasFallenOff = True
-    
+
     def setColorsToParameters(self):
         pass
         #subclasses can override
-    
+
     def genderString(self):
         result = ""
         if self.gender == uplant.kGenderFemale:
@@ -219,10 +232,10 @@ class PdPlantPart(ufiler.PdStreamableObject):
         else:
             result = "secondary"
         return result
-    
+
     def report(self):
         partName = ""
-        
+
         if self.partType() == uplant.kPartTypeFlowerFruit:
             partName = "flower/fruit"
         elif self.partType() == uplant.kPartTypeInflorescence:
@@ -233,9 +246,9 @@ class PdPlantPart(ufiler.PdStreamableObject):
             partName = "internode"
         elif self.partType() == uplant.kPartTypeLeaf:
             partName = "leaf"
-        udebug.DebugPrint("Part " + IntToStr(self.partID) + ", " + partName)
-    
-    # ---------------------------------------------------------------------------------- drawing 
+        udebug.DebugPrint("Part %d, %14s" % (self.partID, partName) + " Biomass: %4.2f live=%4.2f dead=%4.2f" % (self.biomassDemand_pctMPB, self.liveBiomass_pctMPB, self.deadBiomass_pctMPB) )
+
+    # ---------------------------------------------------------------------------------- drawing
     def draw3DObject(self, tdo, scale, faceColor, backfaceColor, dxfIndex):
         if tdo == None:
             return
@@ -248,8 +261,8 @@ class PdPlantPart(ufiler.PdStreamableObject):
         realScale = scale * self.scaleMultiplierConsideringAmendments()
         turtle.setLineWidth(1.0)
         tdo.draw(turtle, realScale, self.longNameForDXFPartConsideringGenderEtc(dxfIndex), self.shortNameForDXFPartConsideringGenderEtc(dxfIndex), self.realDxfIndexForBaseDXFPart(dxfIndex), self.partID)
-    
-    def drawStemSegment(self, length, width, angleZ, angleY, color, taperIndex, dxfIndex, useAmendment):        
+
+    def drawStemSegment(self, length, width, angleZ, angleY, color, taperIndex, dxfIndex, useAmendment):
         turtle = self.plant.turtle
         if (turtle == None):
             return
@@ -319,7 +332,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
                 if (turtle.drawOptions.sortTdosAsOneItem) and (triangleMade != None):
                     triangleMade.tdo = self.tdoToSortLinesWith()
         turtle.ifExporting_endStemSegment()
-    
+
     def write3DExportLine(self, partID, length, startWidth, endWidth, segmentNumber):
         turtle = self.plant.turtle
         if turtle == None:
@@ -343,13 +356,13 @@ class PdPlantPart(ufiler.PdStreamableObject):
                 turtle.moveInMillimeters(pipeRadius)
                 startPoints[i] = turtle.position()
                 turtle.pop()
-        
+
         else:
             #for i in range(0, faces):
             # PDF PORT -- this code seems useless, copying from unassigned varialbes, so changed as following line
                 #startPoints[i] = endPoints[i]
                 startPoints[i] = u3dsupport.KfPoint3D()
-            
+
         turtle.moveInMillimeters(length)
         # get endWidth points
         pipeRadius = 0.5 * endWidth
@@ -362,18 +375,18 @@ class PdPlantPart(ufiler.PdStreamableObject):
             turtle.pop()
         # draw pipe faces from stored points
         turtle.drawFileExportPipeFaces(startPoints, endPoints, faces, segmentNumber)
-    
+
     def tdoToSortLinesWith(self):
         # subclasses can override
         result = None
         return result
-    
+
     def partType(self):
         result = 0
-        # implemented by subclasses 
+        # implemented by subclasses
         result = 0
         return result
-    
+
     def angleWithSway(self, angle):
         result = 0.0
         result = angle
@@ -381,11 +394,11 @@ class PdPlantPart(ufiler.PdStreamableObject):
             return result
         result = angle + ((self.randomSwayIndex - 0.5) * self.plant.pGeneral.randomSway)
         return result
-    
-    # ---------------------------------------------------------------------------------- amendments 
+
+    # ---------------------------------------------------------------------------------- amendments
     def determineAmendmentAndAlsoForChildrenIfAny(self):
         self.amendment = self.plant.amendmentForPartID(self.partID)
-    
+
     def hiddenByAmendment(self):
         result = False
         if not udomain.domain.options.showPosingAtAll:
@@ -404,13 +417,13 @@ class PdPlantPart(ufiler.PdStreamableObject):
             else:
                 result = True
         return result
-    
+
     def applyAmendmentRotations(self):
         if (self.amendment != None) and (self.amendment.addRotations) and (udomain.domain.options.showPosingAtAll):
             self.plant.turtle.rotateX(self.amendment.xRotation * 256 / 360)
             self.plant.turtle.rotateY(self.amendment.yRotation * 256 / 360)
             self.plant.turtle.rotateZ(self.amendment.zRotation * 256 / 360)
-    
+
     def setColorsWithAmendmentAndReturnTrueIfNoOverrides(self, drawingTdo):
         result = True
         if not udomain.domain.options.showPosingAtAll:
@@ -449,7 +462,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
             else:
                 self.plant.turtle.setLineColor(lineColor)
         return result
-    
+
     # posed color part > if put this back, put it AFTER ghostingColor and BEFORE nonHiddenPosedColor
     #
     #    else if ((amendment <> nil) and (amendment.changeColors))
@@ -461,7 +474,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
     #      backFaceColor := amendmentToUse.backfaceColor;
     #      lineColor := amendmentToUse.lineColor;
     #      end
-    #      
+    #
     def rotateAngleConsideringAmendment(self, rotateWhat, useAmendment, angle):
         result = angle
         if (useAmendment) and (self.amendment != None) and (self.amendment.addRotations) and (udomain.domain.options.showPosingAtAll):
@@ -472,7 +485,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
             elif rotateWhat == kRotateZ:
                 result = angle + self.amendment.zRotation * 256 / 360
         return result
-    
+
     def scaleMultiplierConsideringAmendments(self):
         result = 1.0
         if not udomain.domain.options.showPosingAtAll:
@@ -485,7 +498,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
                     amendmentToUse = self.parentAmendment
                 result = 1.0 * amendmentToUse.scaleMultiplier_pct / 100.0
         return result
-    
+
     def lengthMultiplierConsideringAmendments(self):
         result = 1.0
         if not udomain.domain.options.showPosingAtAll:
@@ -498,7 +511,7 @@ class PdPlantPart(ufiler.PdStreamableObject):
                     amendmentToUse = self.parentAmendment
                 result = 1.0 * amendmentToUse.lengthMultiplier_pct / 100.0
         return result
-    
+
     def widthMultiplierConsideringAmendments(self):
         result = 1.0
         if not udomain.domain.options.showPosingAtAll:
@@ -511,13 +524,13 @@ class PdPlantPart(ufiler.PdStreamableObject):
                     amendmentToUse = self.parentAmendment
                 result = 1.0 * amendmentToUse.widthMultiplier_pct / 100.0
         return result
-    
-    # ---------------------------------------------------------------------------------- streaming 
+
+    # ---------------------------------------------------------------------------------- streaming
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdPlantPart
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     #this will stream entire the entire object -
     #but the included object references need to be fixed up afterwards
     #or the objects streamed out separately afterwards - subclasses overrides
@@ -534,28 +547,28 @@ class PdPlantPart(ufiler.PdStreamableObject):
         self.partID = filer.streamLongint(self.partID)
         self.biomassOfMeAndAllPartsAboveMe_pctMPB = filer.streamSingle(self.biomassOfMeAndAllPartsAboveMe_pctMPB)
         self.randomSwayIndex = filer.streamSingle(self.randomSwayIndex)
-    
+
     def addDependentPartsToList(self, aList):
         pass
-        # subclasses can override 
-    
+        # subclasses can override
+
     def blendColorsStrength(self, aColor, aStrength):
         pass
         #subclasses can override
-    
+
     def calculateColors(self):
         self.setColorsToParameters()
-    
+
     def longNameForDXFPartConsideringGenderEtc(self, index):
         result = ""
         result = u3dexport.longNameForDXFPartType(self.realDxfIndexForBaseDXFPart(index))
         return result
-    
+
     def shortNameForDXFPartConsideringGenderEtc(self, index):
         result = ""
         result = u3dexport.shortNameForDXFPartType(self.realDxfIndexForBaseDXFPart(index))
         return result
-    
+
     def realDxfIndexForBaseDXFPart(self, index):
         result = 0
         result = index
@@ -593,4 +606,4 @@ class PdPlantPart(ufiler.PdStreamableObject):
             if self.gender == uplant.kGenderMale:
                 result = u3dexport.kExportPartSepalsMale
         return result
-    
+

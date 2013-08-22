@@ -33,19 +33,20 @@ kTransferTypeGetSetSCurve = 2
 kTransferTypeObject3D = 3
 kNotArray = -1
 
-# FieldType 
+# FieldType
 #note: the longint type is NOT for use for parameters (in param panels or breeding).
 #     if you want to use a longint for a parameter, you have to
 #     update the breeding method and the method that creates param panels. the smallint panel will not
 #     work correctly with a longint as it is now (but you could subclass it if you need one).
-# IndexType - for arrays 
-# transferType - how data is transferred to and from model object 
+# IndexType - for arrays
+# transferType - how data is transferred to and from model object
 #mfd is short for MoveFieldData
 #must be whole string to allow for tdos
 # v2.1
-# ---------------------------------------------------------- PdParameter 
+# ---------------------------------------------------------- PdParameter
 
 class PdParameter:
+    ''' Primary class for manipulating paramters of a plant '''
     def __init__(self):
         self.fieldNumber = 0
         self.fieldID = ""
@@ -72,7 +73,7 @@ class PdParameter:
         self.valueHasBeenReadForCurrentPlant = False
         self.collapsed = True
         self.originalSectionName = ""
-    
+
     def make(self, aFieldNumber, aFieldID, aName, aFieldType, anIndexType, aUnitSet, aUnitModel, aUnitMetric, aUnitEnglish, aLowerBound, anUpperBound, aDefaultValueString, aRegrow, aReadOnly, anAccessString, aTransferType, aHint):
         self.fieldNumber = aFieldNumber
         self.fieldID = aFieldID[:80]
@@ -94,9 +95,8 @@ class PdParameter:
         self.readOnly = aReadOnly
         self.accessString = anAccessString[:80]
         self.transferType = aTransferType
-        #hint := aHint;
         return self
-    
+
     def indexCount(self):
         result = 1
         if self.indexType == kIndexTypeUndefined:
@@ -108,55 +108,59 @@ class PdParameter:
         else :
             raise GeneralException.create("Problem: Unexpected index type in method PdParameter.indexCount.")
         return result
-    
+
     def getName(self):
         result = self.name
         return result
-    
+
     def setName(self, newName):
         self.name = UNRESOLVED.copy(newName, 1, 80)
-    
+
     def lowerBound(self):
         if (not self.cannotOverride) and (self.isOverridden):
             result = self.lowerBoundOverride
         else:
             result = self.lowerBoundOriginal
         return result
-    
+
     def upperBound(self):
         if (not self.cannotOverride) and (self.isOverridden):
             result = self.upperBoundOverride
         else:
             result = self.upperBoundOriginal
         return result
-    
+
     def defaultValueString(self):
         if (not self.cannotOverride) and (self.isOverridden):
             result = self.defaultValueStringOverride
         else:
             result = self.defaultValueStringOriginal
         return result
-    
+
+    # appears unused
     def getHint(self):
         result = self.hint
         return result
-    
-# ---------------------------------------------------- PdParameterManager 
+
+# ---------------------------------------------------- PdParameterManager
+# used by udomain/PdDomain class
 class PdParameterManager:
     def __init__(self):
         self.parameters = ucollect.TListCollection()
-    
+
+    # used by addParameterForSection
     def addParameter(self, newParameter):
         if newParameter != None:
             self.parameters.Add(newParameter)
 
+    # used by umakepm
     def addParameterForSection(self, sectionName, orthogonalSectionName, newParameter):
         # import done here due to circularity issues
         import udomain
         section = udomain.domain.sectionManager.sectionForName(sectionName)
         if section == None:
             section = udomain.domain.sectionManager.addSection(sectionName)
-            # the 'no section' section is hidden from the parameters window but we still want the section for writing out 
+            # the 'no section' section is hidden from the parameters window but we still want the section for writing out
             section.showInParametersWindow = not (sectionName.upper() == "(no section)".upper())
         self.addParameter(newParameter)
         if section != None:
@@ -174,7 +178,8 @@ class PdParameterManager:
                 section.isOrthogonal = True
             if section != None:
                 section.addSectionItem(newParameter.fieldNumber)
-    
+
+    # used in udomain for debug
     def fieldTypeName(self, fieldType):
         if fieldType == kFieldUndefined:
             result = "Undefined"
@@ -195,76 +200,93 @@ class PdParameterManager:
         else:
             result = "not in list"
         return result
-    
-    def indexTypeName(self, indexType):
-        if indexType == kIndexTypeUndefined:
-            result = "Undefined"
-        elif indexType == kIndexTypeNone:
-            result = "None"
-        elif indexType == kIndexTypeSCurve:
-            result = "S curve"
-        else:
-            result = "not in list"
-        return result
-    
-    def parameterForIndex(self, index):
-        result = self.parameters[index]
-        return result
-    
+
+##    def indexTypeName(self, indexType):
+##        if indexType == kIndexTypeUndefined:
+##            result = "Undefined"
+##        elif indexType == kIndexTypeNone:
+##            result = "None"
+##        elif indexType == kIndexTypeSCurve:
+##            result = "S curve"
+##        else:
+##            result = "not in list"
+##        return result
+
+##    def parameterForIndex(self, index):
+##        result = self.parameters[index]
+##        return result
+
+    # used by umakepm/CreateParameters
     def clearParameters(self):
         self.parameters.clear()
-    
+
+    # used by uplant/PlantLoader.loadPlantsFromFile
     def setAllReadFlagsToFalse(self):
         for parameter in self.parameters:
             parameter.valueHasBeenReadForCurrentPlant = False
-    
+
+    # used by updcom/PdChangeValueCommand.description
+    # used by uplant/PdPlant.writeToPlantFile and useBreedingOptionsAndPlantsToSetParameters
+    # used by usection/PdSectionManager.parameterForSectionAndName
     def parameterForFieldNumber(self, fieldNumber):
+        ''' return parameter into self.parameters where:
+            - fieldNumber matches (unique in range 1..399)   '''
         result = None
         for parameter in self.parameters:
             if fieldNumber == parameter.fieldNumber:
                 result = parameter
                 return result
-        raise GeneralException.create("Problem: Parameter not found for field number " + IntToStr(fieldNumber) + " in method PdParameterManager.parameterForFieldNumber.")
+        raise GeneralException.create("Problem: Parameter not found for field number %d in method PdParameterManager.parameterForFieldNumber." % (fieldNumber))
         return result
-    
-    def parameterForFieldID(self, fieldID):
-        result = None
-        for parameter in self.parameters:
-            if trim(uppercase(fieldID)) == trim(uppercase(parameter.fieldID)):
-                result = parameter
-                return result
-        raise GeneralException.create("Problem: Parameter not found for field ID " + fieldID + " in method PdParameterManager.parameterForFieldID.")
-        return result
-    
+
+##    def parameterForFieldID(self, fieldID):
+##        ''' return parameter from self.parameters where:
+##            - fieldID matches (unique for a parameter). E.g. "kGeneralRandomSway"   '''
+##        result = None
+##        for parameter in self.parameters:
+##            if fieldID.upper().strip() == parameter.fieldID.upper().strip():
+##                result = parameter
+##                return result
+##        raise GeneralException.create("Problem: Parameter not found for field ID " + fieldID + " in method PdParameterManager.parameterForFieldID.")
+##        return result
+
+    # used by usection/PdSectionManager.parameterForSectionAndName
     def parameterForName(self, name):
+        ''' return parameter from self.parameters where:
+            - name matches (unique for a non header parameter). E.g. "Random sway in drawing angles"   '''
         result = None
         for parameter in self.parameters:
-            if trim(uppercase(name)) == trim(uppercase(parameter.name)):
+            if name.upper().strip() == parameter.name.upper().strip():
                 result = parameter
                 return result
         raise GeneralException.create("Problem: Parameter not found for name " + name + " in method PdParameterManager.parameterForName.")
         return result
-    
-    def parameterIndexForFieldNumber(self, fieldNumber):
-        result = 0
-        for i in range(0, len(self.parameters)):
-            parameter = self.parameters[i]
-            if fieldNumber == parameter.fieldNumber:
-                result = i
-                return result
-        raise GeneralException.create("Problem: Parameter index not found for field number " + IntToStr(fieldNumber) + " in method PdParameterManager.parameterIndexForFieldNumber.")
-        return result
-    
-    def parameterIndexForFieldID(self, fieldID):
-        result = 0
-        for i in range(0, len(self.parameters)):
-            parameter = self.parameters[i]
-            if trim(uppercase(fieldID)) == trim(uppercase(parameter.fieldID)):
-                result = i
-                return result
-        raise GeneralException.create("Problem: Parameter index not found for field ID " + fieldID + " in method PdParameterManager.parameterIndexForFieldID.")
-        return result
-    
+
+##    def parameterIndexForFieldNumber(self, fieldNumber):
+##        ''' return index into self.parameters where:
+##            - fieldNumber matches (unique in range 1..399)   '''
+##        result = 0
+##        for i in range(0, len(self.parameters)):
+##            parameter = self.parameters[i]
+##            if fieldNumber == parameter.fieldNumber:
+##                result = i
+##                return result
+##        raise GeneralException.create("Problem: Parameter index not found for field number %d in method PdParameterManager.parameterIndexForFieldNumber." % (fieldNumber))
+##        return result
+##
+##    def parameterIndexForFieldID(self, fieldID):
+##        ''' return index into self.parameters where:
+##            - fieldID matches (unique for a parameter). E.g. "kGeneralRandomSway" '''
+##        result = 0
+##        for i in range(0, len(self.parameters)):
+##            parameter = self.parameters[i]
+##            if fieldID.upper().strip() == parameter.fieldID.upper().strip():
+##                result = i
+##                return result
+##        raise GeneralException.create("Problem: Parameter index not found for field ID " + fieldID + " in method PdParameterManager.parameterIndexForFieldID.")
+##        return result
+
+    # used by udomain/PdDomain.startupLoading and on import (weirdly)
     def makeParameters(self):
         umakepm.CreateParameters(self)
-    
+

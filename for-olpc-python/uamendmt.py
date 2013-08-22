@@ -28,7 +28,7 @@ class PdPlantDrawingAmendment:
         self.multiplyScale = False
         self.propagateScale = False
         self.applyAtAge = 0
-    
+
         self.scaleMultiplier_pct = 100
         self.lengthMultiplier_pct = 100
         self.widthMultiplier_pct = 100
@@ -36,34 +36,34 @@ class PdPlantDrawingAmendment:
         self.faceColor = usupport.support_rgb(50, 200, 50)
         self.backfaceColor = usupport.support_rgb(20, 150, 20)
         self.lineColor = usupport.support_rgb(40, 100, 40)
-    
+
     def readFromTextFile(self, inputFile):
         inputLine = ""
         varName = ""
         varValue = ""
-        
-        inputLine = readln(inputFile)
+
+        inputLine = inputFile.readln()
         while inputLine != None:
             # plant reads start line; just continue from there
-            if (trim(inputLine) == ""):
+            if inputLine.strip() == "":
                 continue
             varName = usupport.stringUpTo(inputLine, "=")
             varValue = usupport.stringBeyond(inputLine, "=")
             if not self.setField(varName, varValue):
                 break
-            inputLine = readln(inputFile)
+            inputLine = inputFile.readln()
         if not string_match(kEndAmendmentString, inputLine):
             raise GeneralException.create("Problem: Expected end of posing change.")
-    
+
     def readFromMemo(self, aMemo, readingMemoLine):
         inputLine = ""
         varName = ""
         varValue = ""
-        
+
         while readingMemoLine <= len(aMemo.Lines) - 1:
             # plant reads start line; just continue from there
             inputLine = aMemo.Lines.Strings[readingMemoLine]
-            if (trim(inputLine) == ""):
+            if inputLine.strip() == "":
                 continue
             varName = usupport.stringUpTo(inputLine, "=")
             varValue = usupport.stringBeyond(inputLine, "=")
@@ -73,7 +73,7 @@ class PdPlantDrawingAmendment:
         if not string_match(kEndAmendmentString, inputLine):
             raise GeneralException.create("Problem: Expected end of posing change.")
         return readingMemoLine
-    
+
     def setField(self, varName, varValue):
         result = False
         result = True
@@ -103,11 +103,11 @@ class PdPlantDrawingAmendment:
         elif string_match("rotate", varName):
             self.addRotations = usupport.strToBool(varValue)
         elif string_match("x rotation", varName):
-            self.xRotation = StrToInt(varValue) * 1.0
+            self.xRotation = float(varValue)
         elif string_match("y rotation", varName):
-            self.yRotation = StrToInt(varValue) * 1.0
+            self.yRotation = float(varValue)
         elif string_match("z rotation", varName):
-            self.zRotation = StrToInt(varValue) * 1.0
+            self.zRotation = float(varValue)
         elif string_match("change scale", varName):
             self.multiplyScale = usupport.strToBool(varValue)
         elif string_match("propagate scale change up stem", varName):
@@ -125,62 +125,62 @@ class PdPlantDrawingAmendment:
         else:
             result = False
         return result
-    
+
     def writeToTextFile(self, outputFile):
         writeln(outputFile, kStartAmendmentString)
-        writeln(outputFile, "  part number =" + IntToStr(self.partID))
+        writeln(outputFile, "  part number =%d" % (self.partID))
         writeln(outputFile, "  part type =" + self.typeOfPart)
         writeln(outputFile, "  hide =" + usupport.boolToStr(self.hide))
         #
-        #  writeln(outputFile, '  change colors =' + boolToStr(changeColors));
-        #  writeln(outputFile, '  propagate colors up stem =' + boolToStr(propagateColors));
-        #  writeln(outputFile, '  front face color =' + intToStr(faceColor));
-        #  writeln(outputFile, '  back face color =' + intToStr(backfaceColor));
-        #  writeln(outputFile, '  line color =' + intToStr(lineColor));
-        #  
+        #  writeln(outputFile, "  change colors =" + boolToStr(changeColors));
+        #  writeln(outputFile, "  propagate colors up stem =" + boolToStr(propagateColors));
+        #  writeln(outputFile, "  front face color =%d" % (faceColor));
+        #  writeln(outputFile, "  back face color =%d" % (backfaceColor));
+        #  writeln(outputFile, "  line color =%d" % (lineColor));
+        #
         writeln(outputFile, "  rotate =" + usupport.boolToStr(self.addRotations))
-        writeln(outputFile, "  x rotation =" + IntToStr(intround(self.xRotation)))
-        writeln(outputFile, "  y rotation =" + IntToStr(intround(self.yRotation)))
-        writeln(outputFile, "  z rotation =" + IntToStr(intround(self.zRotation)))
+        writeln(outputFile, "  x rotation =%d" % (int(self.xRotation)))
+        writeln(outputFile, "  y rotation =%d" % (int(self.yRotation)))
+        writeln(outputFile, "  z rotation =%d" % (int(self.zRotation)))
         writeln(outputFile, "  change scale =" + usupport.boolToStr(self.multiplyScale))
         writeln(outputFile, "  propagate scale change up stem =" + usupport.boolToStr(self.propagateScale))
-        writeln(outputFile, "  3d object scale multiplier =" + IntToStr(self.scaleMultiplier_pct))
-        writeln(outputFile, "  line length multiplier =" + IntToStr(self.lengthMultiplier_pct))
-        writeln(outputFile, "  line width multiplier =" + IntToStr(self.widthMultiplier_pct))
+        writeln(outputFile, "  3d object scale multiplier =%d" % (self.scaleMultiplier_pct))
+        writeln(outputFile, "  line length multiplier =%d" % (self.lengthMultiplier_pct))
+        writeln(outputFile, "  line width multiplier =%d" % (self.widthMultiplier_pct))
         #
-        #  writeln(outputFile, '  apply at age =' + intToStr(applyAtAge));
-        #  
+        #  writeln(outputFile, "  apply at age =%d" % (applyAtAge))
+        #
         writeln(outputFile, kEndAmendmentString)
-    
+
     def writeToMemo(self, aMemo):
         aMemo.Lines.Add(kStartAmendmentString)
-        aMemo.Lines.Add("  part number =" + IntToStr(self.partID))
+        aMemo.Lines.Add("  part number =%d" % (self.partID))
         aMemo.Lines.Add("  part type =" + self.typeOfPart)
         aMemo.Lines.Add("  hide =" + usupport.boolToStr(self.hide))
         #
         #  aMemo.lines.add('  change colors =' + boolToStr(changeColors));
         #  aMemo.lines.add('  propagate colors up stem =' + boolToStr(propagateColors));
-        #  aMemo.lines.add('  front face color =' + intToStr(faceColor));
-        #  aMemo.lines.add('  back face color =' + intToStr(backfaceColor));
-        #  aMemo.lines.add('  line color =' + intToStr(lineColor));
-        #  
+        #  aMemo.lines.add("  front face color =%d" % (faceColor));
+        #  aMemo.lines.add("  back face color =%d" % (backfaceColor));
+        #  aMemo.lines.add("  line color =%d" % (lineColor));
+        #
         aMemo.Lines.Add("  rotate =" + usupport.boolToStr(self.addRotations))
-        aMemo.Lines.Add("  x rotation =" + IntToStr(intround(self.xRotation)))
-        aMemo.Lines.Add("  y rotation =" + IntToStr(intround(self.yRotation)))
-        aMemo.Lines.Add("  z rotation =" + IntToStr(intround(self.zRotation)))
+        aMemo.Lines.Add("  x rotation =%d" % (int(self.xRotation)))
+        aMemo.Lines.Add("  y rotation =%d" % (int(self.yRotation)))
+        aMemo.Lines.Add("  z rotation =%d" % (int(self.zRotation)))
         aMemo.Lines.Add("  change scale =" + usupport.boolToStr(self.multiplyScale))
         aMemo.Lines.Add("  propagate scale change up stem =" + usupport.boolToStr(self.propagateScale))
-        aMemo.Lines.Add("  3d object scale multiplier =" + IntToStr(self.scaleMultiplier_pct))
-        aMemo.Lines.Add("  line length multiplier =" + IntToStr(self.lengthMultiplier_pct))
-        aMemo.Lines.Add("  line width multiplier =" + IntToStr(self.widthMultiplier_pct))
+        aMemo.Lines.Add("  3d object scale multiplier =%d" % (self.scaleMultiplier_pct))
+        aMemo.Lines.Add("  line length multiplier =%d" % (self.lengthMultiplier_pct))
+        aMemo.Lines.Add("  line width multiplier =%d" % (self.widthMultiplier_pct))
         #
-        #  aMemo.lines.add('  apply at age =' + intToStr(applyAtAge));
-        #  
+        #  aMemo.lines.add("  apply at age =%d" % (applyAtAge));
+        #
         aMemo.Lines.Add(kEndAmendmentString)
-    
+
     def getFullName(self):
         result = ""
-        result = IntToStr(self.partID) + " (" + self.typeOfPart + ")"
+        result = "%d (" % (self.partID) + self.typeOfPart + ")"
         if self.hide:
             result = result + ", hidden"
         if self.changeColors:
@@ -190,9 +190,9 @@ class PdPlantDrawingAmendment:
         if self.multiplyScale:
             result = result + ", scaled"
         if self.applyAtAge != 0:
-            result = result + " at age " + IntToStr(self.applyAtAge)
+            result = result + " at age %d" % (self.applyAtAge)
         return result
-    
+
     def streamDataWithFiler(self, filer, cvir):
         PdStreamableObject.streamDataWithFiler(self, filer, cvir)
         self.partID = filer.streamLongint(self.partID)
@@ -213,9 +213,9 @@ class PdPlantDrawingAmendment:
         self.lengthMultiplier_pct = filer.streamSmallint(self.lengthMultiplier_pct)
         self.widthMultiplier_pct = filer.streamSmallint(self.widthMultiplier_pct)
         self.applyAtAge = filer.streamSmallint(self.applyAtAge)
-    
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdPlantDrawingAmendment
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+

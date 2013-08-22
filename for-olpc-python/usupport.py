@@ -68,12 +68,12 @@ kMaxSingle = 3.4e38
 kIncludeAllFiles = True
 kDontIncludeAllFiles = False
 
-# don't like using constants for these, but can't find any functions that provide them 
+# don't like using constants for these, but can't find any functions that provide them
 def rotateEncodeBy7(aString):
     result = ""
     i = 0
     letter = ' '
-    
+
     result = ""
     for i in range(0, len(aString)):
         letter = aString[i + 1]
@@ -84,7 +84,7 @@ def hexEncode(aString):
     result = ""
     i = 0
     letter = ' '
-    
+
     result = ""
     for i in range(0, len(aString)):
         # ((i+4) mod length(aString))
@@ -98,7 +98,7 @@ def hexUnencode(encodedString):
     i = 0
     letter = ' '
     value = 0
-    
+
     result = ""
     value = 0
     for i in range(0, len(encodedString)):
@@ -111,15 +111,16 @@ def hexUnencode(encodedString):
     return result
 
 def strToFloatWithCommaCheck(aString):
-    result = 0.0
-    if found(",", aString):
-        aString = replaceCommasWithPeriods(aString)
-    result = StrToFloat(aString)
-    return result
+##    result = 0.0
+##    if found(",", aString):
+##        aString = replaceCommasWithPeriods(aString)
+##    result = float(aString)
+##    return result
+    return (float(aString.replace(",","")))
 
 def makeEnterWorkAsTab(form, activeControl, key):
     if form == None:
-        # this is to make enter work as tab in edit boxes on the form 
+        # this is to make enter work as tab in edit boxes on the form
         return key
     if activeControl == None:
         return key
@@ -134,7 +135,7 @@ def makeEnterWorkAsTab(form, activeControl, key):
 def bitsPerPixelForColorType(colorType):
     result = 0
     screenDC = HDC()
-    
+
     # default to max
     result = 32
     if colorType == delphi_compatability.TPixelFormat.pfDevice:
@@ -167,7 +168,7 @@ def tolerantReadln(aFile, aString):
     UNRESOLVED.readln(aFile, aString)
     return aString
 
-# text handling 
+# text handling
 # CFK unfinished - was trying to deal with text files that have irregular line endings
 # such as CR but not LF or just LF
 # did not finish - not often found
@@ -211,7 +212,7 @@ def tolerantReadln(aFile, aString):
 #
 #
 #  end;
-#  
+#
 #
 #  Start := BufPtr;
 #  while not (BufPtr^ in [#13, #26]) do Inc(BufPtr);
@@ -219,7 +220,7 @@ def tolerantReadln(aFile, aString):
 #  if BufPtr^ = #13 then Inc(BufPtr);
 #  if BufPtr^ = #10 then Inc(BufPtr);
 #  Result := BufPtr;
-#  
+#
 #
 #    aChar := chr(0);
 #  result := '';
@@ -241,7 +242,7 @@ def tolerantReadln(aFile, aString):
 #    end;
 #  atEndOfFile := eof(theTextFile);
 #
-# ------------------------------------------------------------------------ text handling 
+# ------------------------------------------------------------------------ text handling
 def limitString(aString, maxChars):
     result = ""
     result = aString
@@ -251,7 +252,7 @@ def limitString(aString, maxChars):
 
 def replacePunctuationWithUnderscores(aString):
     result = ""
-    lowerCaseString = lowercase(aString)
+    lowerCaseString = aString.lower()
     for i in range(0, len(aString)):
         isAlpha = (ord(lowerCaseString[i]) >= ord("a")) and (ord(lowerCaseString[i]) <= ord("z")) or (ord(lowerCaseString[i]) >= ord("0")) and (ord(lowerCaseString[i]) <= ord("9"))
         if isAlpha:
@@ -261,26 +262,27 @@ def replacePunctuationWithUnderscores(aString):
     return result
 
 def replaceCommasWithPeriods(aString):
-    result = ""
-    for i in range(0, len(aString)):
-        isComma = aString[i] == ","
-        if not isComma:
-            result = result + aString[i]
-        else:
-            result = result + "."
-    return result
+    print "commas with periods"
+##    result = ""
+##    for i in range(0, len(aString)):
+##        isComma = aString[i] == ","
+##        if not isComma:
+##            result = result + aString[i]
+##        else:
+##            result = result + "."
+    return aString.replace(",",".")
 
-def found(substring, fullString):
-    result = fullString.find(substring) != -1
-    return result
+##def found(substring, fullString):
+##    result = fullString.find(substring) != -1
+##    return result
 
 def trimQuotesFromFirstAndLast(theString):
     result = theString
-    if len(result) <= 0:
+    if len(result) == 0: # <= !!
         return result
-    if result[0] == "\"":
+    if result[0] == '"':
         result = result[1:]
-    if result[-1] == "\"":
+    if result[-1] == '"':
         result = result[:-1]
     return result
 
@@ -308,8 +310,8 @@ def readUntilTab(theFile):
                     raise GeneralException.create("Problem: Something unexpected in file input.")
             break
     if (UNRESOLVED.copy(result, 1, 1) == "\"") and (UNRESOLVED.copy(result, len(result), 1) == "\""):
-        # remove quotes placed by spreadsheet around string if it has a comma in it 
-        #if (result[1] = '"') and (result[length(result)] = '"') then 
+        # remove quotes placed by spreadsheet around string if it has a comma in it
+        #if (result[1] = '"') and (result[length(result)] = '"') then
         result = UNRESOLVED.copy(result, 2, len(result) - 2)
     return result
 
@@ -326,7 +328,7 @@ def readSmallintToTab(fileRef):
 
 def readSingleToTab(fileRef):
     temp = readUntilTab(fileRef)
-    # boundForString returns False if unsuccessful, but not doing anything with result yet 
+    # boundForString returns False if unsuccessful, but not doing anything with result yet
     succesful, result = boundForString(temp, uparams.kFieldFloat)
     return result
 
@@ -365,9 +367,9 @@ def boundForString(boundString, fieldType):
     else:
         try:
             if fieldType == uparams.kFieldFloat:
-                number = StrToFloat(boundString)
+                number = float(boundString)
             else:
-                number = StrToInt(boundString)
+                number = int(boundString)
         except: # EConvertError:
             raise
             result = False
@@ -377,9 +379,8 @@ def boundForString(boundString, fieldType):
                 number = 0
     return result, number
 
-def trimLeftAndRight(theString):
-    result = theString.strip()
-    return result
+##def trimLeftAndRight(theString):
+##    return theString.strip()
 
 def stringUpTo(aString, aDelimiter):
     if len(aString) == 0:
@@ -408,7 +409,7 @@ def stringBeyond(aString, aDelimiter):
     return result
 
 def stringBetween(startString, endString, wholeString):
-    result = stringUpTo(stringBeyond(trim(wholeString), startString), endString)
+    result = stringUpTo(stringBeyond(wholeString.strip(), startString), endString)
     return result
 
 # didn't use, don't know if works
@@ -423,7 +424,7 @@ def stringBetween(startString, endString, wholeString):
 #    result.add(token);
 #    end;
 #  end;
-#     
+#
 def boolToStr(value):
     if value:
         result = "True"
@@ -443,7 +444,7 @@ def strToBool(booleanString):
 
 def messageForExceptionType(e, methodName):
     errorString = ""
-    
+
     if e == None:
         return
     if (e.__class__ is UNRESOLVED.EZeroDivide):
@@ -461,12 +462,12 @@ def messageForExceptionType(e, methodName):
     errorString = errorString + chr(13) + chr(13) + e.message
     umath.ErrorMessage(errorString)
 
-# float to text conversion 
-# ---------------------------------------------------------------------------- float to text conversion 
+# float to text conversion
+# ---------------------------------------------------------------------------- float to text conversion
 def removeTrailingZeros(theString):
     result = ""
     while (len(theString) > 1) and (theString[len(theString)] == "0") and (theString[len(theString) - 1] != "."):
-        #dec(theString[0]);  
+        #dec(theString[0]);
         UNRESOLVED.setLength(theString, len(theString) - 1)
     result = theString
     return result
@@ -476,7 +477,7 @@ def shortenLongNonZeroDigitsAfterDecimal(theString, maxDigits):
     pointPos = 0L
     firstNonZeroDigit = 0L
     digitsToGetRidOf = 0L
-    
+
     result = theString
     pointPos = UNRESOLVED.pos(".", result)
     if pointPos != 0:
@@ -491,21 +492,21 @@ def shortenLongNonZeroDigitsAfterDecimal(theString, maxDigits):
 
 def digitValueString(value):
     result = ""
-    result = removeTrailingZeros(shortenLongNonZeroDigitsAfterDecimal(FloatToStrF(value, UNRESOLVED.ffFixed, 7, 8), 2))
+    result = removeTrailingZeros(shortenLongNonZeroDigitsAfterDecimal("%f" % (value), 2))
     return result
 
 def valueString(value):
     result = ""
-    result = removeTrailingZeros(shortenLongNonZeroDigitsAfterDecimal(FloatToStrF(value, UNRESOLVED.ffFixed, 7, 8), 4))
+    result = removeTrailingZeros(shortenLongNonZeroDigitsAfterDecimal("%f" % (value), 4))
     return result
 
-# graphics 
-# ---------------------------------------------------------------------------- graphics 
+# graphics
+# ---------------------------------------------------------------------------- graphics
 def clientRectToScreenRect(handle, clientRect):
     result = TRect()
     p1 = TPoint()
     p2 = TPoint()
-    
+
     p1 = Point(clientRect.Left, clientRect.Top)
     UNRESOLVED.clientToScreen(handle, p1)
     p2 = Point(clientRect.Right, clientRect.Bottom)
@@ -516,7 +517,7 @@ def clientRectToScreenRect(handle, clientRect):
 def support_rgb(R, G, B):
     result = 0L
     #var screenDC: HDC;
-    #result := RGB(r, g, b);  
+    #result := RGB(r, g, b);
     #try
     #  screenDC := GetDC(0);
     #  result := GetNearestColor(screenDC, PALETTERGB(r, g, b));
@@ -530,10 +531,10 @@ def support_rgb(R, G, B):
 
 def combineRects(rect1, rect2):
     result = TRect()
-    result.Left = umath.intMin(rect1.Left, rect2.Left)
-    result.Right = umath.intMax(rect1.Right, rect2.Right)
-    result.Top = umath.intMin(rect1.Top, rect2.Top)
-    result.Bottom = umath.intMax(rect1.Bottom, rect2.Bottom)
+    result.Left = min(rect1.Left, rect2.Left)
+    result.Right = max(rect1.Right, rect2.Right)
+    result.Top = min(rect1.Top, rect2.Top)
+    result.Bottom = max(rect1.Bottom, rect2.Bottom)
     return result
 
 def addRectToBoundsRect(boundsRect, newRect):
@@ -591,7 +592,7 @@ def rectsAreIdentical(oneRect, twoRect):
 
 def rectToString(aRect):
     result = ""
-    result = IntToStr(aRect.Left) + " " + IntToStr(aRect.Top) + " " + IntToStr(aRect.Right) + " " + IntToStr(aRect.Bottom)
+    result = "%d %d %d %d" % (aRect.Left, aRect.Top, aRect.Right, aRect.Bottom)
     return result
 
 def stringToRect(aString):
@@ -605,7 +606,7 @@ def stringToRect(aString):
     return result
 
 def pointToString(aPoint):
-    result = IntToStr(aPoint.X) + "  " + IntToStr(aPoint.Y)
+    result = "%d  %d" % (aPoint.X, aPoint.Y) # !!two space.. error ?
     return result
 
 def stringToPoint(aString):
@@ -634,7 +635,7 @@ def stringToSinglePoint(aString):
         result.x = StrToIntDef(token, 0)
     else:
         try:
-            result.x = StrToFloat(token)
+            result.x = float(token)
         except:
             result.x = 0.0
     token = stream.nextToken()
@@ -642,18 +643,18 @@ def stringToSinglePoint(aString):
         result.y = StrToIntDef(token, 0)
     else:
         try:
-            result.y = StrToFloat(token)
+            result.y = float(token)
         except:
             result.y = 0.0
 
     return result
 
 def colorToRGBString(color):
-    result = IntToStr(UNRESOLVED.getRValue(color)) + " " + IntToStr(UNRESOLVED.getGValue(color)) + " " + IntToStr(UNRESOLVED.getBValue(color))
+    result = "%d %d %d" % (UNRESOLVED.getRValue(color), UNRESOLVED.getGValue(color), UNRESOLVED.getBValue(color))
     return result
 
 def rgbStringToColor(aString):
-    # format is r g b 
+    # format is r g b
     stream = usstream.KfStringStream()
     stream.onStringSeparator(aString, " ")
     r = StrToIntDef(stream.nextToken(), 0)
@@ -663,7 +664,7 @@ def rgbStringToColor(aString):
     return result
 
 def GetRValue(color):
-    return (color & 0xFF) 
+    return (color & 0xFF)
 
 def GetGValue(color):
     return (color & 0xFF00) >> 8
@@ -671,47 +672,47 @@ def GetGValue(color):
 def GetBValue(color):
     return (color & 0xFF0000) >> 16
 
-# ---------------------------------------------------------------------------------- color functions 
+# ---------------------------------------------------------------------------------- color functions
 def blendColors(firstColor, secondColor, aStrength):
     #blend first color with second color,
     #   weighting the second color by aStrength (0-1) and first color by (1 - aStrength).
-    aStrength = umath.max(0.0, umath.min(1.0, aStrength))
-    r1 = umath.intMax(0, umath.intMin(255, GetRValue(firstColor)))
-    g1 = umath.intMax(0, umath.intMin(255, GetGValue(firstColor)))
-    b1 = umath.intMax(0, umath.intMin(255, GetBValue(firstColor)))
-    r2 = umath.intMax(0, umath.intMin(255, GetRValue(secondColor)))
-    g2 = umath.intMax(0, umath.intMin(255, GetGValue(secondColor)))
-    b2 = umath.intMax(0, umath.intMin(255, GetBValue(secondColor)))
-    result = support_rgb(intround(r1 * (1.0 - aStrength) + r2 * aStrength), intround(g1 * (1.0 - aStrength) + g2 * aStrength), intround(b1 * (1.0 - aStrength) + b2 * aStrength))
+    aStrength = max(0.0, min(1.0, aStrength))
+    r1 = max(0, min(255, GetRValue(firstColor)))
+    g1 = max(0, min(255, GetGValue(firstColor)))
+    b1 = max(0, min(255, GetBValue(firstColor)))
+    r2 = max(0, min(255, GetRValue(secondColor)))
+    g2 = max(0, min(255, GetGValue(secondColor)))
+    b2 = max(0, min(255, GetBValue(secondColor)))
+    result = support_rgb(int(r1 * (1.0 - aStrength) + r2 * aStrength), int(g1 * (1.0 - aStrength) + g2 * aStrength), int(b1 * (1.0 - aStrength) + b2 * aStrength))
     return result
 
 def darkerColor(aColor):
-    r = umath.intMax(0, GetRValue(aColor) - 10)
-    g = umath.intMax(0, GetGValue(aColor) - 10)
-    b = umath.intMax(0, GetBValue(aColor) - 10)
+    r = max(0, GetRValue(aColor) - 10)
+    g = max(0, GetGValue(aColor) - 10)
+    b = max(0, GetBValue(aColor) - 10)
     result = support_rgb(r, g, b)
-    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2); 
+    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2);
     return result
 
 def darkerColorWithSubtraction(aColor, subtract):
-    r = umath.intMax(0, GetRValue(aColor) - subtract)
-    g = umath.intMax(0, GetGValue(aColor) - subtract)
-    b = umath.intMax(0, GetBValue(aColor) - subtract)
+    r = max(0, GetRValue(aColor) - subtract)
+    g = max(0, GetGValue(aColor) - subtract)
+    b = max(0, GetBValue(aColor) - subtract)
     result = support_rgb(r, g, b)
-    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2); 
+    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2);
     return result
 
 def lighterColor(aColor):
-    r = umath.intMin(255, intround(GetRValue(aColor) * 1.5))
-    g = umath.intMin(255, intround(GetGValue(aColor) * 1.5))
-    b = umath.intMin(255, intround(GetBValue(aColor) * 1.5))
+    r = min(255, int(GetRValue(aColor) * 1.5))
+    g = min(255, int(GetGValue(aColor) * 1.5))
+    b = min(255, int(GetBValue(aColor) * 1.5))
     result = support_rgb(r, g, b)
-    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2); 
+    #result := support_rgb(GetRValue(aColor) div 2, GetGValue(aColor) div 2, GetBValue(aColor) div 2);
     return result
 
 def drawButton(aCanvas, aRect, selected, enabled):
     internalRect = TRect()
-    
+
     aCanvas.Brush.Style = delphi_compatability.TFPBrushStyle.bsSolid
     if enabled:
         aCanvas.Pen.Color = delphi_compatability.clBlack
@@ -743,8 +744,8 @@ def draw3DButton(ACanvas, Client, Selected, Pressed):
     result = Client
     return result
 
-# combo and list box utilities 
-# ---------------------------------------------------------------------------- combo and list box utilities 
+# combo and list box utilities
+# ---------------------------------------------------------------------------- combo and list box utilities
 def currentObjectInComboBox(comboBox):
     result = TObject()
     if comboBox.Items.Count == 0:
@@ -765,13 +766,13 @@ def currentObjectInListBox(listBox):
         result = None
     return result
 
-# file i/o 
-# ---------------------------------------------------------------------------- file i/o 
+# file i/o
+# ---------------------------------------------------------------------------- file i/o
 def makeFileNameFrom(aString):
     result = ""
     done = False
     spacePos = 0
-    
+
     result = aString
     done = False
     while not done:
@@ -861,7 +862,7 @@ def extensionForFileType(fileType):
 def filterStringForFileType(fileType, includeAllFiles):
     result = ""
     extension = ""
-    
+
     extension = extensionForFileType(fileType)
     if fileType == kFileTypeAny:
         result = "All files (*.*)|*.*"
@@ -876,7 +877,7 @@ def getFileOpenInfo(fileType, suggestedFile, aTitle):
     fullSuggestedFileName = ""
     openDialog = TOpenDialog()
     nameString = ""
-    
+
     result = ""
     openDialog = delphi_compatability.TOpenDialog().Create(delphi_compatability.Application)
     try:
@@ -884,7 +885,7 @@ def getFileOpenInfo(fileType, suggestedFile, aTitle):
             openDialog.FileName = "*." + extensionForFileType(fileType)
         else:
             fullSuggestedFileName = ExpandFileName(suggestedFile)
-            # if directory does not exist, will leave as it was 
+            # if directory does not exist, will leave as it was
             openDialog.InitialDir = ExtractFilePath(fullSuggestedFileName)
             if FileExists(fullSuggestedFileName):
                 openDialog.FileName = ExtractFileName(fullSuggestedFileName)
@@ -911,18 +912,18 @@ def getFileOpenInfo(fileType, suggestedFile, aTitle):
 def fileNameIsOkayForSaving(suggestedFile):
     result = False
     fullSuggestedFileName = ""
-    
+
     result = False
     if len(suggestedFile) == 0:
         return result
     fullSuggestedFileName = ExpandFileName(suggestedFile)
     if not UNRESOLVED.directoryExists(ExtractFilePath(fullSuggestedFileName)):
-        # check if directory exists 
+        # check if directory exists
         ShowMessage("The directory " + ExtractFilePath(fullSuggestedFileName) + " does not exist.")
         return result
     if FileExists(fullSuggestedFileName) and UNRESOLVED.FileGetAttr(fullSuggestedFileName) and UNRESOLVED.faReadOnly:
-        # if file exists and is writable, it's ok because Save (not Save As) should not ask to rewrite 
-        # if file exists but is read-only, quit  
+        # if file exists and is writable, it's ok because Save (not Save As) should not ask to rewrite
+        # if file exists but is read-only, quit
         ShowMessage("The file " + fullSuggestedFileName + " exists and is read-only.")
         return result
     result = True
@@ -939,32 +940,32 @@ def getFileSaveInfo(fileType, askForFileName, suggestedFile, fileInfo):
     index = 0
     tempFileHandle = 0L
     userAbortedSave = False
-    
+
     fileInfo.fileType = fileType
     result = False
     userAbortedSave = False
-    # default info 
+    # default info
     fileInfo.tempFile = ""
     fileInfo.newFile = ""
     fileInfo.backupFile = ""
     fileInfo.writingWasSuccessful = False
     if not askForFileName:
         # if this is a Save, try to set the file name from the suggestedFile given; if file name
-        #    is invalid, set flag to move into Save As instead 
+        #    is invalid, set flag to move into Save As instead
         askForFileName = not fileNameIsOkayForSaving(suggestedFile)
         if not askForFileName:
             fileInfo.newFile = ExpandFileName(suggestedFile)
     if askForFileName:
         # if this is a Save As, or if this is a Save and the file in suggestedFile is invalid,
-        #    ask user for a file name 
+        #    ask user for a file name
         saveDialog = delphi_compatability.TSaveDialog().Create(delphi_compatability.Application)
         try:
             if len(suggestedFile) > 0:
                 fullSuggestedFileName = ExpandFileName(suggestedFile)
-                # if directory does not exist, will leave as it was 
+                # if directory does not exist, will leave as it was
                 saveDialog.InitialDir = ExtractFilePath(fullSuggestedFileName)
                 if UNRESOLVED.directoryExists(ExtractFilePath(fullSuggestedFileName)):
-                    # don't check if file exists (because saving); check if dir exists 
+                    # don't check if file exists (because saving); check if dir exists
                     saveDialog.FileName = ExtractFileName(fullSuggestedFileName)
             saveDialog.Filter = filterStringForFileType(fileType, kDontIncludeAllFiles)
             saveDialog.DefaultExt = extensionForFileType(fileType)
@@ -978,9 +979,9 @@ def getFileSaveInfo(fileType, askForFileName, suggestedFile, fileInfo):
     if userAbortedSave:
         return result
     try:
-        # set backup file name, check if read-only 
-        # changed backup file extension to put tilde first because it is better to have all backup files sort together 
-        # includes dot 
+        # set backup file name, check if read-only
+        # changed backup file extension to put tilde first because it is better to have all backup files sort together
+        # includes dot
         extension = ExtractFileExt(fileInfo.newFile)
         extension = ".~" + UNRESOLVED.copy(extension, 2, 2)
     except:
@@ -994,16 +995,16 @@ def getFileSaveInfo(fileType, askForFileName, suggestedFile, fileInfo):
     else:
         fileInfo.backupFile = tryBackupName
     for index in range(100, 999 + 1):
-        # set temp file name 
-        tryTempName = ChangeFileExt(fileInfo.newFile, "." + IntToStr(index))
+        # set temp file name
+        tryTempName = ChangeFileExt(fileInfo.newFile, ".%d" % (index))
         if not FileExists(tryTempName):
             fileInfo.tempFile = tryTempName
             break
     if fileInfo.tempFile == "":
-        # if can't find unused temp file, quit 
+        # if can't find unused temp file, quit
         ShowMessage("Could not create temporary file " + tryTempName + ".")
         return result
-    # test whether temp file can be created 
+    # test whether temp file can be created
     tempFileHandle = UNRESOLVED.fileCreate(fileInfo.tempFile)
     if tempFileHandle > 0:
         UNRESOLVED.fileClose(tempFileHandle)
@@ -1045,7 +1046,7 @@ def cleanUpAfterFileSave(fileInfo):
     renamingFailed = False
     deletingFailed = False
     prompt = ""
-    
+
     ucursor.cursor_stopWait()
     uwait.stopWaitMessage()
     useBackup = True

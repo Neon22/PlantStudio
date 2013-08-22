@@ -38,6 +38,7 @@ class TRect:
         self.Top = top
         self.Right = right
         self.Bottom = bottom
-        
+
 # PDF PORT __ SHOUDL REALLY FIX THIS
+# !!used once in uplant
 MaxLongInt = 10000000L

@@ -2,6 +2,7 @@
 import copy
 import delphi_compatability
 from conversion_common import *
+import math
 
 #import utdo
 import usupport
@@ -41,13 +42,13 @@ class VertexTriangle:
         self.vertex2 = 0
         self.vertex3 = 0
 
-# ------------------------------------------------------------------- global functions 
+# ------------------------------------------------------------------- global functions
 def fastTrigInitialize():
     for i in range(0, kFastTrigArraySize):
         #Approach: sine and cosine arrays are used for speed. Angles are 0 - 255 instead of 0 to 359
         #PDF - maybe want to expand this to 0 - 1023? - would impact rotate callers
-        SinCache[i] = sin(i * 2 * 3.141592654 / kFastTrigArraySize)
-        CosCache[i] = cos(i * 2 * 3.141592654 / kFastTrigArraySize)
+        SinCache[i] = math.sin(i * 2 * 3.141592654 / kFastTrigArraySize)
+        CosCache[i] = math.cos(i * 2 * 3.141592654 / kFastTrigArraySize)
 
 #these functions are no longer called here but are available for other uses
 #they were bundled directly into rotate
@@ -55,7 +56,7 @@ def fastTrigInitialize():
 #copied these functions into rotate to decrease overhead there - both of function call and of bounding angle twice
 def fastTrigCos(angle):
     try:
-        boundedAngle = intround(angle) % kFastTrigArraySize
+        boundedAngle = int(angle) % kFastTrigArraySize
     except:
         boundedAngle = 0
     if (boundedAngle < 0):
@@ -65,7 +66,7 @@ def fastTrigCos(angle):
 
 def fastTrigSin(angle):
     try:
-        boundedAngle = intround(angle) % kFastTrigArraySize
+        boundedAngle = int(angle) % kFastTrigArraySize
     except:
         boundedAngle = 0
     if (boundedAngle < 0):
@@ -100,7 +101,7 @@ def pointInTriangle(point, triangle):
     result = (first == second) and (second == third)
     return result
 
-# ---------------------------------------------------------------------------------- KfPoint3D 
+# ---------------------------------------------------------------------------------- KfPoint3D
 class KfPoint3D:
     def __init__(self):
         self.x = 0.0
@@ -138,11 +139,11 @@ def KfPoint3D_matchXYZ(pointOne, pointTwo, matchDistance):
 
 def KfPoint3D_addPointToBoundsRect(boundsRect, aPoint):
     try:
-        x = intround(aPoint.x)
+        x = int(aPoint.x)
     except:
         x = 0
     try:
-        y = intround(aPoint.y)
+        y = int(aPoint.y)
     except:
         y = 0
     if (boundsRect.Left == 0) and (boundsRect.Right == 0) and (boundsRect.Top == 0) and (boundsRect.Bottom == 0):
@@ -173,11 +174,11 @@ class KfMatrix:
         self.c1 = 0.0
         self.c2 = 0.0
         self.position = KfPoint3D()
-        
+
     def __repr__(self):
         return "KfMatrix: (%f %f %f) (%f %f %f) (%f %f %f)" %(self.a0, self.a1, self.a2, self.b0, self.b1, self.b2, self.c0, self.c1, self.c2)
-    
-    # ---------------------------------------------------------------------------------- *KfMatrix imitializing and copying 
+
+    # ---------------------------------------------------------------------------------- *KfMatrix imitializing and copying
     def initializeAsUnitMatrix(self):
         self.a0 = 1.0
         self.a1 = 0.0
@@ -191,7 +192,7 @@ class KfMatrix:
         self.position.x = 0.0
         self.position.y = 0.0
         self.position.z = 0.0
-    
+
     def deepCopy(self):
         result = KfMatrix()
         result.position.x = self.position.x
@@ -207,7 +208,7 @@ class KfMatrix:
         result.c1 = self.c1
         result.c2 = self.c2
         return result
-    
+
     def copyTo(self, otherMatrix):
         otherMatrix.position.x = self.position.x
         otherMatrix.position.y = self.position.y
@@ -221,15 +222,15 @@ class KfMatrix:
         otherMatrix.c0 = self.c0
         otherMatrix.c1 = self.c1
         otherMatrix.c2 = self.c2
-    
-    # ---------------------------------------------------------------------------- KfMatrix moving and transforming 
+
+    # ---------------------------------------------------------------------------- KfMatrix moving and transforming
     def move(self, distance):
         #pdf - move a distance by multiplying matrix values
         #   movement is along x axis (d, 0, 0, 1);
         self.position.x = self.position.x + distance * self.a0
         self.position.y = self.position.y + distance * self.b0
         self.position.z = self.position.z + distance * self.c0
-    
+
     # transform the point, including offsetting it by the current position
     #Alters the point's contents
     def transform(self, aPoint3D):
@@ -239,12 +240,12 @@ class KfMatrix:
         aPoint3D.x = (x * self.a0) + (y * self.a1) + (z * self.a2) + self.position.x
         aPoint3D.y = (x * self.b0) + (y * self.b1) + (z * self.b2) + self.position.y
         aPoint3D.z = (x * self.c0) + (y * self.c1) + (z * self.c2) + self.position.z
-        
-    # ---------------------------------------------------------------------------------- KfMatrix rotating 
+
+    # ---------------------------------------------------------------------------------- KfMatrix rotating
     def rotateX(self, angle):
         #bound angle and convert to index
         #not doing try except around round for speed here - could fail ...
-        boundedAngleIndex = intround(angle) % kFastTrigArraySize
+        boundedAngleIndex = int(angle) % kFastTrigArraySize
         if (boundedAngleIndex < 0):
             boundedAngleIndex = kFastTrigArraySize + boundedAngleIndex
         if (boundedAngleIndex < 0):
@@ -264,11 +265,11 @@ class KfMatrix:
         temp1 = (self.c1 * cosAngle) - (self.c2 * sinAngle)
         self.c2 = (self.c1 * sinAngle) + (self.c2 * cosAngle)
         self.c1 = temp1
-    
+
     def rotateY(self, angle):
         #bound angle and convert to index
         #not doing try except around round for speed here - could fail ...
-        boundedAngleIndex = intround(angle) % kFastTrigArraySize
+        boundedAngleIndex = int(angle) % kFastTrigArraySize
         if (boundedAngleIndex < 0):
             boundedAngleIndex = kFastTrigArraySize + boundedAngleIndex
         if (boundedAngleIndex < 0):
@@ -290,7 +291,7 @@ class KfMatrix:
         #flipped to put minus in middle
         self.c2 = (self.c2 * cosAngle) - (self.c0 * sinAngle)
         self.c0 = temp0
-    
+
     def rotateZ(self, angle):
         #
         #  {bound angle and convert to index}
@@ -317,10 +318,10 @@ class KfMatrix:
         #  c1 :=  (c0 * sinAngle) + (c1 * cosAngle);
         #  c2 := c2;
         #  c0 := temp0;
-        
+
         #bound angle and convert to index
         #not doing try except around round for speed here - could fail ...
-        boundedAngleIndex = intround(angle) % kFastTrigArraySize
+        boundedAngleIndex = int(angle) % kFastTrigArraySize
         if (boundedAngleIndex < 0):
             boundedAngleIndex = kFastTrigArraySize + boundedAngleIndex
         if (boundedAngleIndex < 0):
@@ -340,9 +341,9 @@ class KfMatrix:
         self.c1 = (self.c0 * sinAngle) + (self.c1 * cosAngle)
         self.c2 = self.c2
         self.c0 = temp0
-    
+
     #class SinCache CosCache
-    # ---------------------------------------------------------------------------------- KfMatrix returning current angles 
+    # ---------------------------------------------------------------------------------- KfMatrix returning current angles
     #PDF FIX - potential bug
     # these do not take in account kFastTrigArraySize could be different from 256
     def angleX(self):
@@ -351,7 +352,7 @@ class KfMatrix:
             temp = (self.a2 * self.a2) + (self.c2 * self.c2)
             if (temp < 0.0):
                 temp = 0.0
-            temp = sqrt(temp)
+            temp = math.sqrt(temp)
             if (temp == 0.0):
                 if (self.b2 < 0):
                     result = 64
@@ -359,19 +360,19 @@ class KfMatrix:
                     result = 256 - 64
             else:
                 temp = self.b2 / temp
-                temp = arctan(temp)
-                result = intround(-temp * 256 / (2 * 3.1415926))
+                temp = math.atan(temp)
+                result = int(-temp * 256 / (2 * 3.1415926))
         except:
             result = 0
         return result
-    
+
     def angleY(self):
         try:
             result = 0
             temp = (self.a0 * self.a0) + (self.c0 * self.c0)
             if (temp < 0.0):
                 temp = 0.0
-            temp = sqrt(temp)
+            temp = math.sqrt(temp)
             if (temp == 0.0):
                 if (self.b0 < 0):
                     result = 64
@@ -379,19 +380,19 @@ class KfMatrix:
                     result = 256 - 64
             else:
                 temp = self.b0 / temp
-                temp = arctan(temp)
-                result = intround(-temp * 256 / (2 * 3.1415926))
+                temp = math.atan(temp)
+                result = int(-temp * 256 / (2 * 3.1415926))
         except:
             result = 0
         return result
-    
-    def angleZ(self): 
+
+    def angleZ(self):
         try:
             result = 0
             temp = (self.a1 * self.a1) + (self.c1 * self.c1)
             if (temp < 0.0):
                 temp = 0.0
-            temp = sqrt(temp)
+            temp = math.sqrt(temp)
             if (temp == 0.0):
                 if (self.b1 < 0):
                     result = 64
@@ -399,12 +400,12 @@ class KfMatrix:
                     result = 256 - 64
             else:
                 temp = self.b1 / temp
-                temp = arctan(temp)
-                result = intround(-temp * 256 / (2 * 3.1415926))
+                temp = math.atan(temp)
+                result = int(-temp * 256 / (2 * 3.1415926))
         except:
             result = 0
         return result
-    
+
 #these can only be triangular
 class KfTriangle:
     def __init__(self):
@@ -420,13 +421,13 @@ class KfTriangle:
             self.points.append(KfPoint3D())
         self.tdo = None
         self.plantPartID = 0L
-    
-    # ---------------------------------------------------------------------------------- KfTriangle updating 
+
+    # ---------------------------------------------------------------------------------- KfTriangle updating
     def updateGeometry(self):
         self.computeBackFacing()
         self.computeZ()
-    
-    def computeBackFacing(self):    
+
+    def computeBackFacing(self):
         self.backFacing = False
         if self.isLine:
             return
@@ -435,7 +436,7 @@ class KfTriangle:
         point2 = self.points[2]
         backfacingResult = ((point1.x - point0.x) * (point2.y - point0.y)) - ((point1.y - point0.y) * (point2.x - point0.x))
         self.backFacing = (backfacingResult < 0)
-    
+
     def computeZ(self):
         if self.isLine:
             minZ = self.points[0].z
@@ -448,21 +449,21 @@ class KfTriangle:
             if self.points[2].z < minZ:
                 minZ = self.points[2].z
         self.zForSorting = minZ
-    
+
     def visibleSurfaceColor(self):
         if self.backFacing:
             result = self.backColor
         else:
             result = self.foreColor
         return result
-    
+
     def invisibleSurfaceColor(self):
         if self.backFacing:
             result = self.foreColor
         else:
             result = self.backColor
         return result
-    
+
     def drawLinesColor(self, lineContrastIndex):
         if self.backFacing:
             result = self.backColor
@@ -471,8 +472,8 @@ class KfTriangle:
         if lineContrastIndex > 0:
             result = usupport.darkerColorWithSubtraction(result, 10 * lineContrastIndex)
         return result
-  
+
 # do this only once
 if not initialized:
     fastTrigInitialize()
-    initialized = 1  
+    initialized = 1

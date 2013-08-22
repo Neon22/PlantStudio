@@ -7,7 +7,6 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
-#import cairo
 from gtk_helpers import *
 
 import math
@@ -19,11 +18,11 @@ import utdo
 
 example_tdo = utdo.KfObject3D()
 #example_tdo.readFromFile("./3dobject/l_carrot.tdo")
-example_tdo.readFromFile("./3dobject/l_squash.tdo")
+#example_tdo.readFromFile("./3dobject/l_squash.tdo")
 
 import uplant
 import ucursor
-    
+
 import hotshot
 prof = None
 
@@ -35,10 +34,10 @@ class PlantDrawingArea(gtk.DrawingArea):
         self.yr = 0
         self.zr = 0
         self.plant = None
-        
+
     def expose(self, widget, event):
         gc = widget.window.new_gc()
-        context = (widget.window, gc) 
+        context = (widget.window, gc)
         width = widget.get_allocation().width
         height = widget.get_allocation().height
         self.draw(context, width, height)
@@ -59,7 +58,7 @@ class PlantDrawingArea(gtk.DrawingArea):
         widget.window.draw_line(gc, 100, 100, 200, 200)
         """
 
-    def draw(self, context, width, height):    
+    def draw(self, context, width, height):
         turtle = uturtle.KfTurtle()
         turtle.drawingSurface = gtkdrawingsurface.GTKDrawingSurface()
         turtle.drawingSurface.setDrawingContext(context)
@@ -68,13 +67,13 @@ class PlantDrawingArea(gtk.DrawingArea):
         #self.testSimple(turtle)
         #self.testPolygon(turtle)
         #self.testTDO(turtle)
-        prof.runcall(self.testPlant, turtle, width, height)
-        #self.testPlant(turtle, width, height)
-       
-    def testPlant(self, turtle, width, height): 
+        #prof.runcall(self.testPlant, turtle, width, height)
+        self.testPlant(turtle, width, height)
+
+    def testPlant(self, turtle, width, height):
         turtle.reset()
         turtle.xyz(width / 2, height - 50, 100)
-        turtle.setScale_pixelsPerMm(0.5)
+        turtle.setScale_pixelsPerMm(1.0)
         self.plant.turtle = turtle
         turtle.rotateX(self.xr)
         turtle.rotateY(self.yr)
@@ -85,7 +84,7 @@ class PlantDrawingArea(gtk.DrawingArea):
         if self.plant:
             self.plant.draw()
         #self.plant.nextDay()
-        
+
     def testTDO(self, turtle):
         # try to draw polygon
         turtle.reset()
@@ -115,7 +114,7 @@ class PlantDrawingArea(gtk.DrawingArea):
         turtle.recordPosition()
         turtle.setForeColorBackColor(delphi_compatability.clGreen, delphi_compatability.clYellow)
         turtle.drawTriangle()
-        
+
     def testSimple(self, turtle):
         turtle.reset()
         turtle.xyz(100, 100, 100)
@@ -125,24 +124,24 @@ class PlantDrawingArea(gtk.DrawingArea):
         turtle.rotateZ(32)
         turtle.setLineColor(delphi_compatability.clBlue)
         turtle.drawInPixels(30)
-  
+
 ############################################################
-    
+
 class MainWindow:
     def __init__(self):
         self.plants = None
-        
+
         self.window = MakeWindow("PlantStudio(TM) for OLPC", 750, 500)
-        
+
         hbox = MakeHorizontalBox(self.window)
         self.plantList = MakeList(hbox, "Plant name", self.selectionChanged)
-        
+
         vbox = MakeVerticalBox(hbox)
-        
+
         self.drawingArea = PlantDrawingArea()
         PackBox(vbox, self.drawingArea)
- 
-        
+
+
         hbox = MakeHorizontalBox(vbox)
         MakeButton(hbox, "=0", self.grow, -1)
         MakeButton(hbox, "+1", self.grow, 1)
@@ -150,11 +149,11 @@ class MainWindow:
         MakeButton(hbox, "+10", self.grow, 10)
         MakeButton(hbox, "+30", self.grow, 30)
         MakeButton(hbox, "+100", self.grow, 100)
-                        
+
         hbox = MakeHorizontalBox(vbox)
         MakeButton(hbox, "<<", self.turn, -8)
         MakeButton(hbox, ">>", self.turn, 8)
-        
+
         MakeButton(vbox, "Open library...", self.openLibrary)
 
         self.fileName = "test.pla"
@@ -163,25 +162,27 @@ class MainWindow:
         #self.fileName = "Garden flowers.pla"
         plants = uplant.PlantLoader().loadPlantsFromFile(self.fileName, inPlantMover=1, justLoad=1)
         self.setPlantListContents(plants)
-        
+
         ShowWindow(self.window)
         ucursor.windowsToWaitWith.append(self.window.window)
-        
+
     def setPlantListContents(self, plants):
         self.plants = plants
         plantListContents = []
         for plant in self.plants:
-            tuple = (plant.name, plant)
-            plantListContents.append(tuple)
-        FillList(self.plantList, plantListContents)  
+            pair = (plant.name, plant)
+            plantListContents.append(pair)
+        FillList(self.plantList, plantListContents)
         if self.plants:
-            self.drawingArea.plant = self.plants[0] 
+            self.drawingArea.plant = self.plants[0]
         else:
              self.drawingArea.plant = None
-        
+
     def grow(self, widget, days):
         prof.runcall(self._grow, widget, days)
-        
+        #self.drawingArea.plant.report()
+
+
     def _grow(self, widget, days):
         if not self.drawingArea.plant:
             return
@@ -195,16 +196,16 @@ class MainWindow:
         finally:
             ucursor.cursor_stopWait()
         InvalidateWidget(self.drawingArea)
-        
+
     def turn(self, widget, amount):
         self.drawingArea.yr += amount
         InvalidateWidget(self.drawingArea)
-        
+
     def selectionChanged(self, widget):
         plant = GetListSelection(self.plantList, 1)
         self.drawingArea.plant = plant
         InvalidateWidget(self.drawingArea)
-            
+
     def openLibrary(self, widget):
         fileName = ChooseFile(self.window, "Plant files", ["*.pla"])
         if fileName == None:
@@ -218,7 +219,7 @@ class MainWindow:
         finally:
             ucursor.cursor_stopWait()
         InvalidateWidget(self.drawingArea)
-           
+
 def main():
     #import udomain
     #import uparams
@@ -228,16 +229,16 @@ def main():
     #    else:
     #        print "                        ", param.name
     #return
-                
+
     global prof
     prof = hotshot.Profile("hotshot_stats")
     application = MainWindow()
     gtk.main()
     prof.close()
-    
+
 if __name__ == "__main__":
     main()
-    
+
 
 
 

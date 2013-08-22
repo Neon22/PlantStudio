@@ -10,20 +10,27 @@ import udomain
 import ufruit
 import u3dexport
 
+import math
+import uplant
+import udebug
+
 """
 import usupport
 import uamendmt
 import uclasses
 import uturtle
-import udebug
+
 import ufiler
-import uplant
+
 import uintern
 """
 
 class PdInflorescence(upart.PdPlantPart):
     def __init__(self):
         upart.PdPlantPart.__init__(self)
+        # structure
+        self.phytomerAttachedTo = None
+        #
         self.flowers = ucollect.TListCollection()
         self.numFlowers = 0
         self.numFlowersEachDay = 0
@@ -32,13 +39,12 @@ class PdInflorescence(upart.PdPlantPart):
         self.daysSinceStartedMakingFlowers = 0
         self.isApical = False
         self.meristemThatCreatedMe = None
-        self.phytomerAttachedTo = None
         self.fractionOfOptimalSizeWhenCreated = 0.0
-    
+
     def getName(self):
         result = "inflorescence"
         return result
-    
+
     def determineAmendmentAndAlsoForChildrenIfAny(self):
         upart.PdPlantPart.determineAmendmentAndAlsoForChildrenIfAny(self)
         if self.amendment != None:
@@ -48,7 +54,7 @@ class PdInflorescence(upart.PdPlantPart):
         if len(self.flowers) > 0:
             for flower in self.flowers:
                 flower.parentAmendment = amendmentToPass
-    
+
     def initializeGenderApicalOrAxillary(self, aPlant, aGender, initAsApical, fractionOfOptimalSize):
         try:
             self.initialize(aPlant)
@@ -56,7 +62,7 @@ class PdInflorescence(upart.PdPlantPart):
             self.isApical = initAsApical
             self.daysSinceLastFlowerAppeared = 0
             self.daysSinceStartedMakingFlowers = 0
-            self.fractionOfOptimalSizeWhenCreated = umath.min(1.0, fractionOfOptimalSize)
+            self.fractionOfOptimalSizeWhenCreated = min(1.0, fractionOfOptimalSize)
             #The inflorescence must know whether it produces flowers slowly (over a greater number of days than flowers)
             #  or produces many flowers in a few days.
             daysToAllFlowers = self.plant.pInflor[self.gender].daysToAllFlowersCreated
@@ -69,14 +75,14 @@ class PdInflorescence(upart.PdPlantPart):
                 elif self.numFlowers == daysToAllFlowers:
                     self.numFlowersEachDay = 1
                 elif self.numFlowers > daysToAllFlowers:
-                    self.numFlowersEachDay = intround(umath.safedivExcept(1.0 * self.numFlowers, 1.0 * daysToAllFlowers, 0))
+                    self.numFlowersEachDay = int(umath.safedivExcept(1.0 * self.numFlowers, 1.0 * daysToAllFlowers, 0))
                 else:
-                    self.daysBetweenFlowerAppearances = intround(umath.safedivExcept(1.0 * daysToAllFlowers, 1.0 * self.numFlowers, 0))
+                    self.daysBetweenFlowerAppearances = int(umath.safedivExcept(1.0 * daysToAllFlowers, 1.0 * self.numFlowers, 0))
         except Exception, e:
             # PDF PORT TEMP RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInflorescence.InitializeGenderApicalOrAxillary")
-    
+
     def optimalInitialBiomass_pctMPB(self, drawingPlant, gender):
         if (gender < 0) or (gender > 1):
             result = 0.0
@@ -84,10 +90,11 @@ class PdInflorescence(upart.PdPlantPart):
             result = drawingPlant.pInflor[gender].optimalBiomass_pctMPB * drawingPlant.pInflor[gender].minFractionOfOptimalBiomassToCreateInflorescence_frn
         return result
     optimalInitialBiomass_pctMPB = classmethod(optimalInitialBiomass_pctMPB)
-    
+
     def nextDay(self):
+        ''' calc for flowers '''
         try:
-            upart.PdPlantPart.nextDay(self)
+            upart.PdPlantPart.nextDay(self) # age+1
             for flower in self.flowers:
                 flower.nextDay()
             #if self.age < plant.pInflor[gender].maxDaysToGrow then
@@ -105,7 +112,7 @@ class PdInflorescence(upart.PdPlantPart):
                         else:
                             self.daysSinceLastFlowerAppeared += 1
                     else:
-                        numFlowersToCreateToday = umath.intMin(self.numFlowersEachDay, self.numFlowers - len(self.flowers))
+                        numFlowersToCreateToday = min(self.numFlowersEachDay, self.numFlowers - len(self.flowers))
                         if numFlowersToCreateToday > 0:
                             for i in range(0, numFlowersToCreateToday):
                                 self.createFlower()
@@ -114,14 +121,22 @@ class PdInflorescence(upart.PdPlantPart):
             # PDF PORT TEMP ADDED RAISE FOR TESTIGN
             raise
             usupport.messageForExceptionType(e, "PdInflorescence.nextDay")
-    
+
     def traverseActivity(self, mode, traverserProxy):
+        ''' active when:
+            - draw, calc triangles..
+            - next day calcs
+            - reproduction - mod biomass
+            - finding part near position
+        '''
+        # do part aspect first
         upart.PdPlantPart.traverseActivity(self, mode, traverserProxy)
         traverser = traverserProxy
         if traverser == None:
             return
         if self.hasFallenOff and (mode != utravers.kActivityStream) and (mode != utravers.kActivityFree):
             return
+        #
         try:
             if (mode != utravers.kActivityDraw):
                 if len(self.flowers) > 0:
@@ -135,7 +150,7 @@ class PdInflorescence(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityDemandReproductive:
                 if (self.age > self.plant.pInflor[self.gender].maxDaysToGrow):
-                    # no vegetative demand 
+                    # no vegetative demand
                     self.biomassDemand_pctMPB = 0.0
                     return
                 try:
@@ -147,7 +162,7 @@ class PdInflorescence(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityGrowReproductive:
                 if self.age > self.plant.pInflor[self.gender].maxDaysToGrow:
-                    # no vegetative growth 
+                    # no vegetative growth
                     return
                 newBiomass_pctMPB = self.biomassDemand_pctMPB * traverser.fractionOfPotentialBiomass
                 self.liveBiomass_pctMPB = self.liveBiomass_pctMPB + newBiomass_pctMPB
@@ -155,7 +170,7 @@ class PdInflorescence(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityFindPlantPartAtPosition:
                 if umath.pointsAreCloseEnough(traverser.point, self.position()):
-                    # cannot switch 
+                    # cannot switch
                     traverser.foundPlantPart = self
                     traverser.finished = True
             elif mode == utravers.kActivityDraw:
@@ -172,9 +187,9 @@ class PdInflorescence(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityReproductiveBiomassThatCanBeRemoved:
                 #streaming called by phytomer
-                # free called by phytomer 
-                # none 
-                # none 
+                # free called by phytomer
+                # none
+                # none
                 traverser.total = traverser.total + self.liveBiomass_pctMPB
             elif mode == utravers.kActivityRemoveReproductiveBiomass:
                 biomassToRemove_pctMPB = self.liveBiomass_pctMPB * traverser.fractionOfPotentialBiomass
@@ -202,7 +217,7 @@ class PdInflorescence(upart.PdPlantPart):
             # PDF PORT ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInflorescence.traverseActivity")
-    
+
     def countPointsAndTrianglesFor3DExportAndAddToTraverserTotals(self, traverser):
         if traverser == None:
             return
@@ -222,21 +237,21 @@ class PdInflorescence(upart.PdPlantPart):
         traverser.total3DExportStemSegments += numLines
         if self.plant.pInflor[self.gender].peduncleLength_mm > 0:
             self.addExportMaterial(traverser, u3dexport.kExportPartInflorescenceStalkFemale, u3dexport.kExportPartInflorescenceStalkMale)
-    
+
     def report(self):
-        PdPlantPart.report(self)
-        udebug.DebugPrint(IntToStr(self.numFlowers) + " flowers")
-        # note flowers will print first 
-        # debugPrint('inflorescence, age '  + IntToStr(age));
-        #DebugForm.printNested(plant.turtle.stackSize, 'inflorescence, age '  + IntToStr(age));
-    
+        upart.PdPlantPart.report(self)
+        udebug.DebugPrint("%d flowers" % (self.numFlowers))
+        # note flowers will print first
+        # debugPrint('inflorescence, age %d' % (age))
+        #DebugForm.printNested(plant.turtle.stackSize, 'inflorescence, age %d' % (age))
+
     def biomassOfMeAndAllPartsConnectedToMe_pctMPB(self):
         result = self.totalBiomass_pctMPB()
         if len(self.flowers) > 0:
             for flower in self.flowers:
                 result = result + flower.totalBiomass_pctMPB()
         return result
-    
+
     def allFlowersHaveBeenDrawn(self):
         result = True
         if len(self.flowers) > 0:
@@ -245,25 +260,25 @@ class PdInflorescence(upart.PdPlantPart):
                     result = False
                     return result
         return result
-    
+
     def addDependentPartsToList(self, aList):
         if len(self.flowers) > 0:
             for flower in self.flowers:
                 aList.Add(flower)
-    
+
     def createFlower(self):
         if self.plant.partsCreated > udomain.domain.options.maxPartsPerPlant_thousands * 1000:
-            # create new flower/fruit object 
+            # create new flower/fruit object
             # v1.6b1
             return
         aFlowerFruit = ufruit.PdFlowerFruit()
         aFlowerFruit.initializeGender(self.plant, self.gender)
         self.flowers.Add(aFlowerFruit)
-    
+
     def deleteFlower(self, theFlower):
-        # remove flower object from list 
+        # remove flower object from list
         self.flowers.Remove(theFlower)
-    
+
     def draw(self):
         if not self.shouldDraw():
             return
@@ -289,12 +304,12 @@ class PdInflorescence(upart.PdPlantPart):
             turtle.ifExporting_endNestedGroupOfPlantParts(u3dexport.kNestingTypeInflorescence)
             turtle.pop()
         except Exception, e:
-            # PDF PORT ADDED TEMP RAISE FOR TESTING 
+            # PDF PORT ADDED TEMP RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInflorescence.draw")
-    
+
     def shouldDraw(self):
-        # if inflorescence has at least one flower or non-fallen fruit, should draw 
+        # if inflorescence has at least one flower or non-fallen fruit, should draw
         result = True
         for flowerFruit in self.flowers:
             if flowerFruit == None:
@@ -303,7 +318,7 @@ class PdInflorescence(upart.PdPlantPart):
                 return result
         result = False
         return result
-    
+
     def drawApex(self, internodeCount, flowerIndexOffset, mainBranch):
         i = 0
         #Draw inflorescence in raceme, panicle, or umbel form. This method uses the recursive algorithm
@@ -350,7 +365,7 @@ class PdInflorescence(upart.PdPlantPart):
                     self.drawAxillaryBud(self.plant.pInflor[self.gender].numFlowersPerBranch, self.plant.pInflor[self.gender].numFlowersOnMainBranch + branchesDrawn * self.plant.pInflor[self.gender].numFlowersPerBranch)
                     branchesDrawn += 1
                     turtle.pop()
-    
+
     def drawBracts(self):
         if (self.plant.turtle == None):
             return
@@ -381,7 +396,7 @@ class PdInflorescence(upart.PdPlantPart):
                 turtle.rotateX(self.plant.pInflor[self.gender].bractTdoParams.pullBackAngle)
                 self.draw3DObject(self.plant.pInflor[self.gender].bractTdoParams.object3D, scale, self.plant.pInflor[self.gender].bractTdoParams.faceColor, self.plant.pInflor[self.gender].bractTdoParams.backfaceColor, u3dexport.kExportPartInflorescenceBractFemale)
                 turtle.pop()
-                addThisTime = trunc(addition + carryOver)
+                addThisTime = math.floor(addition + carryOver)
                 carryOver = carryOver + addition - addThisTime
                 if carryOver < 0:
                     carryOver = 0
@@ -397,7 +412,7 @@ class PdInflorescence(upart.PdPlantPart):
             turtle.pop()
         turtle.pop()
         turtle.ifExporting_endNestedGroupOfPlantParts(u3dexport.kNestingTypeInflorescence)
-    
+
     def drawPeduncle(self):
         try:
             #Draw peduncle, which is the primary inflorescence stalk. If the inflorescence has only one flower,
@@ -422,7 +437,7 @@ class PdInflorescence(upart.PdPlantPart):
             self.drawStemSegment(length, width, zAngle, 0, self.plant.pInflor[self.gender].stalkColor, upart.kDontTaper, u3dexport.kExportPartInflorescenceStalkFemale, upart.kUseAmendment)
         except Exception, e:
             usupport.messageForExceptionType(e, "PdInflorescence.drawPeduncle")
-    
+
     def drawAxillaryBud(self, internodeCount, flowerIndexOffset):
         #This message is sent when the inflorescence is branched. The decision to create a branch is
         #     made before the message is sent. Note the check if all flowers have been drawn; this prevents
@@ -437,7 +452,7 @@ class PdInflorescence(upart.PdPlantPart):
         turtle.rotateZ(angle)
         self.drawApex(internodeCount, flowerIndexOffset, False)
         turtle.pop()
-    
+
     def drawFlower(self, internodeCount):
         try:
             if (self.allFlowersHaveBeenDrawn()):
@@ -467,7 +482,7 @@ class PdInflorescence(upart.PdPlantPart):
             # PDF PORT ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInflorescence.drawFlower")
-    
+
     def drawHead(self):
         # v1.4
         # v1.4
@@ -477,7 +492,7 @@ class PdInflorescence(upart.PdPlantPart):
             return
         turtle.rotateY(64)
         turtle.rotateZ(64)
-        # give a little angle down to make it look more natural 
+        # give a little angle down to make it look more natural
         turtle.rotateY(32)
         if len(self.flowers) > 0:
             # new v1.4
@@ -489,7 +504,7 @@ class PdInflorescence(upart.PdPlantPart):
                 addition = 0
             carryOver = 0
             for i in range(len(self.flowers) - 1, -1, -1):
-                addThisTime = trunc(addition + carryOver)
+                addThisTime = math.floor(addition + carryOver)
                 carryOver = carryOver + addition - addThisTime
                 if carryOver < 0:
                     carryOver = 0
@@ -499,7 +514,7 @@ class PdInflorescence(upart.PdPlantPart):
                 # v1.4 added one, was bug, was not drawing first flower
                 self.drawFlower(i + 1)
                 turtle.pop()
-    
+
     def drawInternode(self, internodeCount):
         try:
             if (self.allFlowersHaveBeenDrawn()):
@@ -517,11 +532,11 @@ class PdInflorescence(upart.PdPlantPart):
             self.drawStemSegment(length, width, zAngle, yAngle, self.plant.pInflor[self.gender].stalkColor, upart.kDontTaper, u3dexport.kExportPartInflorescenceInternodeFemale, upart.kDontUseAmendment)
         except Exception, e:
             usupport.messageForExceptionType(e, "PdInflorescence.drawInternode")
-    
+
     def lengthOrWidthAtAgeForFraction(self, starting, fraction):
         result = 0.0
         try:
-            ageBounded = umath.min(self.plant.pInflor[self.gender].daysToAllFlowersCreated, self.daysSinceStartedMakingFlowers)
+            ageBounded = min(self.plant.pInflor[self.gender].daysToAllFlowersCreated, self.daysSinceStartedMakingFlowers)
             if self.plant.pInflor[self.gender].daysToAllFlowersCreated != 0:
                 result = umath.safedivExcept(starting * ageBounded, self.plant.pInflor[self.gender].daysToAllFlowersCreated, 0) * fraction
             else:
@@ -529,22 +544,22 @@ class PdInflorescence(upart.PdPlantPart):
         except Exception, e:
             usupport.messageForExceptionType(e, "PdInflorescence.lengthOrWidthAtAgeForFraction")
         return result
-    
+
     def flower(self, index):
         result = self.flowers[index]
         return result
-    
+
     def partType(self):
         result = uplant.kPartTypeInflorescence
         return result
-    
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdInflorescence
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
-        PdPlantPart.streamDataWithFiler(self, filer, cvir)
+        upart.PdPlantPart.streamDataWithFiler(self, filer, cvir)
         self.daysSinceStartedMakingFlowers = filer.streamSmallint(self.daysSinceStartedMakingFlowers)
         self.numFlowersEachDay = filer.streamSmallint(self.numFlowersEachDay)
         self.numFlowers = filer.streamSmallint(self.numFlowers)
@@ -557,9 +572,9 @@ class PdInflorescence(upart.PdPlantPart):
         self.flowers.streamUsingFiler(filer, ufruit.PdFlowerFruit)
         if filer.isReading() and (len(self.flowers) > 0):
             for flower in self.flowers:
-                # fix up plant in flowers if needed 
+                # fix up plant in flowers if needed
                 flower.plant = self.plant
-    
+
 #The inflorescence is very simple; it creates a specified number of flowers over a specified period
 #  of days. Each inflorescence on the plant has the same number of flowers. Since an inflorescence is
 #  created by a meristem which accumulates biomass, nothing stands in the way of the inflorescence

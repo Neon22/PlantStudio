@@ -8,6 +8,8 @@ import utravers
 import uplant
 import u3dexport
 
+import math
+
 """
 import uclasses
 import uturtle
@@ -27,11 +29,11 @@ class PdLeaf(upart.PdPlantPart):
         self.propFullSize = 0.0
         self.biomassAtCreation_pctMPB = 0.0
         self.compoundLeafRandomSwayIndexes = [0] * (kNumCompoundLeafRandomSwayIndexes + 1)
-    
+
     def NewWithPlantFractionOfOptimalSize(self, aPlant, aFraction):
         self.initializeFractionOfOptimalSize(aPlant, aFraction)
         return self
-    
+
     def initializeFractionOfOptimalSize(self, thePlant, aFraction):
         try:
             self.initialize(thePlant)
@@ -47,23 +49,23 @@ class PdLeaf(upart.PdPlantPart):
             # PDF PORT __ FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdLeaf.initializeFractionOfOptimalSize")
-    
+
     def optimalInitialBiomass_pctMPB(self, drawingPlant):
         result = drawingPlant.pLeaf.optimalFractionOfOptimalBiomassAtCreation_frn * drawingPlant.pLeaf.optimalBiomass_pctMPB
         return result
     optimalInitialBiomass_pctMPB = classmethod(optimalInitialBiomass_pctMPB)
-    
+
     def getName(self):
         result = "leaf"
         return result
-    
+
     def nextDay(self):
         try:
             upart.PdPlantPart.nextDay(self)
             self.checkIfHasAbscissed()
         except Exception, e:
             usupport.messageForExceptionType(e, "PdLeaf.nextDay")
-    
+
     def traverseActivity(self, mode, traverserProxy):
         upart.PdPlantPart.traverseActivity(self, mode, traverserProxy)
         traverser = traverserProxy
@@ -81,7 +83,7 @@ class PdLeaf(upart.PdPlantPart):
                     self.biomassDemand_pctMPB = 0.0
                     return
                 fractionOfMaxAge_frn = umath.safedivExcept(self.age + 1, self.plant.pLeaf.maxDaysToGrow, 0.0)
-                propFullSizeWanted = umath.max(0.0, umath.min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pLeaf.sCurveParams.c1, self.plant.pLeaf.sCurveParams.c2)))
+                propFullSizeWanted = max(0.0, min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pLeaf.sCurveParams.c1, self.plant.pLeaf.sCurveParams.c2)))
                 self.biomassDemand_pctMPB = utravers.linearGrowthResult(self.liveBiomass_pctMPB, propFullSizeWanted * self.plant.pLeaf.optimalBiomass_pctMPB, self.plant.pLeaf.minDaysToGrow)
                 traverser.total = traverser.total + self.biomassDemand_pctMPB
             elif mode == utravers.kActivityDemandReproductive:
@@ -92,7 +94,7 @@ class PdLeaf(upart.PdPlantPart):
                     return
                 newBiomass_pctMPB = self.biomassDemand_pctMPB * traverser.fractionOfPotentialBiomass
                 self.liveBiomass_pctMPB = self.liveBiomass_pctMPB + newBiomass_pctMPB
-                self.propFullSize = umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pLeaf.optimalBiomass_pctMPB, 0))
+                self.propFullSize = min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pLeaf.optimalBiomass_pctMPB, 0))
             elif mode == utravers.kActivityGrowReproductive:
                 pass
             elif mode == utravers.kActivityStartReproduction:
@@ -100,7 +102,7 @@ class PdLeaf(upart.PdPlantPart):
             elif mode == utravers.kActivityFindPlantPartAtPosition:
                 if umath.pointsAreCloseEnough(traverser.point, self.position()):
                     # no repro. growth
-                    # no response 
+                    # no response
                     traverser.foundPlantPart = self
                     traverser.finished = True
             elif mode == utravers.kActivityDraw:
@@ -112,9 +114,9 @@ class PdLeaf(upart.PdPlantPart):
             elif mode == utravers.kActivityFree:
                 pass
             elif mode == utravers.kActivityVegetativeBiomassThatCanBeRemoved:
-                # phytomer will control drawing 
+                # phytomer will control drawing
                 #streaming will be done by internode
-                # free will be called by phytomer 
+                # free will be called by phytomer
                 traverser.total = traverser.total + self.liveBiomass_pctMPB
             elif mode == utravers.kActivityRemoveVegetativeBiomass:
                 biomassToRemove_pctMPB = self.liveBiomass_pctMPB * traverser.fractionOfPotentialBiomass
@@ -126,8 +128,8 @@ class PdLeaf(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityGatherStatistics:
                 if self.isSeedlingLeaf:
-                    # none 
-                    # none 
+                    # none
+                    # none
                     self.addToStatistics(traverser.statistics, utravers.kStatisticsPartTypeSeedlingLeaf)
                 else:
                     self.addToStatistics(traverser.statistics, utravers.kStatisticsPartTypeLeaf)
@@ -148,21 +150,20 @@ class PdLeaf(upart.PdPlantPart):
             # PDF PORT __ TEMPORARILY ADDED raise FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdLeaf.traverseActivity")
-    
+
     def checkIfHasAbscissed(self):
         pass
-        # if enough biomass removed (parameter), absciss leaf or leaves 
+        # if enough biomass removed (parameter), absciss leaf or leaves
         # not doing anymore
         #if (self.fractionLive < plant.pLeaf.fractionOfLiveBiomassWhenAbscisses_frn) and (not self.hasFallenOff) then
         #  self.hasFallenOff := True;
-    
+
     def destroy(self):
         upart.PdPlantPart.destroy(self)
-    
+
     def isPhytomer(self):
-        result = False
-        return result
-    
+        return False
+
     def countPointsAndTrianglesFor3DExportAndAddToTraverserTotals(self, traverser):
         if traverser == None:
             return
@@ -198,7 +199,7 @@ class PdLeaf(upart.PdPlantPart):
             if self.plant.pLeaf.compoundNumLeaflets > 1:
                 # petiolets + compound leaf internodes
                 traverser.total3DExportStemSegments += self.plant.pLeaf.compoundNumLeaflets * 2
-    
+
     def tdoToSortLinesWith(self):
         result = None
         if self.plant == None:
@@ -208,7 +209,7 @@ class PdLeaf(upart.PdPlantPart):
         else:
             result = self.plant.pLeaf.leafTdoParams.object3D
         return result
-    
+
     def drawWithDirection(self, direction):
         turtle = self.plant.turtle
         if (turtle == None):
@@ -260,17 +261,17 @@ class PdLeaf(upart.PdPlantPart):
             # PDF PORT ADDED FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdLeaf.drawWithDirection")
-    
+
     def wiltLeaf(self):
         if (self.plant.turtle == None):
             #  var
-            #    angle: integer; 
+            #    angle: integer;
             return
         # angle := round(abs(plant.turtle.angleX + 32) * plant.pGeneral.wiltingPercent / 100.0);
         #  if plant.turtle.angleX > -32 then
         #    angle := -angle;
-        #  plant.turtle.rotateX(angle); 
-    
+        #  plant.turtle.rotateX(angle);
+
     def drawStipule(self):
         turtle = self.plant.turtle
         if (turtle == None):
@@ -291,7 +292,8 @@ class PdLeaf(upart.PdPlantPart):
                 addition = 0
             carryOver = 0
             for i in range(0, self.plant.pLeaf.stipuleTdoParams.repetitions):
-                addThisTime = trunc(addition + carryOver)
+                #addThisTime = trunc(addition + carryOver)
+                addThisTime = math.floor(addition + carryOver)
                 carryOver = carryOver + addition - addThisTime
                 if carryOver < 0:
                     carryOver = 0
@@ -301,7 +303,7 @@ class PdLeaf(upart.PdPlantPart):
         elif self.plant.pLeaf.stipuleTdoParams.object3D != None:
             self.draw3DObject(self.plant.pLeaf.stipuleTdoParams.object3D, scale, self.plant.pLeaf.stipuleTdoParams.faceColor, self.plant.pLeaf.stipuleTdoParams.backfaceColor, u3dexport.kExportPartLeafStipule)
         turtle.pop()
-    
+
     def DrawLeafOrLeaflet(self, aScale):
         #Draw leaf only. If seedling leaf (on first phytomer), draw seedling leaf 3D object and colors instead.
         #    Wilt leaf according to water stress and age.
@@ -338,7 +340,7 @@ class PdLeaf(upart.PdPlantPart):
             tdo = self.plant.pLeaf.leafTdoParams.object3D
         if tdo != None:
             self.draw3DObject(tdo, aScale, useFaceColor, useBackfaceColor, u3dexport.kExportPartLeaf)
-    
+
     def drawCompoundLeafPinnate(self):
         #Draw compound leaf. Use recursion structure we used to use for whole plant, with no branching.
         #    Leaflets decrease in size as you move up the leaf, simulating a gradual appearance of leaflets.
@@ -361,7 +363,7 @@ class PdLeaf(upart.PdPlantPart):
             self.DrawCompoundLeafPetioletCount(scale, i)
             self.DrawLeafOrLeaflet(scale)
             turtle.pop()
-    
+
     def drawCompoundLeafInternode(self, count):
         #Draw internode of leaflet (portion of rachis). This is almost identical to drawing the petiole, etc,
         #   but a bit of random drift is included to make the compound leaf look more single.
@@ -371,7 +373,7 @@ class PdLeaf(upart.PdPlantPart):
         angleZ = self.compoundLeafAngleWithSway(self.bendAngleForCompoundLeaf(count), count)
         angleY = self.compoundLeafAngleWithSway(0, count)
         self.drawStemSegment(length, width, angleZ, angleY, self.plant.pLeaf.petioleColor, upart.kDontTaper, u3dexport.kExportPartPetiole, upart.kDontUseAmendment)
-    
+
     # v1.6b3
     def bendAngleForCompoundLeaf(self, count):
         result = 0
@@ -379,13 +381,13 @@ class PdLeaf(upart.PdPlantPart):
             return result
         difference = abs(self.plant.pLeaf.compoundCurveAngleAtFullSize - self.plant.pLeaf.compoundCurveAngleAtStart)
         leafletNumberEffect = 0.75 + 0.25 * umath.safedivExcept(count, self.plant.pLeaf.compoundNumLeaflets - 1, 0)
-        propFullSizeThisLeaflet = umath.max(0.0, umath.min(1.0, (0.25 + 0.75 * self.propFullSize) * leafletNumberEffect))
+        propFullSizeThisLeaflet = max(0.0, min(1.0, (0.25 + 0.75 * self.propFullSize) * leafletNumberEffect))
         if self.plant.pLeaf.compoundCurveAngleAtFullSize > self.plant.pLeaf.compoundCurveAngleAtStart:
             result = self.plant.pLeaf.compoundCurveAngleAtStart + difference * propFullSizeThisLeaflet
         else:
             result = self.plant.pLeaf.compoundCurveAngleAtStart - difference * propFullSizeThisLeaflet
         return result
-    
+
     def DrawCompoundLeafPetioletCount(self, scale, aCount):
         #Draw petiolet, which is the leaflet stem coming off the compound leaf rachis.
         length = scale * self.plant.pLeaf.petioleLengthAtOptimalBiomass_mm * self.propFullSize
@@ -393,13 +395,13 @@ class PdLeaf(upart.PdPlantPart):
         if (aCount == 1):
             angle = 0
         else:
-            if (odd(aCount)):
+            if (umath.odd(aCount)):
                 angle = 32
             else:
                 angle = -32
         angle = self.compoundLeafAngleWithSway(angle, aCount)
         self.drawStemSegment(length, width, 0, angle, self.plant.pLeaf.petioleColor, self.plant.pLeaf.petioleTaperIndex, u3dexport.kExportPartPetiole, upart.kDontUseAmendment)
-    
+
     def compoundLeafAngleWithSway(self, angle, count):
         result = angle
         if self.plant == None:
@@ -410,7 +412,7 @@ class PdLeaf(upart.PdPlantPart):
         randomNumber = self.compoundLeafRandomSwayIndexes[count]
         result = angle + ((randomNumber - 0.5) * self.plant.pGeneral.randomSway)
         return result
-    
+
     def drawCompoundLeafPalmate(self):
         #Draw palmate compound leaf. Use recursion structure we used to use for whole plant, with no branching.
         #    In a palmate leaf, leaflets increase in size as you move toward the middle of the leaf.
@@ -424,7 +426,7 @@ class PdLeaf(upart.PdPlantPart):
                 turtle.push()
                 if (i == 1):
                     angle = 0
-                elif (odd(i)):
+                elif (umath.odd(i)):
                     angle = angleOne * i * -1
                 else:
                     angle = angleOne * i * 1
@@ -432,28 +434,28 @@ class PdLeaf(upart.PdPlantPart):
                 width = self.plant.pLeaf.petioleWidthAtOptimalBiomass_mm * self.propFullSize
                 self.drawStemSegment(length, width, 0, angle, self.plant.pLeaf.petioleColor, self.plant.pLeaf.petioleTaperIndex, u3dexport.kExportPartPetiole, upart.kDontUseAmendment)
                 scale = self.propFullSize * self.plant.pLeaf.leafTdoParams.scaleAtFullSize / 100.0
-                #scale := safedivExcept(scale, plant.pLeaf.compoundNumLeaflets, 0); 
+                #scale := safedivExcept(scale, plant.pLeaf.compoundNumLeaflets, 0);
                 self.DrawLeafOrLeaflet(scale)
                 turtle.pop()
-    
+
     def report(self):
         upart.PdPlantPart.report(self)
-        #debugPrint('leaf, age ' + IntToStr(age) + ' biomass ' + floatToStr(liveBiomass_pctMPB));
-        #DebugForm.printNested(plant.turtle.stackSize, 'leaf, age ' + IntToStr(age));
-    
+        #debugPrint('leaf, age %d biomass %f' % (age, liveBiomass_pctMPB))
+        #DebugForm.printNested(plant.turtle.stackSize, 'leaf, age %d' % (age))
+
     def partType(self):
         result = uplant.kPartTypeLeaf
         return result
-    
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdLeaf
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
         upart.PdPlantPart.streamDataWithFiler(self, filer, cvir)
         self.sCurveParams = filer.streamBytes(self.sCurveParams, FIX_sizeof(self.sCurveParams))
         self.propFullSize = filer.streamSingle(self.propFullSize)
         self.biomassAtCreation_pctMPB = filer.streamSingle(self.biomassAtCreation_pctMPB)
         self.isSeedlingLeaf = filer.streamBoolean(self.isSeedlingLeaf)
-    
+

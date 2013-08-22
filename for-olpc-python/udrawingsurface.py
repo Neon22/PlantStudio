@@ -11,7 +11,7 @@ from conversion_common import *
 kInitialDrawingSurfaceTriangles = 1000
 
 
-# ----------------------------------------------------------------------------- *KfDrawingSurface creating/destroying 
+# ----------------------------------------------------------------------------- *KfDrawingSurface creating/destroying
 
 class KfDrawingSurface:
     def __init__(self):
@@ -28,14 +28,14 @@ class KfDrawingSurface:
         self.lineWidth = 0.0
         self.circlePointRadius = 0
         self.sortTdosAsOneItem = False
-    
+
         self.triangles = []
         self.fillingTriangles = True
         self.initialize()
-        # start with a bunch of triangles 
+        # start with a bunch of triangles
         for i in range(0, kInitialDrawingSurfaceTriangles + 1):
             self.triangles.append(u3dsupport.KfTriangle())
-    
+
     def setDrawingContext(self, drawingContext):
         self.drawingContext = drawingContext
 
@@ -51,11 +51,11 @@ class KfDrawingSurface:
         #        self.drawingContextUseSolidBrush()
         #    else:
         #        self.drawingContextUseClearBrush()
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurface managing triangles 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurface managing triangles
     def clearTriangles(self):
         self.triangles = []
-    
+
     def plantPartIDForPoint(self, point):
         points = []
         for i in range(2):
@@ -75,23 +75,23 @@ class KfDrawingSurface:
                     closestDistanceSoFar = thisDistance
                     closestPartID = triangle.plantPartID
             else:
-                points[0].X = intround(triangle.points[0].x)
-                points[0].Y = intround(triangle.points[0].y)
-                points[1].X = intround(triangle.points[1].x)
-                points[1].Y = intround(triangle.points[1].y)
-                points[2].X = intround(triangle.points[2].x)
-                points[2].Y = intround(triangle.points[2].y)
+                points[0].X = int(triangle.points[0].x)
+                points[0].Y = int(triangle.points[0].y)
+                points[1].X = int(triangle.points[1].x)
+                points[1].Y = int(triangle.points[1].y)
+                points[2].X = int(triangle.points[2].x)
+                points[2].Y = int(triangle.points[2].y)
                 if u3dsupport.pointInTriangle(point, points):
                     result = triangle.plantPartID
                     return result
         result = closestPartID
         return result
-    
+
     def allocateTriangle(self):
         result = u3dsupport.KfTriangle()
         self.triangles.append(result)
         return result
-    
+
     def sortTrianglesConsideringTdos(self):
         if not self.triangles:
             return
@@ -109,7 +109,7 @@ class KfDrawingSurface:
                     # have to clear out tdo pointer afterward because triangles are reused
                     triangle.tdo = None
         self.sortTriangles(0, len(self.triangles)-1)
-    
+
     def sortTriangles(self, left, right):
         if right > left:
             z = self.triangles[right].zForSorting
@@ -130,12 +130,12 @@ class KfDrawingSurface:
             self.triangles[i], self.triangles[right] = self.triangles[right], self.triangles[i]
             self.sortTriangles(left, j)
             self.sortTriangles(i + 1, right)
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurface drawing 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurface drawing
     def trianglesDraw(self):
         for triangle in self.triangles:
             self.basicDrawTriangle(triangle)
-    
+
     def drawLineFromTo(self, startPoint, endPoint):
         result = None
         if self.recording:
@@ -154,29 +154,29 @@ class KfDrawingSurface:
         else:
             self.basicDrawLineFromTo(startPoint, endPoint)
         return result
-    
+
     def basicDrawLineFromTo(self, startPoint, endPoint):
         if self.drawingContext == None:
             #assuming pen color and width is saved and restored elsewhere
             return
         #do nothing if rounding fails
         try:
-            x1 = intround(startPoint.x)
-            y1 = intround(startPoint.y)
-            x2 = intround(endPoint.x)
-            y2 = intround(endPoint.y)
-            width = intround(self.lineWidth)
+            x1 = int(startPoint.x)
+            y1 = int(startPoint.y)
+            x2 = int(endPoint.x)
+            y2 = int(endPoint.y)
+            width = int(self.lineWidth)
             self.drawingContextDrawSolidLine(x1, y1, x2, y2, width, self.lineColor)
         except:
             # pdf raise for now
             raise
             pass
-    
+
     def draw3DFace(self, point1, point2, point3, point4):
         # subclasses must override
         raise GeneralException.create("Problem: draw3DFace method not supported in base class; in method KfDrawingSurface.draw3DFace.")
-    
-    #terminology is different: drawing surface frontColor is pen line color 
+
+    #terminology is different: drawing surface frontColor is pen line color
     # and drawing surface backColor (which should be back-facing triangle) is fill color
     #drawing surface draws the last triangle allocated - and deallocates it if needed
     def drawLastTriangle(self):
@@ -197,7 +197,7 @@ class KfDrawingSurface:
             self.basicDrawTriangle(triangle)
             #deallocate it
             del self.triangles[-1]
-    
+
     #pdf - draw the triangle object - assume it is reasonably flat"
     #{can only draw triangles for now
     #needs fixed size for array - would need to allocate for variable sizes
@@ -208,29 +208,29 @@ class KfDrawingSurface:
     def basicDrawTriangle(self, triangle):
         if self.drawingContext == None:
             return
-        
+
         if (triangle.isLine):
             #do nothing if round fails or assign to integer fails
             try:
                 #draw line
                 startPoint = triangle.points[0]
                 endPoint = triangle.points[1]
-                x1 = intround(startPoint.x)
-                y1 = intround(startPoint.y)
-                x2 = intround(endPoint.x)
-                y2 = intround(endPoint.y)
-                width = intround(triangle.lineWidth)
+                x1 = int(startPoint.x)
+                y1 = int(startPoint.y)
+                x2 = int(endPoint.x)
+                y2 = int(endPoint.y)
+                width = int(triangle.lineWidth)
                 self.drawingContextDrawSolidLine(x1, y1, x2, y2, width, triangle.lineColor)
             except:
                 # PDF FIX raise for now
                 raise
                 pass
             return
-        
+
         pointArray = []
         for i in range(4):
             pointArray.append(delphi_compatability.TPoint()) # not sure what type of point it shoudl be
-        
+
         # build point array
         for i in range(0, 4):
             if i < 3:
@@ -239,15 +239,15 @@ class KfDrawingSurface:
             else:
                 aPoint = triangle.points[0]
             try:
-                pointArray[i].X = intround(aPoint.x)
-                pointArray[i].Y = intround(aPoint.y)
+                pointArray[i].X = int(aPoint.x)
+                pointArray[i].Y = int(aPoint.y)
             except:
                 #maybe could test sign to put in negative big numbers? watch out for NaNs!
                 pointArray[i].X = 32767
                 pointArray[i].Y = 32767
-        
+
         interiorColor = triangle.visibleSurfaceColor()
-        
+
         if self.drawingLines:
             if self.fillingTriangles:
                 edgeColor = triangle.drawLinesColor(self.lineContrastIndex)
@@ -255,58 +255,58 @@ class KfDrawingSurface:
                 edgeColor = triangle.visibleSurfaceColor()
         else:
             edgeColor = triangle.visibleSurfaceColor()
-            
+
         if self.circlingPoints:
             vertextPointColor = self.circleColor
         else:
             vertextPointColor = None
-        
+
         self.drawingContextDrawTriangle(pointArray, interiorColor, edgeColor, 1, self.fillingTriangles, vertextPointColor)
 
-    # ----------------------------------------------------------------------------- KfDrawingSurface recording 
+    # ----------------------------------------------------------------------------- KfDrawingSurface recording
     def recordingStart(self):
         self.clearTriangles()
         self.recording = True
-    
+
     def recordingStop(self):
         self.recording = False
-    
+
     def recordingDraw(self):
         self.sortTrianglesConsideringTdos()
         self.trianglesDraw()
-        
+
     ################# SUBCLASSES MUST IMPLEMENT
-    
+
     #def drawingContextUseSolidBrush(self):
     #    #self.pane.Brush.Style = delphi_compatability.TFPBrushStyle.bsSolid
     #    raise "Subclass must implement"
-    
+
     #def drawingContextUseClearBrush(self):
     #    #self.pane.Brush.Style = delphi_compatability.TFPBrushStyle.bsClear
     #    raise "Subclass must implement"
-    
+
     def drawingContextDrawSolidLine(self, x1, y1, x2, y2, width, color):
         raise "Subclass must implement"
         # Ideas:
-        #self.pane.Pen.Width = intround(self.lineWidth)
+        #self.pane.Pen.Width = int(self.lineWidth)
         #self.pane.Pen.Color = self.lineColor
         #self.pane.Pen.Style = delphi_compatability.TFPPenStyle.psSolid
-        #self.pane.MoveTo(intround(startPoint.x), intround(startPoint.y))
-        #self.pane.LineTo(intround(endPoint.x), intround(endPoint.y))
-    
+        #self.pane.MoveTo(int(startPoint.x), int(startPoint.y))
+        #self.pane.LineTo(int(endPoint.x), int(endPoint.y))
+
     def drawingContextDrawTriangle(self, points, interiorColor, edgeColor, edgeWidth, drawFilled, vertextPointColor=None):
         raise "Subclass must implement"
         # IDEAS:
         #self.pane.Pen.Color = triangle.visibleSurfaceColor()
         #self.pane.Pen.Style = delphi_compatability.TFPPenStyle.psSolid
-        #self.pane.Brush.Color = triangle.visibleSurfaceColor()    
+        #self.pane.Brush.Color = triangle.visibleSurfaceColor()
         #self.pane.Pen.Width = 1
-        
+
         #if self.fillingTriangles:
         #    self.pane.Polygon(points)
         #else:
         #    self.pane.Polyline(points)
-            
+
         #if self.circlingPoints:
         #    self.pane.Pen.Color = self.circleColor
         #    self.pane.Brush.Color = self.circleColor

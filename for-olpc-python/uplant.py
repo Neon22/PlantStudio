@@ -75,7 +75,7 @@ class BreedingAndTimeSeriesOptionsStructure:
         self.thumbnailHeight = 32
         self.maxGenerations = 30
         self.numTimeSeriesStages = 0
-        
+
 # PDF PORT __ MOVED DOWN HERE DUE TO CONFLICT WHEN LAODIGN DOMAIN>???
 
 import copy
@@ -98,8 +98,9 @@ import udebug
 import ubmpsupport
 import uturtle
 
-"""
 import ucursor
+"""
+
 import utimeser
 import usection
 import uclasses
@@ -129,8 +130,8 @@ class TdoParamsStructure:
         self.pullBackAngle = 0.0
 
 # alternate colors used only for fruit, so far - ripe vs. unripe
-# params->start 
-# access->pGeneral 
+# params->start
+# access->pGeneral
 # record
 class ParamsGeneral:
     def __init__(self):
@@ -151,7 +152,7 @@ class ParamsGeneral:
 #was longint, but want it in a param panel
 #NA
 #not using yet
-# access->pLeaf 
+# access->pLeaf
 # record
 class ParamsLeaf:
     def __init__(self):
@@ -176,14 +177,14 @@ class ParamsLeaf:
         self.compoundPinnateLeafletArrangement = 0
 
 #ENUM
-# access->pSeedlingLeaf 
+# access->pSeedlingLeaf
 # record
 class ParamsSeedlingLeaf:
     def __init__(self):
         self.leafTdoParams = TdoParamsStructure()
         self.nodesOnStemWhenFallsOff = 0
 
-# access->pInternode 
+# access->pInternode
 # record
 class ParamsInternode:
     def __init__(self):
@@ -210,10 +211,10 @@ class ParamsInternode:
         self.minDaysToBolt = 0
         self.maxDaysToBolt = 0
 
-# creation 
-# growth and expansion 
-# bolting 
-# access->pFlower 
+# creation
+# growth and expansion
+# bolting
+# access->pFlower
 #kBud = 0; kPistil = 1; kStamens = 2; kFirstPetals = 3; kSecondPetals = 4; kThirdPetals = 5; kSepals = 6;
 # record
 class ParamsFlower:
@@ -244,7 +245,7 @@ class ParamsFlower:
         self.filamentTaperIndex = 0
         self.filamentColor = UnassignedColor
 
-# access->pInflor 
+# access->pInflor
 # record
 class ParamsInflorescence:
     def __init__(self):
@@ -279,13 +280,13 @@ class ParamsInflorescence:
         self.pedicelColor = UnassignedColor
         self.pedicelTaperIndex = 0
 
-# access->pAxillaryBud 
+# access->pAxillaryBud
 # record
 class ParamsAxillaryBud:
     def __init__(self):
         self.tdoParams = TdoParamsStructure()
 
-# access->pMeristem 
+# access->pMeristem
 # record
 class ParamsMeristem:
     def __init__(self):
@@ -297,7 +298,7 @@ class ParamsMeristem:
         self.branchingAndLeafArrangement = 0
         self.secondaryBranchingIsAllowed = False
 
-# access->pFruit 
+# access->pFruit
 # record
 class ParamsFruit:
     def __init__(self):
@@ -309,7 +310,7 @@ class ParamsFruit:
         self.stalkStrengthIndex = 0.0
         self.daysToRipen = 0
 
-# access->pRoot 
+# access->pRoot
 # record
 class ParamsRoot:
     def __init__(self):
@@ -319,12 +320,23 @@ class ParamsRoot:
 # const
 kExtraForRootTopProblem = 2
 
+##def cancelOutOppositeAmounts(amountAdded, amountTakenAway):
+##    if (amountAdded > 0.0) and (amountTakenAway > 0.0):
+##        if amountAdded == amountTakenAway:
+##            amountAdded = 0.0
+##            amountTakenAway = 0.0
+##        elif amountAdded > amountTakenAway:
+##            amountAdded = amountAdded - amountTakenAway
+##            amountTakenAway = 0.0
+##        else:
+##            amountTakenAway = amountTakenAway - amountAdded
+##            amountAdded = 0.0
+##    return amountAdded, amountTakenAway
+
+#m !!
 def cancelOutOppositeAmounts(amountAdded, amountTakenAway):
     if (amountAdded > 0.0) and (amountTakenAway > 0.0):
-        if amountAdded == amountTakenAway:
-            amountAdded = 0.0
-            amountTakenAway = 0.0
-        elif amountAdded > amountTakenAway:
+        if amountAdded >= amountTakenAway:
             amountAdded = amountAdded - amountTakenAway
             amountTakenAway = 0.0
         else:
@@ -332,17 +344,19 @@ def cancelOutOppositeAmounts(amountAdded, amountTakenAway):
             amountAdded = 0.0
     return amountAdded, amountTakenAway
 
-# aspects->stop 
+
+
+# aspects->stop
 class PdPlant:
-    # graphical 
-    # parameters 
-    # all vars following don't need to be saved in the plant file (but should be copied when streaming) 
-    # pointers 
-    # biomass and flowering 
+    # graphical
+    # parameters
+    # all vars following don't need to be saved in the plant file (but should be copied when streaming)
+    # pointers
+    # biomass and flowering
     # v1.6b1
-    # accounting variables 
-    # used in parameter changes 
-    # -------------------------------------------------------------------------------------- creation/destruction 
+    # accounting variables
+    # used in parameter changes
+    # -------------------------------------------------------------------------------------- creation/destruction
     def __init__(self):
         self.name = ""
         self.age = 0
@@ -356,6 +370,7 @@ class PdPlant:
         self.previewCacheUpToDate = False
         self.randomNumberGenerator = urandom.PdRandom()
         self.breedingGenerator = urandom.PdRandom()
+        #
         self.pGeneral = ParamsGeneral()
         self.pMeristem = ParamsMeristem()
         self.pInternode = ParamsInternode()
@@ -393,6 +408,7 @@ class PdPlant:
         self.floweringHasStarted = False
         self.totalPlantParts = 0L
         self.partsCreated = 0L
+        #
         self.total3DExportPoints = 0L
         self.total3DExportTriangles = 0L
         self.total3DExportMaterials = 0L
@@ -409,27 +425,27 @@ class PdPlant:
         self.plantPartsDrawnAtStart = 0L
         self.changingWholeSCurves = False
         self.noteLines = []
-        self.amendments = ucollect.TListCollection() 
+        self.amendments = ucollect.TListCollection()
         self.totalMemoryUsed_K = 0.0
-    
+
         #self.initializeCache(self.previewCache)
         self.breedingGenerator.setSeed(self.breedingGenerator.randomSeedFromTime())
         self.initialize3DObjects()
-                
+
         # not using the internode water expansion code this version, meaningless, no water stress, need these
         # these twos mean internodes are hard-coded to increase in width and height twice (from defaults in params.tab)
         self.pInternode.lengthMultiplierDueToBiomassAccretion = 2.0
         self.pInternode.widthMultiplierDueToBiomassAccretion = 2.0
         self.pInternode.lengthMultiplierDueToExpansion = 1.0
         self.pInternode.widthMultiplierDueToExpansion = 1.0
-        
+
     def makeCopy(self):
         return copy.deepcopy(self)
-    
+
     def initialize3DObjects(self):
         partType = 0
-        
-        # i think it is best to create these at plant creation, then read into existing ones. 
+
+        # i think it is best to create these at plant creation, then read into existing ones.
         self.pSeedlingLeaf.leafTdoParams.object3D = utdo.KfObject3D()
         self.pLeaf.leafTdoParams.object3D = utdo.KfObject3D()
         self.pLeaf.stipuleTdoParams.object3D = utdo.KfObject3D()
@@ -441,7 +457,7 @@ class PdPlant:
         self.pAxillaryBud.tdoParams.object3D = utdo.KfObject3D()
         self.pFruit.tdoParams.object3D = utdo.KfObject3D()
         self.pRoot.tdoParams.object3D = utdo.KfObject3D()
-    
+
     def freeAllDrawingPlantParts(self):
         if (self.firstPhytomer != None):
             traverser = utravers.PdTraverser().createWithPlant(self)
@@ -449,7 +465,7 @@ class PdPlant:
             self.firstPhytomer = None
             # v1.6b1
             self.partsCreated = 0
-    
+
     def initializeCache(self, widget, cache):
         # giving the cache a tiny size at creation forces it to create its canvas etc
         # without this there is a nil pointer at streaming which causes a problem
@@ -458,10 +474,10 @@ class PdPlant:
         cache.Transparent = True
         cache.TransparentColor = udomain.domain.options.backgroundColor
         cache.updateForChanges(widget)
-    
+
     def free3DObjects(self):
         partType = 0
-        
+
         self.pSeedlingLeaf.leafTdoParams.object3D.free
         self.pSeedlingLeaf.leafTdoParams.object3D = None
         self.pLeaf.leafTdoParams.object3D.free
@@ -483,19 +499,19 @@ class PdPlant:
         self.pFruit.tdoParams.object3D = None
         self.pRoot.tdoParams.object3D.free
         self.pRoot.tdoParams.object3D = None
-    
+
     def getName(self):
         result = ""
         result = self.name
         return result
-    
+
     def setName(self, newName):
         self.name = newName[:kPlantNameLength]
-    
-    # ----------------------------------------------------------------------------------------- age management 
+
+    # ----------------------------------------------------------------------------------------- age management
     def regrow(self):
         self.setAge(self.age)
-    
+
     def reset(self):
         self.age = 0
         self.freeAllDrawingPlantParts()
@@ -519,18 +535,18 @@ class PdPlant:
         self.ageOfYoungestPhytomer = 0
         self.needToRecalculateColors = True
         self.randomNumberGenerator.setSeedFromSmallint(self.pGeneral.startingSeedForRandomNumberGenerator)
-    
+
     def setAge(self, newAge):
-        newAge = umath.intMax(0, umath.intMin(self.pGeneral.ageAtMaturity, newAge))
-        Cursor_StartWait()
+        newAge = max(0, min(self.pGeneral.ageAtMaturity, newAge))
+        ucursor.cursor_startWait()
         try:
             self.reset()
             while self.age < newAge:
                 self.nextDay()
         finally:
-            Cursor_StopWait()
-    
-    # ---------------------------------------------------------------------------------------  drawing and graphics 
+            ucursor.cursor_stopWait()
+
+    # ---------------------------------------------------------------------------------------  drawing and graphics
     def draw(self):
         utravers.cancelDrawing = False
         if (self.turtle == None):
@@ -544,7 +560,7 @@ class PdPlant:
         self.turtle.push()
         self.turtle.rotateZ(64)
         self.turtle.rotateX(self.xRotation * 256 / 360)
-        # convert here from 360 degrees to 256 turtle degrees 
+        # convert here from 360 degrees to 256 turtle degrees
         self.turtle.rotateY(self.yRotation * 256 / 360)
         self.turtle.rotateZ(self.zRotation * 256 / 360)
         self.turtle.drawingSurface.lineColor = delphi_compatability.clGreen
@@ -555,12 +571,14 @@ class PdPlant:
             traverser.showDrawingProgress = self.turtle.drawOptions.draw3DObjects
             traverser.traverseWholePlant(utravers.kActivityDraw)
         self.turtle.pop()
-        # recalculating colors occurs during drawing of leaves and internodes if necessary 
+        # recalculating colors occurs during drawing of leaves and internodes if necessary
         self.needToRecalculateColors = False
-    
+        #m!! debug report after draw
+        self.report()
+
     def countPlantParts(self):
         traverser = PdTraverser()
-        
+
         self.totalPlantParts = 0
         if (self.firstPhytomer != None):
             traverser = utravers.PdTraverser().createWithPlant(self)
@@ -570,11 +588,11 @@ class PdPlant:
             finally:
                 traverser.free
                 traverser = None
-    
+
     def countPlantPartsFor3DOutput(self, outputType, stemCylinderFaces):
         traverser = PdTraverser()
         i = 0
-        
+
         if (self.firstPhytomer != None):
             traverser = utravers.PdTraverser().createWithPlant(self)
             try:
@@ -596,11 +614,11 @@ class PdPlant:
             finally:
                 traverser.free
                 traverser = None
-    
+
     def calculateTotalMemorySize(self):
         result = 0.0
         traverser = PdTraverser()
-        
+
         result = self.instanceSize / 1024.0
         result = result + self.hangingObjectsMemoryUse_K()
         result = result + self.tdoMemoryUse_K()
@@ -619,11 +637,11 @@ class PdPlant:
                 traverser.free
                 traverser = None
         return result
-    
+
     def hangingObjectsMemoryUse_K(self):
         result = 0.0
         i = 0
-        
+
         result = 0
         if self.randomNumberGenerator != None:
             # random number generators
@@ -639,11 +657,11 @@ class PdPlant:
             for amendment in rself.amendments:
                 result = result + amendment.instanceSize / 1024.0
         return result
-    
+
     def tdoMemoryUse_K(self):
         result = 0.0
         partType = 0
-        
+
         # tdos
         result = 0
         result = result + self.pSeedlingLeaf.leafTdoParams.object3D.totalMemorySize() / 1024.0
@@ -658,13 +676,13 @@ class PdPlant:
         result = result + self.pFruit.tdoParams.object3D.totalMemorySize() / 1024.0
         result = result + self.pRoot.tdoParams.object3D.totalMemorySize() / 1024.0
         return result
-    
+
     def drawOn(self, destCanvas):
         self.turtle = uturtle.KfTurtle.defaultStartUsing()
         try:
             self.turtle.drawingSurface.pane = destCanvas
             self.setTurtleDrawOptionsForNormalDraw(self.turtle)
-            # must be after pane and draw options set 
+            # must be after pane and draw options set
             self.turtle.reset()
             self.turtle.setScale_pixelsPerMm(self.realDrawingScale_pixelsPerMm())
             self.turtle.drawingSurface.foreColor = delphi_compatability.clGreen
@@ -691,7 +709,7 @@ class PdPlant:
         finally:
             uturtle.KfTurtle.defaultStopUsing()
             self.turtle = None
-    
+
     def setTurtleDrawOptionsForNormalDraw(self, turtle):
         if turtle == None:
             return
@@ -728,7 +746,7 @@ class PdPlant:
             turtle.drawOptions.sortTdosAsOneItem = udomain.domain.options.sortTdosAsOneItem
             turtle.drawOptions.drawLines = udomain.domain.options.drawLinesBetweenPolygons
             turtle.drawOptions.lineContrastIndex = udomain.domain.options.lineContrastIndex
-    
+
     def resizingRect(self):
         theRect = self.boundsRect_pixels()
         result = delphi_compatability.TRect(theRect.Right - udomain.domain.options.resizeRectSize, theRect.Top, theRect.Right, theRect.Top + udomain.domain.options.resizeRectSize)
@@ -737,13 +755,13 @@ class PdPlant:
         if result.Top < theRect.Top:
             result.Top = theRect.Top
         return result
-    
+
     def pointIsInResizingRect(self, point):
         result = False
         theRect = self.resizingRect()
         result = (Point.x >= theRect.Left) and (Point.x <= theRect.Right) and (Point.y >= theRect.Top) and (Point.y <= theRect.Bottom)
         return result
-    
+
     def recalculateBoundsForOffsetChange(self):
         self.fakeDrawToGetBounds()
         if self.hidden:
@@ -753,7 +771,7 @@ class PdPlant:
             intersectResult = delphi_compatability.IntersectRect(intersectRect_pixels, self.boundsRect_pixels(), drawingRect)
             if (intersectResult) and (not self.hidden) and (self.previewCache.Width < 5):
                 self.recalculateBounds(kDrawNow)
-    
+
     #procedure drawOnUsingOpenGL(turtle: KfTurtle; selected, firstSelected: boolean);
     def recalculateBounds(self, drawNow, widget):
         self.fakeDrawToGetBounds()
@@ -775,7 +793,7 @@ class PdPlant:
             self.shrinkPreviewCache()
             umain.MainForm.updateForChangeToPlantBitmaps()
             return
-        bytesThisBitmapWillBe = intround(usupport.rWidth(self.boundsRect_pixels()) * usupport.rHeight(self.boundsRect_pixels()) * umain.MainForm.screenBytesPerPixel())
+        bytesThisBitmapWillBe = int(usupport.rWidth(self.boundsRect_pixels()) * usupport.rHeight(self.boundsRect_pixels()) * umain.MainForm.screenBytesPerPixel())
         if not umain.MainForm.roomForPlantBitmap(self, bytesThisBitmapWillBe):
             return
         oldBasePoint = self.basePoint_pixels()
@@ -804,7 +822,7 @@ class PdPlant:
             # have to fake draw again to reset bounds rect
             self.setBasePoint_pixels(oldBasePoint)
             self.fakeDrawToGetBounds()
-    
+
     def fakeDrawToGetBounds(self):
         self.computeBounds = True
         self.turtle = uturtle.KfTurtle.defaultStartUsing()
@@ -812,7 +830,7 @@ class PdPlant:
             self.turtle.drawingSurface.pane = None
             self.turtle.drawOptions.drawStems = False
             self.turtle.drawOptions.draw3DObjects = False
-            # must be after pane and draw options set 
+            # must be after pane and draw options set
             self.turtle.reset()
             self.turtle.setScale_pixelsPerMm(self.realDrawingScale_pixelsPerMm())
             self.turtle.xyz(self.basePoint_pixels().X, self.basePoint_pixels().Y, 0)
@@ -828,7 +846,7 @@ class PdPlant:
             uturtle.KfTurtle.defaultStopUsing()
             self.turtle = None
             self.computeBounds = False
-    
+
     def drawIntoCache(self, gc, cache, size, considerDomainScale, immediate):
         changed = False
         self.resizeCacheIfNecessary(cache, size, kNotInMainWindow)
@@ -836,12 +854,12 @@ class PdPlant:
             ubmpsupport.fillBitmap(gc, cache, udomain.domain.options.backgroundColor)
         self.turtle = uturtle.KfTurtle.defaultStartUsing()
         try:
-            # set starting values 
+            # set starting values
             self.turtle.drawingSurface.setDrawingContext((cache.pixmap, gc))
             if not self.fixedPreviewScale:
                 self.drawingScale_PixelsPerMm = 10.0
                 drawPosition = delphi_compatability.TPoint(cache.Width / 2, cache.Height - 5)
-                # 1. draw to figure scale to center boundsRect in cache size 
+                # 1. draw to figure scale to center boundsRect in cache size
                 self.setTurtleUpForPreviewScratch(self.drawingScale_PixelsPerMm, drawPosition)
                 #nothing-messes up paint
                 try:
@@ -849,7 +867,7 @@ class PdPlant:
                 except:
                     pass
                 self.setBoundsRect_pixels(self.getTurtleBoundsRect())
-                # now change the scale to make the boundsRect fit the drawRect 
+                # now change the scale to make the boundsRect fit the drawRect
                 drawnWidth = usupport.rWidth(self.boundsRect_pixels())
                 drawnHeight = usupport.rHeight(self.boundsRect_pixels())
                 if (drawnWidth > 0) and (drawnHeight > 0):
@@ -863,10 +881,10 @@ class PdPlant:
                         newScaleY = umath.safedivExcept(newScaleY, udomain.domain.plantDrawScale_PixelsPerMm(), newScaleY)
                     else:
                         newScaleY = newScaleY * 0.9
-                    self.drawingScale_PixelsPerMm = umath.min(newScaleX, newScaleY)
+                    self.drawingScale_PixelsPerMm = min(newScaleX, newScaleY)
                     changed = self.drawingScale_PixelsPerMm != 1.0
             if not self.fixedDrawPosition:
-                # draw to find drawPosition that will center new boundsrect in cache 
+                # draw to find drawPosition that will center new boundsrect in cache
                 drawPosition = delphi_compatability.TPoint(cache.Width / 2, cache.Height - 5)
                 self.setTurtleUpForPreviewScratch(self.drawingScale_PixelsPerMm, drawPosition)
                 #nothing-messes up paint
@@ -885,7 +903,7 @@ class PdPlant:
             else:
                 drawPosition = self.drawPositionIfFixed
             if (self.fixedPreviewScale or self.fixedDrawPosition or changed) and (immediate):
-                # final drawing 
+                # final drawing
                 ubmpsupport.fillBitmap(gc, cache, udomain.domain.options.backgroundColor)
                 self.setTurtleUpForPreview(self.drawingScale_PixelsPerMm, drawPosition)
                 #nothing-messes up paint
@@ -900,7 +918,7 @@ class PdPlant:
             uturtle.KfTurtle.defaultStopUsing()
             self.turtle = None
             self.useBestDrawingForPreview = False
-    
+
     def drawPreviewIntoCache(self, gc, size, considerDomainScale, immediate):
         try:
             self.drawingIntoPreviewCache = True
@@ -908,17 +926,17 @@ class PdPlant:
             self.previewCacheUpToDate = True
         finally:
             self.drawingIntoPreviewCache = False
-    
+
     def calculateDrawingScaleToFitSize(self, size):
         self.drawPreviewIntoCache(size, kConsiderDomainScale, kDontDrawNow)
         self.shrinkPreviewCache()
-    
+
     def calculateDrawingScaleToLookTheSameWithDomainScale(self):
         self.drawingScale_PixelsPerMm = umath.safedivExcept(self.drawingScale_PixelsPerMm, udomain.domain.plantManager.plantDrawScale_PixelsPerMm, 0)
-    
+
     def shrinkPreviewCache(self):
         if self.previewCache == None:
-            # this is to save memory after using the preview cache 
+            # this is to save memory after using the preview cache
             return
         if (self.previewCache.Width > 5) or (self.previewCache.Height > 5):
             self.previewCache = ubitmap.PdBitmap()
@@ -927,7 +945,7 @@ class PdPlant:
             self.previewCache.Transparent = True
             self.previewCache.TransparentColor = udomain.domain.options.backgroundColor
             self.previewCache.updateForChanges()
-    
+
     def resizeCacheIfNecessary(self, cache, size, inMainWindow):
         if (size.X <= 0) or (size.Y <= 0):
             return
@@ -955,13 +973,13 @@ class PdPlant:
                     umain.MainForm.exceptionResizingPlantBitmap()
                 else:
                     ShowMessage("Problem creating bitmap; probably not enough memory.")
-    
+
     def getTurtleBoundsRect(self):
         result = self.turtle.boundsRect()
         if self.pRoot.showsAboveGround:
             result.Bottom = result.Bottom + kExtraForRootTopProblem
         return result
-    
+
     def setTurtleUpForPreviewScratch(self, scale, drawPosition):
         if self.turtle == None:
             return
@@ -971,12 +989,12 @@ class PdPlant:
         self.turtle.drawOptions.drawStems = False
         self.turtle.drawOptions.draw3DObjects = False
         self.turtle.drawOptions.circlePoints = False
-        # must be after pane and draw options set 
+        # must be after pane and draw options set
         self.turtle.reset()
         self.turtle.setScale_pixelsPerMm(scale)
         self.turtle.xyz(drawPosition.X, drawPosition.Y, 0)
         self.turtle.resetBoundsRect(drawPosition)
-    
+
     def setTurtleUpForPreview(self, scale, drawPosition):
         if self.turtle == None:
             return
@@ -993,7 +1011,7 @@ class PdPlant:
             self.turtle.drawOptions.draw3DObjects = True
             self.turtle.drawOptions.draw3DObjectsAsRects = False
             self.turtle.drawOptions.circlePoints = False
-        # must be after pane and draw options set 
+        # must be after pane and draw options set
         self.turtle.reset()
         self.turtle.drawingSurface.foreColor = delphi_compatability.clGreen
         self.turtle.drawingSurface.backColor = delphi_compatability.clRed
@@ -1001,7 +1019,7 @@ class PdPlant:
         self.turtle.setScale_pixelsPerMm(scale)
         self.turtle.xyz(drawPosition.X, drawPosition.Y, 0)
         self.turtle.resetBoundsRect(drawPosition)
-    
+
     def getHint(self, point):
         result = self.getName()
         if (umain.MainForm.cursorModeForDrawing == umain.kCursorModePosingSelect) and (umain.MainForm.focusedPlant() == self):
@@ -1009,12 +1027,12 @@ class PdPlant:
             if (plantPart != None) and (plantPart.__class__ is upart.PdPlantPart):
                 result = plantPart.getFullName()
         return result
-    
+
     def findPlantPartAtPositionByTestingPolygons(self, point):
         result = TObject()
         turtle = KfTurtle()
         partID = 0L
-        
+
         result = None
         # if you give it no drawing surface pane, everything happens but the actual drawing
         self.drawOn(None)
@@ -1030,7 +1048,7 @@ class PdPlant:
         finally:
             uturtle.KfTurtle.defaultStopUsing()
         return result
-    
+
     def realDrawingScale_pixelsPerMm(self):
         result = 0.0
         if udomain.domain.drawingToMakeCopyBitmap:
@@ -1038,28 +1056,28 @@ class PdPlant:
         else:
             result = self.drawingScale_PixelsPerMm * udomain.domain.plantDrawScale_PixelsPerMm()
         return result
-    
+
     def basePoint_pixels(self):
         result = delphi_compatability.TPoint()
         if not udomain.domain.drawingToMakeCopyBitmap:
-            result.X = intround((self.basePoint_mm.x + udomain.domain.plantDrawOffset_mm().x) * udomain.domain.plantDrawScale_PixelsPerMm())
-            result.Y = intround((self.basePoint_mm.y + udomain.domain.plantDrawOffset_mm().y) * udomain.domain.plantDrawScale_PixelsPerMm())
+            result.X = int((self.basePoint_mm.x + udomain.domain.plantDrawOffset_mm().x) * udomain.domain.plantDrawScale_PixelsPerMm())
+            result.Y = int((self.basePoint_mm.y + udomain.domain.plantDrawOffset_mm().y) * udomain.domain.plantDrawScale_PixelsPerMm())
         else:
-            result.X = intround((self.basePoint_mm.x + udomain.domain.plantDrawOffsetWhenDrawingCopy_mm.x) * udomain.domain.plantDrawScaleWhenDrawingCopy_PixelsPerMm)
-            result.Y = intround((self.basePoint_mm.y + udomain.domain.plantDrawOffsetWhenDrawingCopy_mm.y) * udomain.domain.plantDrawScaleWhenDrawingCopy_PixelsPerMm)
+            result.X = int((self.basePoint_mm.x + udomain.domain.plantDrawOffsetWhenDrawingCopy_mm.x) * udomain.domain.plantDrawScaleWhenDrawingCopy_PixelsPerMm)
+            result.Y = int((self.basePoint_mm.y + udomain.domain.plantDrawOffsetWhenDrawingCopy_mm.y) * udomain.domain.plantDrawScaleWhenDrawingCopy_PixelsPerMm)
         return result
-    
+
     def setBasePoint_pixels(self, aPoint_pixels):
         self.basePoint_mm.x = umath.safedivExcept(aPoint_pixels.X, udomain.domain.plantDrawScale_PixelsPerMm(), 0) - udomain.domain.plantDrawOffset_mm().x
         self.basePoint_mm.y = umath.safedivExcept(aPoint_pixels.Y, udomain.domain.plantDrawScale_PixelsPerMm(), 0) - udomain.domain.plantDrawOffset_mm().y
-    
+
     def setBoundsRect_pixels(self, aRect_pixels):
         self.normalBoundsRect_pixels = aRect_pixels
-    
+
     def boundsRect_pixels(self):
         result = copy.copy(self.normalBoundsRect_pixels)
         return result
-    
+
     def enforceMinimumBoundsRect(self):
         theRect = self.boundsRect_pixels()
         if ((theRect.Right - theRect.Left) < 1):
@@ -1068,13 +1086,13 @@ class PdPlant:
         if ((theRect.Bottom - theRect.Top) < 1):
             theRect.Bottom = self.basePoint_pixels().Y
             theRect.Top = theRect.Bottom - 1
-    
+
     def expandBoundsRectForLineWidth(self):
-        extra = intround(self.maximumLineWidth() * self.realDrawingScale_pixelsPerMm()) + 1
+        extra = int(self.maximumLineWidth() * self.realDrawingScale_pixelsPerMm()) + 1
         theRect = self.boundsRect_pixels()
         UNRESOLVED.inflateRect(theRect, extra, extra)
         self.setBoundsRect_pixels(theRect)
-    
+
     def maximumLineWidth(self):
         result = 0.0
         result = 0.0
@@ -1087,7 +1105,7 @@ class PdPlant:
         if self.pInflor[kGenderFemale].internodeWidth_mm > result:
             result = self.pInflor[kGenderFemale].internodeWidth_mm
         return result
-    
+
     def moveBy(self, delta_pixels):
         delta_mm = SinglePoint()
         theRect = self.boundsRect_pixels()
@@ -1099,7 +1117,7 @@ class PdPlant:
         delta_mm.y = umath.safedivExcept(delta_pixels.Y, udomain.domain.plantDrawScale_PixelsPerMm(), 0)
         self.basePoint_mm.x = self.basePoint_mm.x + delta_mm.x
         self.basePoint_mm.y = self.basePoint_mm.y + delta_mm.y
-    
+
     def moveTo(self, aPoint_pixels):
         oldBasePoint_pixels = self.basePoint_pixels()
         theRect = self.boundsRect_pixels()
@@ -1108,18 +1126,18 @@ class PdPlant:
         theRect.Top = theRect.Top + aPoint_pixels.Y - oldBasePoint_pixels.Y
         theRect.Bottom = theRect.Bottom + aPoint_pixels.Y - oldBasePoint_pixels.Y
         self.setBasePoint_pixels(aPoint_pixels)
-    
+
     def includesPoint(self, aPoint):
         result = False
         result = self.boundsRectIncludesPoint(aPoint, self.boundsRect_pixels(), True)
         return result
-    
+
     def boundsRectIncludesPoint(self, aPoint, boundsRect, checkResizeRect):
         result = False
         xPixel = 0L
         yPixel = 0L
         i = 0L
-        
+
         result = delphi_compatability.PtInRect(boundsRect, aPoint)
         if result and udomain.domain.options.cachePlantBitmaps:
             if checkResizeRect and delphi_compatability.PtInRect(self.resizingRect(), aPoint):
@@ -1134,26 +1152,26 @@ class PdPlant:
                             result = True
                             return result
         return result
-    
+
     def pointInBoundsRect(self, aPoint):
         result = False
         result = delphi_compatability.PtInRect(self.normalBoundsRect_pixels, aPoint)
         return result
-    
+
     def pointColorMatch(self, xPixel, yPixel):
         result = False
         testPixelColor = TColor()
-        
+
         testPixelColor = self.previewCache.Canvas.Pixels[xPixel, yPixel]
         result = testPixelColor != udomain.domain.options.transparentColor
         return result
-    
+
     def pointColorAdjacentMatch(self, xPixel, yPixel, position):
         result = False
         testPixelColor = TColor()
         x = 0L
         y = 0L
-        
+
         x = xPixel
         y = yPixel
         if position == 0:
@@ -1187,7 +1205,7 @@ class PdPlant:
         testPixelColor = self.previewCache.Canvas.Pixels[x, y]
         result = testPixelColor != udomain.domain.options.transparentColor
         return result
-    
+
     def saveToGlobal3DOutputFile(self, indexOfPlant, translate, rectWithAllPlants, outputType, aTurtle):
         remPoints = [None] * 4
         remWidth = 0.0
@@ -1195,7 +1213,7 @@ class PdPlant:
         relativeBasePoint_mm = SinglePoint()
         i = 0
         fixRotation = 0
-        
+
         if self.firstPhytomer == None:
             return
         self.turtle = aTurtle
@@ -1265,7 +1283,7 @@ class PdPlant:
             fileExportSurface.writeRegistrationReminder(remPoints[0], remPoints[1], remPoints[2], remPoints[3])
         self.draw()
         fileExportSurface.endPlant()
-    
+
     def setUpTurtleFor3DOutput(self):
         self.turtle.drawOptions.sortPolygons = False
         self.turtle.drawOptions.drawLines = False
@@ -1275,7 +1293,7 @@ class PdPlant:
         self.turtle.drawOptions.draw3DObjects = True
         self.turtle.drawOptions.draw3DObjectsAsRects = False
         self.turtle.drawOptions.circlePoints = False
-        # must be after pane and draw options set 
+        # must be after pane and draw options set
         self.turtle.reset()
         self.turtle.setScale_pixelsPerMm(self.realDrawingScale_pixelsPerMm())
         self.turtle.drawingSurface.foreColor = delphi_compatability.clGreen
@@ -1283,14 +1301,14 @@ class PdPlant:
         self.turtle.drawingSurface.lineColor = delphi_compatability.clBlue
         self.turtle.xyz(0, 0, 0)
         self.turtle.resetBoundsRect(Point(0, 0))
-    
-    # ----------------------------------------------------------------------------------  i/o and data transfer 
+
+    # ----------------------------------------------------------------------------------  i/o and data transfer
     def defaultAllParameters(self):
         for param in udomain.domain.parameterManager.parameters:
             if param.fieldType != uparams.kFieldHeader:
                 self.defaultParameter(param, kDontCheckForUnreadParams)
         self.finishLoadingOrDefaulting(kDontCheckForUnreadParams)
-    
+
     def defaultParameter(self, param, writeDebugMessage):
         if param == None:
             return
@@ -1313,7 +1331,8 @@ class PdPlant:
             if param.indexType == uparams.kIndexTypeSCurve:
                 #this is the only array
                 self.changingWholeSCurves = True
-                tempSCurve = umath.stringToSCurve(param.defaultValueString())
+                #tempSCurve = umath.stringToSCurve(param.defaultValueString())
+                tempSCurve = umath.SCurveStructure().fromString(param.defaultValueString())
                 self.transferWholeSCurve(kSetField, tempSCurve, param.fieldNumber, param.fieldType, False, None)
                 self.changingWholeSCurves = False
             else:
@@ -1325,25 +1344,25 @@ class PdPlant:
             tempTdo = self.transferField(kSetField, tempTdo, param.fieldNumber, param.fieldType, 0, False, None)
         if writeDebugMessage:
             udebug.DebugPrint("Plant <" + self.name + "> parameter <" + param.name + "> defaulted to <" + param.defaultValueString() + ">")
-    
+
     def writeToMainFormMemoAsText(self):
         fakeTextFile = TextFile()
-        
+
         self.writingToMemo = True
         try:
             self.writeToPlantFile(fakeTextFile)
         finally:
             self.writingToMemo = False
-    
+
     def writeLine(self, plantFile, aString):
         if self.writingToMemo:
             umain.MainForm.plantsAsTextMemo.Lines.Add(aString)
         else:
             writeln(plantFile, aString)
-    
+
     def writeToPlantFile(self, plantFile):
         tempSCurve = umath.SCurveStructure()
-        
+
         if umain.MainForm != None:
             # v2.0 saving selection state in main window
             self.selectedWhenLastSaved = umain.MainForm.isSelected(self)
@@ -1362,10 +1381,10 @@ class PdPlant:
             for section in udomain.domain.sectionManager.sections:
                 if section == None:
                     continue
-                # write out section header with name 
+                # write out section header with name
                 self.writeLine(plantFile, "; ------------------------- " + section.getName())
                 for j in range(0, section.numSectionItems):
-                    # write out params 
+                    # write out params
                     param = udomain.domain.parameterManager.parameterForFieldNumber(section.sectionItems[j])
                     if param == None:
                         continue
@@ -1377,21 +1396,22 @@ class PdPlant:
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + usupport.boolToStr(tempBoolean))
                     elif param.fieldType == uparams.kFieldSmallint:
                         tempSmallint = self.transferField(kGetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + IntToStr(tempSmallint))
+                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempSmallint))
                     elif param.fieldType == uparams.kFieldEnumeratedList:
                         tempSmallint = self.transferField(kGetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + IntToStr(tempSmallint))
+                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempSmallint))
                     elif param.fieldType == uparams.kFieldLongint:
                         tempLongint = self.transferField(kGetField, tempLongint, param.fieldNumber, param.fieldType, 0, False, None)
-                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + IntToStr(tempLongint))
+                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempLongint))
                     elif param.fieldType == uparams.kFieldColor:
                         tempColorRef = self.transferField(kGetField, tempColorRef, param.fieldNumber, param.fieldType, 0, False, None)
-                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + IntToStr(tempColorRef))
+                        self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempColorRef))
                     elif param.fieldType == uparams.kFieldFloat:
                         if param.indexType == uparams.kIndexTypeSCurve:
                             #this is the only array
                             self.transferWholeSCurve(kGetField, tempSCurve, param.fieldNumber, param.fieldType, False, None)
-                            self.writeLine(plantFile, param.name + start + param.fieldID + stop + umath.sCurveToString(tempSCurve))
+                            #self.writeLine(plantFile, param.name + start + param.fieldID + stop + umath.sCurveToString(tempSCurve))
+                            self.writeLine(plantFile, param.name + start + param.fieldID + stop + tempSCurve.toString())
                         else:
                             tempFloat = self.transferField(kGetField, tempFloat, param.fieldNumber, param.fieldType, 0, False, None)
                             self.writeLine(plantFile, param.name + start + param.fieldID + stop + usupport.digitValueString(tempFloat))
@@ -1412,20 +1432,23 @@ class PdPlant:
         #v2.0
         self.writeLine(plantFile, "; ------------------------- " + kPlantAsTextEndString + " " + self.getName() + " <v2.0>")
         self.writeLine(plantFile, "")
-    
-    def readLineAndTdoFromPlantFile(self, aLine, plantFile):        
+
+    def readLineAndTdoFromPlantFile(self, aLine, plantFile):
+        ''' reads plant structure from pla file
+            and...
+        '''
         if string_match(kStartNoteString, aLine) > 0:
             # read note if this line starts it
             # this only will happen if in file
             self.noteLines = []
-            noteLine = readln(plantFile)
+            noteLine = plantFile.readln()
             while noteLine != None:
                 # PDF -- seemed like a strange check so removed -- maybe should be "OR" and not?
                 if string_match(kEndNoteString, noteLine): # and (len(self.noteLines) < 5000):
                     break
                 else:
                     self.noteLines.append(noteLine)
-                noteLine = readln(plantFile)
+                noteLine = plantFile.readln()
             # added v2.0, no use reading other stuff when finished with note
             return
         if string_match(uamendmt.kStartAmendmentString, aLine) > 0:
@@ -1437,7 +1460,7 @@ class PdPlant:
                 newAmendment.readFromTextFile(plantFile)
             self.addAmendment(newAmendment)
             return
-        if (not string_match("[", aLine, find=1)) or (not string_match("=", aLine, find=1)):
+        if (not string_in("[", aLine)) or (not string_in("=", aLine)):
             if self.readingFromMemo:
                 # v2.0 fix lines broken before [ or = (does NOT fix lines broken within strings)
                 # this has to come AFTER we deal with notes and amendments; it applies to parameters only
@@ -1453,19 +1476,21 @@ class PdPlant:
         if string_match("header", fieldID):
             return
         paramValue = usupport.stringBeyond(aLine, "=")
-        
+
         # search for pararmeter information
         found = False
         parameters = udomain.domain.parameterManager.parameters
+        #print len(parameters)
+        #print parameters[2].getName()
         for param in parameters:
             if param == None:
                 return
             if param.fieldID == fieldID:
                 found = True
-                break 
+                break
         if not found:
             return
-        
+
         if param.fieldType == uparams.kFieldHeader:
             pass
         elif param.fieldType == uparams.kFieldBoolean:
@@ -1475,29 +1500,29 @@ class PdPlant:
         elif param.fieldType == uparams.kFieldSmallint:
             tempSmallint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
-                if tempSmallint < intround(param.lowerBound()):
-                    # if both bounds are zero, it means not to check them 
-                    tempSmallint = intround(param.lowerBound())
-                if tempSmallint > intround(param.upperBound()):
-                    tempSmallint = intround(param.upperBound())
+                if tempSmallint < int(param.lowerBound()):
+                    # if both bounds are zero, it means not to check them
+                    tempSmallint = int(param.lowerBound())
+                if tempSmallint > int(param.upperBound()):
+                    tempSmallint = int(param.upperBound())
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
         elif param.fieldType == uparams.kFieldEnumeratedList:
             tempSmallint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
-                if tempSmallint < intround(param.lowerBound()):
-                    # if both bounds are zero, it means not to check them 
-                    tempSmallint = intround(param.lowerBound())
-                if tempSmallint > intround(param.upperBound()):
-                    tempSmallint = intround(param.upperBound())
+                if tempSmallint < int(param.lowerBound()):
+                    # if both bounds are zero, it means not to check them
+                    tempSmallint = int(param.lowerBound())
+                if tempSmallint > int(param.upperBound()):
+                    tempSmallint = int(param.upperBound())
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
         elif param.fieldType == uparams.kFieldLongint:
             tempLongint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
-                if tempLongint < intround(param.lowerBound()):
-                    # if both bounds are zero, it means not to check them 
-                    tempLongint = intround(param.lowerBound())
-                if tempLongint > intround(param.upperBound()):
-                    tempLongint = intround(param.upperBound())
+                if tempLongint < int(param.lowerBound()):
+                    # if both bounds are zero, it means not to check them
+                    tempLongint = int(param.lowerBound())
+                if tempLongint > int(param.upperBound()):
+                    tempLongint = int(param.upperBound())
             if param.fieldNumber == utransfr.kStateBasePointY:
                 tempLongint = tempLongint
             tempLongint = self.transferField(kSetField, tempLongint, param.fieldNumber, param.fieldType, 0, False, None)
@@ -1508,7 +1533,8 @@ class PdPlant:
             if param.indexType == uparams.kIndexTypeSCurve:
                 #this is the only array
                 self.changingWholeSCurves = True
-                tempSCurve = umath.stringToSCurve(paramValue)
+                #tempSCurve = umath.stringToSCurve(paramValue)
+                tempSCurve = umath.SCurveStructure().fromString(paramValue)
                 if (tempSCurve.x1 <= 0.0) or (tempSCurve.y1 <= 0.0) or (tempSCurve.x2 <= 0.0) or (tempSCurve.y2 <= 0.0) or (tempSCurve.x1 >= 1.0) or (tempSCurve.y1 >= 1.0) or (tempSCurve.x2 >= 1.0) or (tempSCurve.y2 >= 1.0):
                     # bound s curve
                     # all s curve values (x and y) must be between 0 and 1 EXCLUSIVE
@@ -1527,14 +1553,14 @@ class PdPlant:
                     tempTdo = None
                 if (param.lowerBound() != 0) or (param.upperBound() != 0):
                     if tempFloat < param.lowerBound():
-                        # if both bounds are zero, it means not to check them 
+                        # if both bounds are zero, it means not to check them
                         tempFloat = param.lowerBound()
                     if tempFloat > param.upperBound():
                         tempFloat = param.upperBound()
                 tempFloat = self.transferField(kSetField, tempFloat, param.fieldNumber, param.fieldType, 0, False, None)
         elif param.fieldType == uparams.kFieldThreeDObject:
             tempTdo = utdo.KfObject3D()
-            tempTdo.setName(usupport.trimLeftAndRight(paramValue))
+            tempTdo.setName(paramValue.strip())
             if self.readingFromMemo:
                 self.readingMemoLine = tempTdo.readFromMemo(umain.MainForm.plantsAsTextMemo, self.readingMemoLine)
             else:
@@ -1542,21 +1568,27 @@ class PdPlant:
             tempTdo = self.transferField(kSetField, tempTdo, param.fieldNumber, param.fieldType, 0, False, None)
 
         param.valueHasBeenReadForCurrentPlant = True
-    
+
     def finishLoadingOrDefaulting(self, checkForUnreadParams):
         if checkForUnreadParams:
             parameters = udomain.domain.parameterManager.parameters
             for param in parameters:
                 if (not param.valueHasBeenReadForCurrentPlant) and (param.fieldType != uparams.kFieldHeader):
                     self.defaultParameter(param, checkForUnreadParams)
-        self.pGeneral.ageAtWhichFloweringStarts = umath.intMin(self.pGeneral.ageAtWhichFloweringStarts, self.pGeneral.ageAtMaturity)
-        self.age = umath.intMin(self.age, self.pGeneral.ageAtMaturity)
-        umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
-        umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
-        umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+        self.pGeneral.ageAtWhichFloweringStarts = min(self.pGeneral.ageAtWhichFloweringStarts, self.pGeneral.ageAtMaturity)
+        self.age = min(self.age, self.pGeneral.ageAtMaturity)
+        #umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
+        #umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
+        #umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+        self.pGeneral.growthSCurve.calcSCurveCoeffs()
+        self.pFruit.sCurveParams.calcSCurveCoeffs()
+        self.pLeaf.sCurveParams.calcSCurveCoeffs()
         self.regrow()
-    
+
+    # used by updcom/PdChangeRealValueCommand, PdChangeSCurvePointValueCommand, PdChangeRealValueCommand
+    #    PdChangeTdoValueCommand, PdChangeSmallintValueCommand, PdChangeBooleanValueCommand
     def editTransferField(self, d, value, fieldID, fieldType, fieldIndex, regrow):
+        ''' '''
         if fieldType == uparams.kFieldHeader:
             return value
         if (d == kGetField):
@@ -1572,53 +1604,60 @@ class PdPlant:
         if (d == kSetField) and regrow:
             self.regrow()
         return value
-    
+
+    # used here by many above
     def transferField(self, d, v, fieldID, ft, index, regrow, updateList):
         if ft == uparams.kFieldHeader:
             return v
         v = self.directTransferField(d, v, fieldID, ft, index, updateList)
         if d == kSetField:
+            #m specials (3 scurves and PdPlant.age) not handled by directTransferField
             if fieldID == utransfr.kFruitSCurve:
                 if not self.changingWholeSCurves:
-                    # cfk fix: should be not allowing to change these to values that don't work 
-                    umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
+                    # cfk fix: should be not allowing to change these to values that don't work
+                    #umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
+                    self.pFruit.sCurveParams.calcSCurveCoeffs()
             elif fieldID == utransfr.kGeneralGrowthSCurve:
                 if not self.changingWholeSCurves:
-                    umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
+                    #umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
+                    self.pGeneral.growthSCurve.calcSCurveCoeffs()
             elif fieldID == utransfr.kLeafSCurve:
                 if not self.changingWholeSCurves:
-                    umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+                    #umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+                    self.pLeaf.sCurveParams.calcSCurveCoeffs()
             elif fieldID == utransfr.kGeneralAgeAtMaturity:
                 if (self.age > v):
                     self.setAge(v)
             if (ft == uparams.kFieldColor):
                 self.needToRecalculateColors = True
         return v
-    
+
+    # used by transferField to redirect iunto utransfr
     def directTransferField(self, d, v, fieldID, ft, index, updateList):
         if fieldID <= 200:
             # switch-over point is hard-coded and must be identical to that set in PlantStudio Utility program
             # that generates utransfr.pas
+            #m maybe pascal has amax of 356 parameters - so its broken into two - just guessing...
             v = utransfr.Plant_directTransferField(self, v, d, fieldID, ft, index, updateList)
         else:
             v = utransfr.Plant_directTransferField_SecondPart(self, v, d, fieldID, ft, index, updateList)
         if updateList != None:
             self.addToUpdateList(fieldID, updateList)
         return v
-    
+
     def addToUpdateList(self, fieldID, updateList):
         updateEvent = PdPlantUpdateEvent()
-        
+
         if updateList == None:
             return
         updateEvent = PdPlantUpdateEvent.create
         updateEvent.plant = self
         updateEvent.fieldID = fieldID
         updateList.Add(updateEvent)
-    
+
     def fillEnumStringList(self, list, fieldID, hasRadioButtons):
         if fieldID == utransfr.kLeafCompoundPinnateOrPalmate:
-            # assumes list being given to it is empty 
+            # assumes list being given to it is empty
             list.Add("pinnate (feather-like)")
             list.Add("palmate (hand-like)")
             hasRadioButtons = True
@@ -1641,59 +1680,83 @@ class PdPlant:
             list.Add("unfolding flower (new style)")
             hasRadioButtons = True
         else :
-            raise GeneralException.create("Problem: Unknown field for plant string list " + IntToStr(fieldID) + " in method PdPlant.fillEnumStringList.")
+            raise GeneralException.create("Problem: Unknown field for plant string list %d in method PdPlant.fillEnumStringList." %  (fieldID))
         return hasRadioButtons
-    
+
     def transferObject3D(self, direction, myTdo, otherTdo):
         if (myTdo == None) or (otherTdo == None):
-            # assumption: both tdos exist 
+            # assumption: both tdos exist
             raise GeneralException.create("Problem: Nil 3D object in method PdPlant.transferObject3D.")
         if direction == kSetField:
             myTdo.copyFrom(otherTdo)
         else:
             otherTdo.copyFrom(myTdo)
-    
+
     def transferWholeSCurve(self, direction, value, fieldNumber, fieldType, regrow, updateList):
         value.x1 = self.transferField(direction, value.x1, fieldNumber, fieldType, 0, regrow, updateList)
         value.y1 = self.transferField(direction, value.y1, fieldNumber, fieldType, 1, regrow, updateList)
         value.x2 = self.transferField(direction, value.x2, fieldNumber, fieldType, 2, regrow, updateList)
         value.y2 = self.transferField(direction, value.y2, fieldNumber, fieldType, 3, regrow, updateList)
-    
+
+##    def MFD(self, objectValue, value, fieldType, direction):
+##        ''' For legal FieldTypes - copy value to objectValue or vice versa.
+##            direction kGetField means value = objectValue.
+##            direction kSetField means objectValue = value.
+##            - Could do this shorter
+##        '''
+##        if direction == kGetField:
+##            if fieldType == uparams.kFieldFloat:
+##                #MFD = MoveFieldData
+##                value = objectValue
+##            elif fieldType == uparams.kFieldSmallint:
+##                value = objectValue
+##            elif fieldType == uparams.kFieldLongint:
+##                value = objectValue
+##            elif fieldType == uparams.kFieldColor:
+##                value = objectValue
+##            elif fieldType == uparams.kFieldBoolean:
+##                value = objectValue
+##            elif fieldType == uparams.kFieldEnumeratedList:
+##                value = objectValue
+##            else :
+##                raise GeneralException.create("Problem: Unsupported transfer from field %d in method PdPlant.MFD." % (fieldType))
+##        elif direction == kSetField:
+##            if fieldType == uparams.kFieldFloat:
+##                objectValue = value
+##            elif fieldType == uparams.kFieldSmallint:
+##                objectValue = value
+##            elif fieldType == uparams.kFieldLongint:
+##                objectValue = value
+##            elif fieldType == uparams.kFieldColor:
+##                objectValue = value
+##            elif fieldType == uparams.kFieldBoolean:
+##                objectValue = value
+##            elif fieldType == uparams.kFieldEnumeratedList:
+##                objectValue = value
+##            else :
+##                raise GeneralException.create("Problem: Unsupported transfer to field %d in method PdPlant.MFD." % (fieldType))
+##        return objectValue, value
+
+    # Move Field Data. Not clear why its not in utransfr. Only used from there.
     def MFD(self, objectValue, value, fieldType, direction):
+        ''' For legal FieldTypes - copy value to objectValue or vice versa.
+            - direction kGetField means value = objectValue.
+            - direction kSetField means objectValue = value.
+            - shorter
+        '''
         if direction == kGetField:
-            if fieldType == uparams.kFieldFloat:
-                #MFD = MoveFieldData
-                value = objectValue
-            elif fieldType == uparams.kFieldSmallint:
-                value = objectValue
-            elif fieldType == uparams.kFieldLongint:
-                value = objectValue
-            elif fieldType == uparams.kFieldColor:
-                value = objectValue
-            elif fieldType == uparams.kFieldBoolean:
-                value = objectValue
-            elif fieldType == uparams.kFieldEnumeratedList:
+            if fieldType not in [uparams.kFieldUndefined, uparams.kFieldThreeDObject, uparams.kFieldHeader]:
                 value = objectValue
             else :
-                raise GeneralException.create("Problem: Unsupported transfer from field " + IntToStr(fieldType) + " in method PdPlant.MFD.")
-        elif direction == kSetField:
-            if fieldType == uparams.kFieldFloat:
-                objectValue = value
-            elif fieldType == uparams.kFieldSmallint:
-                objectValue = value
-            elif fieldType == uparams.kFieldLongint:
-                objectValue = value
-            elif fieldType == uparams.kFieldColor:
-                objectValue = value
-            elif fieldType == uparams.kFieldBoolean:
-                objectValue = value
-            elif fieldType == uparams.kFieldEnumeratedList:
+                raise GeneralException.create("Problem: Unsupported transfer from field %d in method PdPlant.MFD." % (fieldType))
+        else: # direction == kSetField:
+            if fieldType not in [uparams.kFieldUndefined, uparams.kFieldThreeDObject, uparams.kFieldHeader]:
                 objectValue = value
             else :
-                raise GeneralException.create("Problem: Unsupported transfer to field " + IntToStr(fieldType) + " in method PdPlant.MFD.")
+                raise GeneralException.create("Problem: Unsupported transfer to field %d in method PdPlant.MFD." % (fieldType))
         return objectValue, value
-    
-    # ------------------------------------------------------------------------------- breeding 
+
+    # ------------------------------------------------------------------------------- breeding
     def useBreedingOptionsAndPlantsToSetParameters(self, options, firstPlant, secondPlant, tdos):
         if firstPlant == None:
             return
@@ -1736,11 +1799,11 @@ class PdPlant:
                             newInteger = firstInteger
                         else:
                             weight = options.firstPlantWeights[sectionIndex] / 100.0
-                            newInteger = intround(firstInteger * weight + secondInteger * (1.0 - weight))
+                            newInteger = int(firstInteger * weight + secondInteger * (1.0 - weight))
                     # extra limit on mutation to stop exceptions
                     stdDev = 0.5 * newInteger * options.mutationStrengths[sectionIndex] / 100.0
-                    newInteger = intround(self.breedingGenerator.randomNormalWithStdDev(newInteger * 1.0, stdDev))
-                    newInteger = intround(umath.min(param.upperBound(), umath.max(param.lowerBound(), 1.0 * newInteger)))
+                    newInteger = int(self.breedingGenerator.randomNormalWithStdDev(newInteger * 1.0, stdDev))
+                    newInteger = int(min(param.upperBound(), max(param.lowerBound(), 1.0 * newInteger)))
                     newInteger = self.transferField(kSetField, newInteger, param.fieldNumber, param.fieldType, 0, False, None)
                 elif param.fieldType == uparams.kFieldLongint:
                     pass
@@ -1748,7 +1811,7 @@ class PdPlant:
                     # the only numeric fields so far are the plant's position x and y (which is redone anyway)
                     #            and the random number seed, which shouldn't really be bred anyway, so we will do nothing
                     #            here. if you want to add longint parameters later, you will have to copy the smallint stuff
-                    #            to put here. 
+                    #            to put here.
                     #non-numeric
                     firstInteger = 0
                     firstInteger = firstPlant.transferField(kGetField, firstInteger, param.fieldNumber, param.fieldType, 0, False, None)
@@ -1783,7 +1846,7 @@ class PdPlant:
                     if param.indexType == uparams.kIndexTypeSCurve:
                         firstSCurve = umath.SCurveStructure()
                         secondSCurve = umath.SCurveStructure()
-                        # considering s curve non-numeric, too much trouble to make sure it is all right, and there are only two 
+                        # considering s curve non-numeric, too much trouble to make sure it is all right, and there are only two
                         self.changingWholeSCurves = True
                         firstPlant.transferWholeSCurve(kGetField, firstSCurve, param.fieldNumber, param.fieldType, False, None)
                         if secondPlant == None:
@@ -1814,8 +1877,8 @@ class PdPlant:
                         # extra limit on mutation to stop exceptions
                         stdDev = 0.5 * newFloat * options.mutationStrengths[sectionIndex] / 100.0
                         newFloat = self.breedingGenerator.randomNormalWithStdDev(newFloat * 1.0, stdDev)
-                        newFloat = umath.min(param.upperBound(), umath.max(param.lowerBound(), newFloat))
-                        # for now, don't let float get to zero because it causes problems 
+                        newFloat = min(param.upperBound(), max(param.lowerBound(), newFloat))
+                        # for now, don't let float get to zero because it causes problems
                         # newFloat := max(0.0001, newFloat);  v2.0 removed this to enable breeding with no variation
                         newFloat = self.transferField(kSetField, newFloat, param.fieldNumber, param.fieldType, 0, False, None)
                 elif param.fieldType == uparams.kFieldThreeDObject:
@@ -1845,13 +1908,13 @@ class PdPlant:
                     newTdo = self.transferField(kSetField, newTdo, param.fieldNumber, param.fieldType, 0, False, None)
                 else:
                     # note that longints are not handled here - they are used only for position information
-                    #            and not for normal parameters 
+                    #            and not for normal parameters
                     raise GeneralException.create("Problem: Invalid parameter type in method PdPlant.useBreedingOptionsAndPlantsToSetParameters.")
                 #param loop
             #section loop
         self.finishLoadingOrDefaulting(kDontCheckForUnreadParams)
         self.setAge(saveAge)
-    
+
     def pickPlantToCopyNonNumericalParameterFrom(self, options, sectionIndex):
         result = 0
         result = kFromFirstPlant
@@ -1886,7 +1949,7 @@ class PdPlant:
                 else:
                     result = kFromSecondPlant
         return result
-    
+
     def blendAndMutateColors(self, options, sectionIndex, haveSecondPlant, firstColor, secondColor):
         result = UnassignedColor
         weight = 0.0
@@ -1895,7 +1958,7 @@ class PdPlant:
         secondColorAsFloat = 0.0
         resultAsFloat = 0.0
         mutationStrengthToUse = 0.0
-        
+
         firstColorAsFloat = firstColor
         resultAsFloat = firstColorAsFloat
         if haveSecondPlant:
@@ -1910,28 +1973,28 @@ class PdPlant:
         elif options.mutateAndBlendColorValues:
             mutationStrengthToUse = udomain.kLowMutation
         stdDevAsFractionOfMean = mutationStrengthToUse / 100.0
-        # for colors, reduce std dev to 10% of for other things, because the numbers are so huge 
+        # for colors, reduce std dev to 10% of for other things, because the numbers are so huge
         stdDevAsFractionOfMean = stdDevAsFractionOfMean * 0.1
         resultAsFloat = self.breedingGenerator.randomNormalWithStdDev(resultAsFloat, resultAsFloat * stdDevAsFractionOfMean)
-        result = intround(resultAsFloat)
+        result = int(resultAsFloat)
         return result
-    
+
     def tdoRandomlyPickedFromCurrentLibrary(self, tdos):
         result = None
         if tdos == None:
             return result
         if len(tdos) <= 0:
             return result
-        index = umath.intMax(0, umath.intMin(len(tdos) - 1, intround(self.breedingGenerator.zeroToOne() * len(tdos))))
+        index = max(0, min(len(tdos) - 1, int(self.breedingGenerator.zeroToOne() * len(tdos))))
         result = tdos[index]
         return result
-    
-    # -------------------------------------------------------------------------------  data transfer for binary copy 
+
+    # -------------------------------------------------------------------------------  data transfer for binary copy
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdPlant
         cvir.versionNumber = 2
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
         tdoSeedlingLeaf = KfObject3d()
         tdoLeaf = KfObject3d()
@@ -1946,7 +2009,7 @@ class PdPlant:
         traverser = PdTraverser()
         hasFirstPhytomer = False
         partType = 0
-        
+
         PdStreamableObject.streamDataWithFiler(self, filer, cvir)
         self.name = filer.streamShortString(self.name)
         self.age = filer.streamSmallint(self.age)
@@ -1961,7 +2024,7 @@ class PdPlant:
         self.indexWhenRemoved = filer.streamSmallint(self.indexWhenRemoved)
         self.selectedIndexWhenRemoved = filer.streamSmallint(self.selectedIndexWhenRemoved)
         if filer.isReading():
-            # save pointers to 3d objects if reading because they will get written over during streaming of structures 
+            # save pointers to 3d objects if reading because they will get written over during streaming of structures
             tdoSeedlingLeaf = self.pSeedlingLeaf.leafTdoParams.object3D
             tdoLeaf = self.pLeaf.leafTdoParams.object3D
             tdoStipule = self.pLeaf.stipuleTdoParams.object3D
@@ -1998,7 +2061,7 @@ class PdPlant:
         self.pFruit = filer.streamBytes(self.pFruit, FIX_sizeof(self.pFruit))
         self.pRoot = filer.streamBytes(self.pRoot, FIX_sizeof(self.pRoot))
         if filer.isReading():
-            # reset pointers if reading and stream 3d objects 
+            # reset pointers if reading and stream 3d objects
             self.pSeedlingLeaf.leafTdoParams.object3D = tdoSeedlingLeaf
         self.pSeedlingLeaf.leafTdoParams.object3D.streamUsingFiler(filer)
         if filer.isReading():
@@ -2031,7 +2094,7 @@ class PdPlant:
         self.pRoot.tdoParams.object3D.streamUsingFiler(filer)
         self.randomNumberGenerator.streamUsingFiler(filer)
         self.breedingGenerator.streamUsingFiler(filer)
-        # biomass info 
+        # biomass info
         self.totalBiomass_pctMPB = filer.streamSingle(self.totalBiomass_pctMPB)
         self.reproBiomass_pctMPB = filer.streamSingle(self.reproBiomass_pctMPB)
         self.changeInShootBiomassToday_pctMPB = filer.streamSingle(self.changeInShootBiomassToday_pctMPB)
@@ -2050,7 +2113,7 @@ class PdPlant:
         self.ageAtWhichFloweringStarted = filer.streamSmallint(self.ageAtWhichFloweringStarted)
         self.floweringHasStarted = filer.streamBoolean(self.floweringHasStarted)
         self.totalPlantParts = filer.streamLongint(self.totalPlantParts)
-        # plant parts 
+        # plant parts
         traverser = None
         if filer.isReading():
             hasFirstPhytomer = filer.streamBoolean(hasFirstPhytomer)
@@ -2076,28 +2139,31 @@ class PdPlant:
                 traverser.free
         self.previewCache.streamUsingFiler(filer)
         if filer.isReading():
-            umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
-            umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
-            umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+            #umath.calcSCurveCoeffs(self.pFruit.sCurveParams)
+            #umath.calcSCurveCoeffs(self.pGeneral.growthSCurve)
+            #umath.calcSCurveCoeffs(self.pLeaf.sCurveParams)
+            self.pFruit.sCurveParams.calcSCurveCoeffs()
+            self.pGeneral.growthSCurve.calcSCurveCoeffs()
+            self.pLeaf.sCurveParams.calcSCurveCoeffs()
         self.amendments.streamUsingFiler(filer, uamendmt.PdPlantDrawingAmendment)
-    
-    # --------------------------------------------------------------------------------  command-related 
+
+    # --------------------------------------------------------------------------------  command-related
     def randomize(self):
         seed = 0
         breedingSeed = 0L
         anXRotation = 0.0
-        
+
         seed = self.randomNumberGenerator.randomSmallintSeedFromTime()
         breedingSeed = self.breedingGenerator.randomSeedFromTime()
         anXRotation = self.randomNumberGenerator.zeroToOne() * 360.0
         self.randomizeWithSeedsAndXRotation(seed, breedingSeed, anXRotation)
-    
+
     def randomizeWithSeedsAndXRotation(self, generalSeed, breedingSeed, anXRotation):
         self.pGeneral.startingSeedForRandomNumberGenerator = generalSeed
         self.breedingGenerator.setSeed(breedingSeed)
         self.xRotation = anXRotation
         self.regrow()
-        # tell main window to update in case showing parameter panel 
+        # tell main window to update in case showing parameter panel
         # if this is a breeder plant, it will create the update list, but the main window won't
         # recognize the plant pointer. this is extra memory use, but i'd have to pass a boolean all
         # over to stop it, and the list only has one item
@@ -2111,22 +2177,22 @@ class PdPlant:
         # PDF PORT COMMENTED OUT FOR TESTING __ PUT BACK
         #### PUT BACK: umain.MainForm.updateParameterValuesWithUpdateListForPlant(self, updateList)
 
-    # ------------------------------------------------------------------------------------  next day and traverser 
+    # ------------------------------------------------------------------------------------  next day and traverser
     def nextDay(self):
         try:
-            # calculate overall biomass change using s curve 
-            #print " plant age ageAtMaturity", self.name, self.age, self.pGeneral.ageAtMaturity
+            # calculate overall biomass change using s curve
+            print " plant age ageAtMaturity", self.name, self.age, self.pGeneral.ageAtMaturity
             fractionToMaturity_frn = umath.safedivExcept(self.age, self.pGeneral.ageAtMaturity, 0)
-            newTotalBiomass_pctMPB = umath.max(0.0, umath.min(100.0, 100.0 * umath.scurve(fractionToMaturity_frn, self.pGeneral.growthSCurve.c1, self.pGeneral.growthSCurve.c2)))
+            newTotalBiomass_pctMPB = max(0.0, min(100.0, 100.0 * umath.scurve(fractionToMaturity_frn, self.pGeneral.growthSCurve.c1, self.pGeneral.growthSCurve.c2)))
             changeInTotalBiomassTodayAsPercentOfMPB_pct = newTotalBiomass_pctMPB - self.totalBiomass_pctMPB
             self.totalBiomass_pctMPB = newTotalBiomass_pctMPB
             if self.floweringHasStarted:
-                # divide up change into shoot and fruit, make changes to total shoot/fruit 
-                fractionReproBiomassToday_frn = umath.max(0, self.pGeneral.fractionReproductiveAllocationAtMaturity_frn * umath.safedivExcept(self.age - self.ageAtWhichFloweringStarted, self.pGeneral.ageAtMaturity - self.ageAtWhichFloweringStarted, 0))
+                # divide up change into shoot and fruit, make changes to total shoot/fruit
+                fractionReproBiomassToday_frn = max(0, self.pGeneral.fractionReproductiveAllocationAtMaturity_frn * umath.safedivExcept(self.age - self.ageAtWhichFloweringStarted, self.pGeneral.ageAtMaturity - self.ageAtWhichFloweringStarted, 0))
                 newReproBiomass_pctMPB = fractionReproBiomassToday_frn * self.totalBiomass_pctMPB
                 self.changeInReproBiomassToday_pctMPB = newReproBiomass_pctMPB - self.reproBiomass_pctMPB
                 self.reproBiomass_pctMPB = newReproBiomass_pctMPB
-                # rest goes to shoots 
+                # rest goes to shoots
                 newShootBiomass_pctMPB = self.totalBiomass_pctMPB - self.reproBiomass_pctMPB
                 self.changeInShootBiomassToday_pctMPB = newShootBiomass_pctMPB - self.shootBiomass_pctMPB
                 self.shootBiomass_pctMPB = newShootBiomass_pctMPB
@@ -2136,6 +2202,7 @@ class PdPlant:
                 self.shootBiomass_pctMPB = self.totalBiomass_pctMPB
             if self.shootBiomass_pctMPB + self.reproBiomass_pctMPB > 100.0:
                 self.shootBiomass_pctMPB = self.shootBiomass_pctMPB
+            #m
             traverser = utravers.PdTraverser().createWithPlant(self)
             try:
                 if (self.firstPhytomer == None):
@@ -2147,13 +2214,13 @@ class PdPlant:
                         #      first phytomer until after drawing plant got this pointer back.
                         return
                     self.firstPhytomer.setAsFirstPhytomer()
-                    # reduce changeInShootBiomassToday_pctMPB for amount used to make first phytomer 
+                    # reduce changeInShootBiomassToday_pctMPB for amount used to make first phytomer
                     self.changeInShootBiomassToday_pctMPB = self.changeInShootBiomassToday_pctMPB - firstMeristem.optimalInitialPhytomerBiomass_pctMPB()
                 if not self.floweringHasStarted and (self.age >= self.pGeneral.ageAtWhichFloweringStarts):
-                    # decide if flowering has started using params 
+                    # decide if flowering has started using params
                     self.floweringHasStarted = True
                     self.ageAtWhichFloweringStarted = self.age
-                    # tell all meristems to switch over 
+                    # tell all meristems to switch over
                     traverser.traverseWholePlant(utravers.kActivityStartReproduction)
                 self.allocateOrRemoveBiomassWithTraverser(traverser)
                 if self.firstPhytomer != None:
@@ -2168,7 +2235,7 @@ class PdPlant:
         except Exception, e:
             raise
             usupport.messageForExceptionType(e, "PdPlant.nextDay")
-    
+
     def allocateOrRemoveBiomassWithTraverser(self, traverserProxy):
         if self.firstPhytomer == None:
             return
@@ -2176,7 +2243,7 @@ class PdPlant:
         if traverser == None:
             return
         if self.changeInShootBiomassToday_pctMPB > 0:
-            # set addition and reduction from changes, and add in amounts rolled over from yesterday 
+            # set addition and reduction from changes, and add in amounts rolled over from yesterday
             shootAddition_pctMPB = self.changeInShootBiomassToday_pctMPB + self.unallocatedNewVegetativeBiomass_pctMPB
             self.unallocatedNewVegetativeBiomass_pctMPB = 0.0
             shootReduction_pctMPB = 0.0
@@ -2192,22 +2259,22 @@ class PdPlant:
             reproReduction_pctMPB = self.changeInReproBiomassToday_pctMPB + self.unremovedDeadReproductiveBiomass_pctMPB
             self.unremovedDeadReproductiveBiomass_pctMPB = 0.0
             reproAddition_pctMPB = 0.0
-        # see if amounts can cancel out to any extent 
+        # see if amounts can cancel out to any extent
         shootAddition_pctMPB, shootReduction_pctMPB = cancelOutOppositeAmounts(shootAddition_pctMPB, shootReduction_pctMPB)
         reproAddition_pctMPB, reproReduction_pctMPB = cancelOutOppositeAmounts(reproAddition_pctMPB, reproReduction_pctMPB)
         if shootAddition_pctMPB > 0.0:
-            # allocate new shoot biomass 
+            # allocate new shoot biomass
             self.unallocatedNewVegetativeBiomass_pctMPB = self.allocateOrRemoveParticularBiomass(shootAddition_pctMPB, self.unallocatedNewVegetativeBiomass_pctMPB, utravers.kActivityDemandVegetative, utravers.kActivityGrowVegetative, traverser)
         if shootReduction_pctMPB > 0.0:
-            # remove dead shoot biomass 
+            # remove dead shoot biomass
             self.unremovedDeadVegetativeBiomass_pctMPB = self.allocateOrRemoveParticularBiomass(shootReduction_pctMPB, self.unremovedDeadVegetativeBiomass_pctMPB, utravers.kActivityVegetativeBiomassThatCanBeRemoved, utravers.kActivityRemoveVegetativeBiomass, traverser)
         if reproAddition_pctMPB > 0.0:
-            # allocate new fruit biomass 
+            # allocate new fruit biomass
             self.unallocatedNewReproductiveBiomass_pctMPB = self.allocateOrRemoveParticularBiomass(reproAddition_pctMPB, self.unallocatedNewReproductiveBiomass_pctMPB, utravers.kActivityDemandReproductive, utravers.kActivityGrowReproductive, traverser)
         if reproReduction_pctMPB > 0.0:
-            # remove dead fruit biomass 
+            # remove dead fruit biomass
             self.unremovedDeadReproductiveBiomass_pctMPB = self.allocateOrRemoveParticularBiomass(reproReduction_pctMPB, self.unremovedDeadReproductiveBiomass_pctMPB, utravers.kActivityReproductiveBiomassThatCanBeRemoved, utravers.kActivityRemoveReproductiveBiomass, traverser)
-    
+
     def allocateOrRemoveParticularBiomass(self, biomassToAddOrRemove_pctMPB, undistributedBiomass_pctMPB, askingMode, tellingMode, traverserProxy):
         try:
             traverser = traverserProxy
@@ -2223,18 +2290,18 @@ class PdPlant:
                     traverser.fractionOfPotentialBiomass = umath.safedivExcept(biomassToAddOrRemove_pctMPB, totalDemandOrAvailableBiomass_pctMPB, 0)
                 traverser.traverseWholePlant(tellingMode)
             else:
-                # no demand 
+                # no demand
                 undistributedBiomass_pctMPB = undistributedBiomass_pctMPB + biomassToAddOrRemove_pctMPB
         except Exception, e:
             # PDF PORT TEMP ADDED RAISE
             raise
             usupport.messageForExceptionType(e, "PdPlant.allocateOrRemoveParticularBiomass")
         return undistributedBiomass_pctMPB
-    
+
     def getPlantStatistics(self, statisticsProxy):
         statistics = PdPlantStatistics()
         traverser = PdTraverser()
-        
+
         statistics = utravers.PdPlantStatistics(statisticsProxy)
         if statistics == None:
             return
@@ -2244,25 +2311,26 @@ class PdPlant:
             traverser.traverseWholePlant(utravers.kActivityGatherStatistics)
         finally:
             traverser.free
-        # set undistributed amounts in statistics 
+        # set undistributed amounts in statistics
         statistics.liveBiomass_pctMPB[utravers.kStatisticsPartTypeUnallocatedNewVegetativeBiomass] = self.unallocatedNewVegetativeBiomass_pctMPB
         statistics.deadBiomass_pctMPB[utravers.kStatisticsPartTypeUnremovedDeadVegetativeBiomass] = self.unremovedDeadVegetativeBiomass_pctMPB
         statistics.liveBiomass_pctMPB[utravers.kStatisticsPartTypeUnallocatedNewReproductiveBiomass] = self.unallocatedNewReproductiveBiomass_pctMPB
         statistics.deadBiomass_pctMPB[utravers.kStatisticsPartTypeUnremovedDeadReproductiveBiomass] = self.unremovedDeadReproductiveBiomass_pctMPB
-    
+
     def report(self):
-        traverser = PdTraverser()
-        
+        traverser = utravers.PdTraverser()
+
         if (self.firstPhytomer != None):
             udebug.DebugPrint("---------------------- Start plant report")
             traverser = utravers.PdTraverser().createWithPlant(self)
             try:
                 traverser.traverseWholePlant(utravers.kActivityReport)
             finally:
-                traverser.free
+                pass
+                #traverser.free
             udebug.DebugPrint("---------------------- End plant report")
-    
-    # --------------------------------------------------------------------------------------------- amendments 
+
+    # --------------------------------------------------------------------------------------------- amendments
     def amendmentForPartID(self, partID):
         result = None
         for amendment in self.amendments:
@@ -2270,28 +2338,28 @@ class PdPlant:
                 result = amendment
                 return result
         return result
-    
+
     def addAmendment(self, newAmendment):
         self.amendments.Add(newAmendment)
-    
+
     def removeAmendment(self, oldAmendment):
         self.amendments.Remove(oldAmendment)
-    
+
     def removeAllAmendments(self):
         self.amendments = ucollect.TListCollection()
-    
+
     def clearPointersToAllAmendments(self):
         self.amendments.clear()
-    
+
     def restoreAmendmentPointersToList(self, aList):
         if (aList != None):
             for item in aList:
                 self.addAmendment(item)
-    
+
     def plantPartForPartID(self, partID):
         result = TObject()
         traverser = PdTraverser()
-        
+
         result = None
         if (self.firstPhytomer != None):
             traverser = utravers.PdTraverser().createWithPlant(self)
@@ -2303,7 +2371,7 @@ class PdPlant:
             finally:
                 traverser.free
         return result
-    
+
     def getInfoForPlantPartAtPoint(self, point, partID, partType):
         partID = -1
         partType = ""
@@ -2313,7 +2381,7 @@ class PdPlant:
         partID = part.partID
         partType = part.getName()
         return partID, partType
-    
+
     def colorForDXFPartType(self, index):
         result = UnassignedColor
         if index == u3dexport.kExportPartMeristem:
@@ -2387,7 +2455,7 @@ class PdPlant:
         else :
             raise GeneralException.create("Problem: Invalid part type in method colorForDXFPartType.")
         return result
-    
+
 class PdPlantUpdateEvent:
     def __init__(self):
         self.plant = None
@@ -2403,22 +2471,21 @@ def checkVersionNumberInPlantNameLine(aLine):
     versionNumberString = usupport.stringBetween("v", ".", versionNumberString)
     versionNumber = StrToIntDef(versionNumberString, 0)
     if versionNumber > 2:
-        ShowMessage("The plant \"" + plantName + "\" has a major version number of " + IntToStr(versionNumber) + "," + chr(13) + "which is higher than this major version of PlantStudio (2)." + chr(13) + chr(13) + "That means that although I may be able to read the plant," + chr(13) + "it will probably look better in the most up-to-date version of PlantStudio," + chr(13) + "which you can get at the PlantStudio web site.")
+        ShowMessage("The plant \"" + plantName + "\" has a major version number of %d " %(versionNumber) + "," + chr(13) + "which is higher than this major version of PlantStudio (2)." + chr(13) + chr(13) + "That means that although I may be able to read the plant," + chr(13) + "it will probably look better in the most up-to-date version of PlantStudio," + chr(13) + "which you can get at the PlantStudio web site.")
 
-# --------------------------------------------------------------------------------------- input/output 
+# --------------------------------------------------------------------------------------- input/output
 class PlantLoader:
     def __init__(self):
         self.plants = ucollect.TListCollection()
 
     def loadPlantsFromFile(self, fileName, inPlantMover, justLoad=0):
         inputFile = TextFile()
-
-        AssignFile(inputFile, fileName)
+        inputFile.assignFilename(fileName)
         try:
             # v1.5
             # PDF PORT __ commented out
             #usupport.setDecimalSeparator()
-            Reset(inputFile)
+            inputFile.open_for_reading()
             self.plants.clear()
             # defaults in case things are missing from file
             self.plantDrawOffset_mm = SinglePoint()
@@ -2429,17 +2496,17 @@ class PlantLoader:
                 self.showBoundsRectangle = udomain.domain.options.showBoundsRectangle
             concentratedLastTimeSaved = False
             self.fitInVisibleAreaForConcentrationChange = False
-            aLine = readln(inputFile)
+            aLine = inputFile.readln()
             while aLine != None:
                 # cfk testing
                 if (aLine == "") or (aLine[0] == ";"):
-                    aLine = readln(inputFile)
+                    aLine = inputFile.readln()
                     continue
                 if string_startsWith("offset=", aLine):
                     self.plantDrawOffset_mm = usupport.stringToSinglePoint(usupport.stringBeyond(aLine, "="))
                 elif string_startsWith("scale=", aLine):
                     try:
-                        self.plantDrawScale_PixelsPerMm = intround(StrToFloat(usupport.stringBeyond(aLine, "=")) * 100.0) / 100.0
+                        self.plantDrawScale_PixelsPerMm = int(float(usupport.stringBeyond(aLine, "=")) * 100.0) / 100.0
                     except:
                         self.plantDrawScale_PixelsPerMm = 1.0
                 elif string_startsWith("concentrated=", aLine):
@@ -2461,7 +2528,7 @@ class PlantLoader:
                     if not justLoad:
                         if not udomain.domain.options.ignoreWindowSettingsInFile:
                             # v2.1 only read if not ignoring settings in file
-                            self.mainWindowOrientation = StrToInt(usupport.stringBeyond(aLine, "="))
+                            self.mainWindowOrientation = int(usupport.stringBeyond(aLine, "="))
                 elif string_startsWith("boxes=", aLine):
                     self.showBoundsRectangle = usupport.strToBool(usupport.stringBeyond(aLine, "="))
                     if not justLoad:
@@ -2474,8 +2541,9 @@ class PlantLoader:
                     # plant start line
                     checkVersionNumberInPlantNameLine(aLine)
                     plant = PdPlant()
-                    plantName = usupport.stringBeyond(aLine, "[")
-                    plantName = usupport.stringUpTo(plantName, "]")
+                    #plantName = usupport.stringBeyond(aLine, "[")
+                    #plantName = usupport.stringUpTo(plantName, "]")
+                    plantName = usupport.stringBetween("[", "]", aLine)
                     plant.setName(plantName)
                     if not justLoad:
                         udomain.domain.parameterManager.setAllReadFlagsToFalse()
@@ -2487,26 +2555,28 @@ class PlantLoader:
                     # also stop reading if reach next plant square bracket or end of file.
                     # v2.0 increased number of params to 350 so 300 is problem, changed to 3000 to avoid this in future, oops
                     lineCount = 0
-                    while (not string_match(kPlantAsTextEndString, aLine)) and (lineCount <= 3000):
+                    while (not string_in(kPlantAsTextEndString, aLine)) and (lineCount <= 3000):
                         # aLine <> '' do
-                        aLine = readln(inputFile)
+                        aLine = inputFile.readln()
                         if aLine == None:
                             break
                         if (string_startsWith("[", aLine)):
                             # v1.60 reversed order of the next two lines -- fixes infinite loop when no end of plant
                             # v1.3 added check for next plant or eof
                             break
-                        if (trim(aLine) == "") or (string_startsWith(";", aLine)):
+                        if (aLine.strip() == "") or (string_startsWith(";", aLine)):
                             # v1.3 added skip empty lines
                             continue
+                        #m read the plant [name] to end
                         plant.readLineAndTdoFromPlantFile(aLine, inputFile)
                         lineCount = lineCount + 1
                     plant.finishLoadingOrDefaulting(kCheckForUnreadParams)
+                    #m store it for later
                     self.plants.Add(plant)
                 if aLine != None and not string_startsWith("[", aLine):
-                    aLine = readln(inputFile)
+                    aLine = inputFile.readln()
         finally:
-            CloseFile(inputFile)
+            inputFile.close()
         return self.plants
 
 if __name__ == '__main__':
@@ -2514,6 +2584,16 @@ if __name__ == '__main__':
     print "test"
     p = PdPlant()
     l = PlantLoader()
+    #l.loadPlantsFromFile("Garden Plants.pla", inPlantMover=1, justLoad=1)
     l.loadPlantsFromFile("test tree.pla", inPlantMover=1, justLoad=1)
     print l.plants.list
+    print dir(l.plants.list[0])
     print "done"
+
+    print cancelOutOppositeAmounts(2.2, 2.2)
+    print cancelOutOppositeAmounts(2.2, 2.0)
+    print cancelOutOppositeAmounts(2.0, 2.2)
+    print cancelOutOppositeAmounts(1.2, 2.2)
+    print cancelOutOppositeAmounts(2.2, 1.2)
+    print "should have"
+    print "(0.0, 0.0) \n(0.20000000000000018, 0.0) \n(0.0, 0.20000000000000018)\n(0.0, 1.0000000000000002)\n(1.0000000000000002, 0.0)"

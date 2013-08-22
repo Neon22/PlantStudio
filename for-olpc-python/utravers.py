@@ -77,17 +77,17 @@ worstNStressColor = UnassignedColor
 worstPStressColor = UnassignedColor
 worstDeadColor = UnassignedColor
 
-# -------------------------------------------------------------------------- linear growth functions 
+# -------------------------------------------------------------------------- linear growth functions
 def linearGrowthWithFactorResult(current, optimal, minDays, growthFactor):
     result = 0.0
     amountNeeded = 0.0
     maxPossible = 0.0
-    
+
     result = 0.0
     try:
         amountNeeded = optimal - current
         maxPossible = umath.safedivExcept(optimal, minDays, optimal)
-        amountNeeded = umath.max(0.0, umath.min(amountNeeded, maxPossible))
+        amountNeeded = max(0.0, min(amountNeeded, maxPossible))
         result = amountNeeded * growthFactor
     except Exception, e:
         usupport.messageForExceptionType(e, "linearGrowthWithFactorResult")
@@ -96,11 +96,11 @@ def linearGrowthWithFactorResult(current, optimal, minDays, growthFactor):
 def linearGrowthWithFactor(current, optimal, minDays, growthFactor):
     amountNeeded = 0.0
     maxPossible = 0.0
-    
+
     try:
         amountNeeded = optimal - current
         maxPossible = umath.safedivExcept(optimal, minDays, optimal)
-        amountNeeded = umath.max(0.0, umath.min(amountNeeded, maxPossible))
+        amountNeeded = max(0.0, min(amountNeeded, maxPossible))
         current = current + amountNeeded * growthFactor
     except Exception, e:
         usupport.messageForExceptionType(e, "linearGrowthWithFactor")
@@ -110,12 +110,12 @@ def linearGrowthResult(current, optimal, minDays):
     result = 0.0
     amountNeeded = 0.0
     maxPossible = 0.0
-    
+
     result = 0.0
     try:
         amountNeeded = optimal - current
         maxPossible = umath.safedivExcept(optimal, minDays, optimal)
-        amountNeeded = umath.max(0.0, umath.min(amountNeeded, maxPossible))
+        amountNeeded = max(0.0, min(amountNeeded, maxPossible))
         result = amountNeeded
     except Exception, e:
         usupport.messageForExceptionType(e, "linearGrowthResult")
@@ -124,11 +124,11 @@ def linearGrowthResult(current, optimal, minDays):
 def linearGrowth(current, optimal, minDays):
     amountNeeded = 0.0
     maxPossible = 0.0
-    
+
     try:
         amountNeeded = optimal - current
         maxPossible = umath.safedivExcept(optimal, minDays, optimal)
-        amountNeeded = umath.max(0.0, umath.min(amountNeeded, maxPossible))
+        amountNeeded = max(0.0, min(amountNeeded, maxPossible))
         current = current + amountNeeded
     except Exception, e:
         usupport.messageForExceptionType(e, "linearGrowth")
@@ -140,21 +140,21 @@ class PdPlantStatistics:
         self.count = [0] * (kStatisticsPartTypeLast + 1)
         self.liveBiomass_pctMPB = [0.0] * (kStatisticsPartTypeLast + 1)
         self.deadBiomass_pctMPB = [0.0] * (kStatisticsPartTypeLast + 1)
-    
-    # ---------------------------------------------------------------------------------- statistics object 
+
+    # ---------------------------------------------------------------------------------- statistics object
     def zeroAllFields(self):
         for i in range(0, kStatisticsPartTypeLast + 1):
             self.count[i] = 0
             self.liveBiomass_pctMPB[i] = 0.0
             self.deadBiomass_pctMPB[i] = 0.0
-    
+
     def totalBiomass_pctMPB(self):
         result = 0.0
         for i in range(0, kStatisticsPartTypeLast + 1):
             result = result + self.liveBiomass_pctMPB[i]
             result = result + self.deadBiomass_pctMPB[i]
         return result
-    
+
 class PdTraverser:
     def __init__(self):
         self.plant = None
@@ -178,13 +178,17 @@ class PdTraverser:
         self.partID = 0L
         self.totalMemorySize = 0L
         self.exportTypeCounts = [0] * (u3dexport.kExportPartLast + 1)
-    
-    # ---------------------------------------------------------------------------------- traversing object 
+
+    # ---------------------------------------------------------------------------------- traversing object
     def createWithPlant(self, thePlant):
+        ''' Tell the traverser which plant to traverse '''
         self.plant = thePlant
         return self
-    
+
     def beginTraversal(self, aMode):
+        ''' Do initialisation of traverser
+            - start traversing left branch
+        '''
         self.mode = aMode
         self.currentPhytomer = self.plant.firstPhytomer
         self.total = 0.0
@@ -196,56 +200,66 @@ class PdTraverser:
             self.currentPhytomer.traverseActivity(self.mode, self)
             #reset afterwards in case read in differently
             self.currentPhytomer.traversingDirection = kTraverseLeft
-    
+
     def traverseWholePlant(self, aMode):
         self.beginTraversal(aMode)
         self.traversePlant(0)
-    
+
     def traversePlant(self, traversalCount):
+        ''' Traverse over entire plant structure.
+            -
+        '''
         if (self.currentPhytomer == None):
             return
         phytomerTraversing = self.currentPhytomer
         i = 0
-        while i <= traversalCount:
+        while i <= traversalCount: # initially 0
             if self.finished:
                 return
             if phytomerTraversing.traversingDirection == kTraverseLeft:
-                phytomerTraversing.traversingDirection += 1
+                # traverse left
+                phytomerTraversing.traversingDirection += 1 # default next pass to be kTraverseRight
                 if phytomerTraversing.leftBranchPlantPart != None:
                     if (self.mode == kActivityDraw):
                         self.plant.turtle.push()
-                    phytomerTraversing.leftBranchPlantPart.traverseActivity(self.mode, self)
+                    phytomerTraversing.leftBranchPlantPart.traverseActivity(self.mode, self) # do work on phytomer(typed)
                     if (phytomerTraversing.leftBranchPlantPart.isPhytomer()):
                         phytomerTraversing = phytomerTraversing.leftBranchPlantPart
+                        # if leftbranch is phytomer - keep going left
                         phytomerTraversing.traversingDirection = kTraverseLeft
                     elif (self.mode == kActivityDraw):
                         self.plant.turtle.pop()
             elif phytomerTraversing.traversingDirection == kTraverseRight:
-                phytomerTraversing.traversingDirection += 1
+                # traverse right
+                phytomerTraversing.traversingDirection += 1 # default next pass to be kTraverseNext
                 if phytomerTraversing.rightBranchPlantPart != None:
                     if (self.mode == kActivityDraw):
                         self.plant.turtle.push()
-                    phytomerTraversing.rightBranchPlantPart.traverseActivity(self.mode, self)
+                    phytomerTraversing.rightBranchPlantPart.traverseActivity(self.mode, self) # do work on phytomer(typed)
                     if (phytomerTraversing.rightBranchPlantPart.isPhytomer()):
                         phytomerTraversing = phytomerTraversing.rightBranchPlantPart
+                        # if rightbranch is phytomer - keep going left
                         phytomerTraversing.traversingDirection = kTraverseLeft
                     elif (self.mode == kActivityDraw):
                         self.plant.turtle.pop()
             elif phytomerTraversing.traversingDirection == kTraverseNext:
-                phytomerTraversing.traversingDirection += 1
+                phytomerTraversing.traversingDirection += 1 # next pass will be kTraverseDone
+                # check next plant part
                 if phytomerTraversing.nextPlantPart != None:
                     if (self.mode == kActivityDraw):
                         self.plant.turtle.push()
                         self.plant.turtle.rotateX(self.plant.pGeneral.phyllotacticRotationAngle * 256 / 360)
-                    phytomerTraversing.nextPlantPart.traverseActivity(self.mode, self)
+                    phytomerTraversing.nextPlantPart.traverseActivity(self.mode, self) # do work on phytomer(typed)
                     if (phytomerTraversing.nextPlantPart.isPhytomer()):
                         phytomerTraversing = phytomerTraversing.nextPlantPart
+                        # if next part is phytomer - start going left
                         phytomerTraversing.traversingDirection = kTraverseLeft
                     elif (self.mode == kActivityDraw):
                         self.plant.turtle.pop()
-            elif phytomerTraversing.traversingDirection == kTraverseDone:
+            elif phytomerTraversing.traversingDirection == kTraverseDone: # we're done (last part did not have a nextpart)
                 phytomerTraversing.traversingDirection = kTraverseNone
                 lastPhytomer = phytomerTraversing
+                # get parent and zero out left, right, next branches so we halt.
                 phytomerTraversing = phytomerTraversing.phytomerAttachedTo
                 if (self.mode == kActivityFree):
                     if phytomerTraversing != None:
@@ -260,13 +274,13 @@ class PdTraverser:
                 if (self.mode == kActivityDraw):
                     #special drawing stuff - if returning from left or right branch draw, pop turtle
                     #	if (phytomerTraversing.traversingDirection = kTraverseLeft + 1)
-                    #           or (phytomerTraversing.traversingDirection =  kTraverseRight + 1)  then 
+                    #           or (phytomerTraversing.traversingDirection =  kTraverseRight + 1)  then
                     self.plant.turtle.pop()
                 if (self.mode == kActivityCalculateBiomassForGravity):
-                    phytomerTraversing.traverseActivity(self.mode, self)
+                    phytomerTraversing.traverseActivity(self.mode, self) # do work on phytomer(typed)
             elif phytomerTraversing.traversingDirection == kTraverseNone:
                 raise GeneralException.create("Problem: kTraverseNone encountered in method PdTraverser.traversePlant.")
-            if (traversalCount != 0):
+            if (traversalCount != 0): # !!how do we get out of thi sis zero and self.finished not set ? (break above)
                 i += 1
             if (self.mode == kActivityDraw) and (self.showDrawingProgress):
                 if self.totalPlantParts % 4 != 0:
@@ -274,4 +288,4 @@ class PdTraverser:
                 # PDF PORT __ REMOPRARILY REMOVED FOR TESTING FIX
                 #if (umain.MainForm != None) and (umain.MainForm.drawing):
                 #    umain.MainForm.showDrawProgress(self.plantPartsDrawnAtStart + self.totalPlantParts)
-    
+

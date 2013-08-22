@@ -1,5 +1,8 @@
 # unit U3dexport
 
+""" enable exporting eth geometry to various file formats.
+"""
+
 from conversion_common import *
 import delphi_compatability
 import udrawingsurface
@@ -152,7 +155,7 @@ class SingleOverlay:
     def __init__(self):
         pass
 
-# ------------------------------------------------------------------------------------------ index functions 
+# ------------------------------------------------------------------------------------------ index functions
 def fileTypeFor3DExportType(outputType):
     result = 0
     if outputType == kDXF:
@@ -193,7 +196,7 @@ def longNameForDXFPartType(index):
     result = ""
     longName = ""
     shortName = ""
-    
+
     longName, shortName = getInfoForDXFPartType(index, longName, shortName)
     result = longName
     return result
@@ -202,7 +205,7 @@ def shortNameForDXFPartType(index):
     result = ""
     longName = ""
     shortName = ""
-    
+
     longName, shortName = getInfoForDXFPartType(index, longName, shortName)
     result = shortName
     return result
@@ -335,67 +338,67 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         self.points = [0] * (range(0, kMax3DPoints + 1) + 1)
         self.numFaces = 0
         self.faces = [0] * (range(0, kMax3DFaces + 1) + 1)
-    
-    # ----------------------------------------------------------------------------- KfFileExportSurface 
+
+    # ----------------------------------------------------------------------------- KfFileExportSurface
     def createWithFileName(self, aFileName):
         KfDrawingSurface.create(self)
         self.fileName = aFileName
         self.options = udomain.domain.exportOptionsFor3D[self.outputType()]
         self.scale = self.options.overallScalingFactor_pct / 100.0
         return self
-    
+
     def destroy(self):
         pass
         # nothing yet
-    
+
     def startFile(self):
         raise GeneralException.create("subclasses must override")
-    
+
     def endFile(self):
         raise GeneralException.create("subclasses must override")
-    
+
     def startPlant(self, aLongName, aPlantIndex):
         self.currentPlantIndex = aPlantIndex
         self.currentPlantNameLong = aLongName
         self.currentPlantNameShort = self.generateShortName()
-    
+
     def endPlant(self):
         pass
         # subclasses can override
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         raise GeneralException.create("subclasses must override")
-    
+
     def startNestedGroupOfPlantParts(self, groupName, shortName, nestingType):
         pass
         # subclasses can override
-    
+
     def endNestedGroupOfPlantParts(self, nestingType):
         pass
         # subclasses can override
-    
+
     def startPlantPart(self, aLongName, aShortName):
         pass
         # subclasses can override
-    
+
     def endPlantPart(self):
         pass
         # subclasses can override
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         self.setUpGroupingStringForStemSegmentOr3DObject(aShortName, index)
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         self.setUpGroupingStringForStemSegmentOr3DObject(aShortName, index)
-    
+
     def startVerticesAndTriangles(self):
         pass
         # subclasses can override
-    
+
     def endVerticesAndTriangles(self):
         pass
         # subclasses can override
-    
+
     def addPoint(self, point):
         if self.numPoints >= kMax3DPoints:
             raise GeneralException.Create("Problem: Too many points in 3D export.")
@@ -403,7 +406,7 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         self.points[self.numPoints].y = self.pressedOrNot(self.scale * Point.y, kY)
         self.points[self.numPoints].z = self.pressedOrNot(self.scale * Point.z, kZ)
         self.numPoints += 1
-    
+
     def pressedOrNot(self, value, dimension):
         result = 0.0
         if (self.options.pressPlants) and (self.options.directionToPressPlants == dimension):
@@ -411,7 +414,7 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         else:
             result = value
         return result
-    
+
     def addTriangle(self, a, b, c):
         if self.numFaces >= kMax3DFaces:
             raise GeneralException.Create("Problem: Too many faces in 3D export.")
@@ -419,11 +422,11 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         self.faces[self.numFaces].vertex2 = b
         self.faces[self.numFaces].vertex3 = c
         self.numFaces += 1
-    
+
     def end3DObject(self):
         pass
         # subclasses can override
-    
+
     def setUpGroupingStringForStemSegmentOr3DObject(self, aShortName, index):
         if self.options.layeringOption == kLayerOutputAllTogether:
             self.currentGroupingString = self.currentPlantNameShort
@@ -431,16 +434,16 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
             self.currentGroupingString = self.currentPlantNameShort + "_" + aShortName
         elif self.options.layeringOption == kLayerOutputByPlantPart:
             self.plantPartCounts[index] += 1
-            self.currentGroupingString = self.currentPlantNameShort + "_" + IntToStr(self.plantPartCounts[index]) + "_" + aShortName
-    
+            self.currentGroupingString = self.currentPlantNameShort + "_%d" % (self.plantPartCounts[index]) + "_" + aShortName
+
     def endStemSegment(self):
         pass
         # subclasses can override
-    
+
     def drawPipeFaces(self, startPoints, endPoints, faces, segmentNumber):
         i = 0L
         disp = 0L
-        
+
         # subclasses can override - this works for some
         disp = segmentNumber * faces * 2
         for i in range(0, faces):
@@ -450,12 +453,12 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         for i in range(0, faces):
             self.addTriangle(disp + i, disp + i + faces, disp + (i + 1) % faces)
             self.addTriangle(disp + (i + 1) % faces, disp + i + faces, disp + (i + 1) % faces + faces)
-    
+
     def setTranslationForCurrentPlant(self, isTranslated, aTranslateX, aTranslateY):
         self.currentPlantIsTranslated = isTranslated
         self.currentPlantTranslateX = aTranslateX
         self.currentPlantTranslateY = aTranslateY
-    
+
     def outputType(self):
         result = 0
         result = -1
@@ -472,49 +475,49 @@ class KfFileExportSurface(udrawingsurface.KfDrawingSurface):
         elif (self.__class__ is KfDrawingSurfaceForLWO):
             result = kLWO
         return result
-    
+
     def generateShortName(self):
         result = ""
         shortNameLength = 0
         i = 0
-        
+
         result = ""
         if len(self.currentPlantNameLong) <= 0:
             return result
-        shortNameLength = umath.intMin(self.options.lengthOfShortName, len(self.currentPlantNameLong))
+        shortNameLength = min(self.options.lengthOfShortName, len(self.currentPlantNameLong))
         for i in range(0, shortNameLength):
             if self.currentPlantNameLong[i] != " ":
                 result = result + self.currentPlantNameLong[i]
         if self.options.writePlantNumberInFrontOfName:
-            result = IntToStr(self.currentPlantIndex + 1) + result
+            result = "%d" % (self.currentPlantIndex + 1) + result
         return result
-    
+
 class KfTextFileExportSurface(KfFileExportSurface):
     def __init__(self):
         self.outputFile = TextFile()
-    
-    # ----------------------------------------------------------------------------- KfTextFileExportSurface 
+
+    # ----------------------------------------------------------------------------- KfTextFileExportSurface
     def createWithFileName(self, aFileName):
         KfFileExportSurface.createWithFileName(self, aFileName)
         # we assume that the file name has been already okayed by whoever created us
-        AssignFile(self.outputFile, self.fileName)
+        AssignFile(self.outputFile, self.fileName) #!! shouldn't this be afilename or even KfFileExportSurface.filename ?
         return self
-    
+
     def destroy(self):
         pass
         # nothing yet
-    
+
     def startFile(self):
-        Rewrite(self.outputFile)
-    
+        self.outputFile.open_for_writing() #!! see create above
+
     def endFile(self):
-        CloseFile(self.outputFile)
-    
+        self.outputFile.close()
+
 class KfDrawingSurfaceForDXF(KfTextFileExportSurface):
     def __init__(self):
         self.currentColorIndex = 0
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceForDXF 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceForDXF
     def startFile(self):
         KfTextFileExportSurface.startFile(self)
         writeln(self.outputFile, "999")
@@ -525,7 +528,7 @@ class KfDrawingSurfaceForDXF(KfTextFileExportSurface):
         writeln(self.outputFile, "SECTION")
         writeln(self.outputFile, "2")
         writeln(self.outputFile, "ENTITIES")
-    
+
     def endFile(self):
         # v2.0 moved ENTITY section from starting and ending each plant to entire file - may fix bug
         # with programs only recognizing one plant in a file
@@ -534,35 +537,35 @@ class KfDrawingSurfaceForDXF(KfTextFileExportSurface):
         writeln(self.outputFile, "0")
         writeln(self.outputFile, "EOF")
         KfTextFileExportSurface.endFile(self)
-    
+
     def startPlant(self, aLongName, aPlantIndex):
         KfTextFileExportSurface.startPlant(self, aLongName, aPlantIndex)
         if self.options.layeringOption == kLayerOutputAllTogether:
             self.currentGroupingString = UNRESOLVED.copy(self.currentPlantNameLong, 1, 16)
         if self.options.dxf_whereToGetColors == kColorDXFFromOneColor:
             self.currentColorIndex = self.options.dxf_wholePlantColorIndex
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfTextFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         if self.options.dxf_whereToGetColors == kColorDXFFromPlantPartType:
             self.currentColorIndex = self.options.dxf_plantPartColorIndexes[index]
         elif self.options.dxf_whereToGetColors == kColorDXFFromRGB:
             self.currentColor = color
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfTextFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         if self.options.dxf_whereToGetColors == kColorDXFFromPlantPartType:
             self.currentColorIndex = self.options.dxf_plantPartColorIndexes[index]
         elif self.options.dxf_whereToGetColors == kColorDXFFromRGB:
             self.currentColor = color
-    
+
     def drawPipeFaces(self, startPoints, endPoints, faces, segmentNumber):
         i = 0
-        
+
         for i in range(0, faces):
             # for this don't have to worry about segment number, we are not adding points and triangles
             self.draw3DFace(startPoints[i], endPoints[i], endPoints[(i + 1) % faces], startPoints[(i + 1) % faces])
-    
+
     def draw3DFace(self, point1, point2, point3, point4):
         writeln(self.outputFile, "0")
         writeln(self.outputFile, "3DFACE")
@@ -571,10 +574,10 @@ class KfDrawingSurfaceForDXF(KfTextFileExportSurface):
         if self.options.writeColors:
             if self.options.dxf_whereToGetColors == kColorDXFFromRGB:
                 writeln(self.outputFile, "62")
-                writeln(self.outputFile, IntToStr(self.currentColor))
+                writeln(self.outputFile, "%d" % (self.currentColor))
             else:
                 writeln(self.outputFile, "62")
-                writeln(self.outputFile, IntToStr(self.currentColorIndex + 1))
+                writeln(self.outputFile, "%d" % (self.currentColorIndex + 1))
         writeln(self.outputFile, "10")
         writeln(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * point1.x, kX)))
         writeln(self.outputFile, "20")
@@ -599,20 +602,20 @@ class KfDrawingSurfaceForDXF(KfTextFileExportSurface):
         writeln(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * -point4.y, kY)))
         writeln(self.outputFile, "33")
         writeln(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * point4.z, kZ)))
-    
+
     def basicDrawLineFromTo(self, startPoint, endPoint):
         self.draw3DFace(startPoint, startPoint, endPoint, endPoint)
-    
+
     def basicDrawTriangle(self, triangle):
         self.draw3DFace(triangle.points[0], triangle.points[1], triangle.points[2], triangle.points[2])
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         self.currentGroupingString = self.currentPlantNameShort + "_rem"
         # adds one; kLastDxfColorIndex is gray
         self.currentColorIndex = kLastDxfColorIndex - 1
         self.draw3DFace(p1, p2, p3, p3)
         self.draw3DFace(p1, p3, p4, p4)
-    
+
 class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
     def __init__(self):
         self.currentComment = ""
@@ -621,17 +624,17 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         self.currentRotateString = ""
         self.numPlantsDrawn = 0
         self.plantNames = [0] * (range(0, kMaxPOVPlants + 1) + 1)
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceForPOV 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceForPOV
     def startFile(self):
         KfTextFileExportSurface.startFile(self)
         writeln(self.outputFile, "// INC file for Persistence of Vision (POV) raytracer")
         writeln(self.outputFile, "// created by PlantStudio http://www.kurtz-fernhout.com")
         writeln(self.outputFile)
-    
+
     def endFile(self):
         i = 0
-        
+
         writeln(self.outputFile)
         if self.options.pov_commentOutUnionAtEnd:
             writeln(self.outputFile, "/* ")
@@ -642,7 +645,7 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         if self.options.pov_commentOutUnionAtEnd:
             writeln(self.outputFile, "*/ ")
         KfTextFileExportSurface.endFile(self)
-    
+
     def startPlant(self, aLongName, aPlantIndex):
         # in POV you can't have spaces in names
         aLongName = usupport.replacePunctuationWithUnderscores(aLongName)
@@ -652,7 +655,7 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         self.indent()
         self.plantNames[self.numPlantsDrawn] = self.currentPlantNameLong
         self.numPlantsDrawn += 1
-    
+
     def endPlant(self):
         if (self.currentPlantIsTranslated) and (self.options.translatePlantsToWindowPositions):
             writeln(self.outputFile, "translate <" + usupport.valueString(self.currentPlantTranslateX) + ", " + usupport.valueString(self.currentPlantTranslateY) + ", 0>")
@@ -662,7 +665,7 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         writeln(self.outputFile)
         self.currentIndentLevel = 0
         KfTextFileExportSurface.endPlant(self)
-    
+
     def startNestedGroupOfPlantParts(self, groupName, shortName, nestingType):
         if nestingType == kNestingTypeInflorescence:
             if not self.options.nest_Inflorescence:
@@ -682,7 +685,7 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         else :
             raise GeneralException.create("Problem: Unrecognized nesting type in KfDrawingSurfaceForPOV.startNestedGroupOfPlantParts.")
         self.startUnion(groupName)
-    
+
     def endNestedGroupOfPlantParts(self, nestingType):
         if nestingType == kNestingTypeInflorescence:
             if not self.options.nest_Inflorescence:
@@ -702,46 +705,46 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         else :
             raise GeneralException.create("Problem: Unrecognized nesting type in KfDrawingSurfaceForPOV.startNestedGroupOfPlantParts.")
         self.endBrace(kDontWriteColor)
-    
+
     def startPlantPart(self, aLongName, aShortName):
         self.startUnion(aLongName)
-    
+
     def endPlantPart(self):
         self.endBrace(kDontWriteColor)
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfTextFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         self.startUnion(aLongName)
         self.setColor(color)
         self.currentWidth = width
-    
+
     def endStemSegment(self):
         # DO want to write color for this one
         self.endBrace(kWriteColor)
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfTextFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         self.startMesh(color, aLongName)
         self.setColor(color)
-    
+
     def end3DObject(self):
         # DO want to write color for this one
         self.endBrace(kWriteColor)
-    
+
     def indent(self):
         self.currentIndentLevel += 1
-    
+
     def unindent(self):
         self.currentIndentLevel -= 1
         if self.currentIndentLevel < 0:
             self.currentIndentLevel = 0
-    
+
     def doIndenting(self):
         i = 0
-        
+
         for i in range(1, self.currentIndentLevel + 1):
             write(self.outputFile, chr(9))
-    
+
     def startUnionOrMesh(self, startString, aColor, aComment):
         if aColor >= 0:
             self.currentColor = aColor
@@ -752,36 +755,36 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         else:
             writeln(self.outputFile, " // " + self.currentComment)
         self.indent()
-    
+
     def startUnion(self, aComment):
         self.startUnionOrMesh("union", -1, aComment)
-    
+
     def startMesh(self, aColor, aComment):
         self.startUnionOrMesh("mesh", aColor, aComment)
-    
+
     def setColor(self, aColor):
         self.currentColor = aColor
-    
+
     def endBrace(self, writeColor):
         self.doIndenting()
         if (writeColor) and (self.options.writeColors) and (self.currentColor >= 0):
             write(self.outputFile, "pigment { color rgb <" + usupport.valueString(UNRESOLVED.getRValue(self.currentColor) / 256.0) + ", " + usupport.valueString(UNRESOLVED.getGValue(self.currentColor) / 256.0) + ", " + usupport.valueString(UNRESOLVED.getBValue(self.currentColor) / 256.0) + "> }")
         writeln(self.outputFile, "}")
         self.unindent()
-    
+
     def basicDrawLineFromTo(self, startPoint, endPoint):
         endPointFinal = KfPoint3D()
-        
+
         endPointFinal = endPoint
         self.doIndenting()
         write(self.outputFile, "cylinder { ")
         writeln(self.outputFile, "<" + usupport.valueString((self.pressedOrNot(self.scale * startPoint.x, kX))) + ", " + usupport.valueString(self.pressedOrNot(self.scale * -startPoint.y, kY)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * startPoint.z, kZ)) + ">, <" + usupport.valueString(self.pressedOrNot(self.scale * endPointFinal.x, kX)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * -endPointFinal.y, kY)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * endPointFinal.z, kZ)) + ">, " + usupport.valueString(self.scale * self.currentWidth) + " }")
-    
+
     def basicDrawTriangle(self, triangle):
         p1 = KfPoint3D()
         p2 = KfPoint3D()
         p3 = KfPoint3D()
-        
+
         p1 = triangle.points[0]
         p2 = triangle.points[1]
         p3 = triangle.points[2]
@@ -791,11 +794,11 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
         write(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * p1.x, kX)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * -p1.y, kY)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * p1.z, kZ)) + ">, <")
         write(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * p2.x, kX)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * -p2.y, kY)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * p2.z, kZ)) + ">, <")
         writeln(self.outputFile, usupport.valueString(self.pressedOrNot(self.scale * p3.x, kX)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * -p3.y, kY)) + ", " + usupport.valueString(self.pressedOrNot(self.scale * p3.z, kZ)) + "> }")
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         triangle1 = KfTriangle()
         triangle2 = KfTriangle()
-        
+
         self.startMesh(UNRESOLVED.rgb(100, 100, 100), self.currentPlantNameShort + "_reminder")
         triangle1 = u3dsupport.KfTriangle.create
         triangle2 = u3dsupport.KfTriangle.create
@@ -812,17 +815,17 @@ class KfDrawingSurfaceForPOV(KfTextFileExportSurface):
             triangle1.free
             triangle2.free
         self.endBrace(kWriteColor)
-    
+
 class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
     def __init__(self):
         self.currentIndentLevel = 0
         self.lastPlantPartName = ""
         self.lastMeshName = ""
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceForVRML 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceForVRML
     def startFile(self):
         scaleString = ""
-        
+
         KfTextFileExportSurface.startFile(self)
         if self.options.vrml_version == kVRMLVersionOne:
             writeln(self.outputFile, "#VRML V1.0 ascii")
@@ -832,7 +835,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             writeln(self.outputFile, "#VRML V2.0 utf8")
             writeln(self.outputFile, "#Created by PlantStudio http://www.kurtz-fernhout.com")
             writeln(self.outputFile)
-    
+
     def startPlant(self, aLongName, aPlantIndex):
         # in VRML you can't have spaces in names
         aLongName = usupport.replacePunctuationWithUnderscores(aLongName)
@@ -843,7 +846,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
         elif self.options.vrml_version == kVRMLVersionTwo:
             self.writeThenIndent("DEF " + self.currentPlantNameShort + " Group {")
             self.writeThenIndent("children [")
-    
+
     def endPlant(self):
         if self.options.vrml_version == kVRMLVersionOne:
             self.endBrace("plant " + self.currentPlantNameLong)
@@ -854,7 +857,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             writeln(self.outputFile)
         self.currentIndentLevel = 0
         KfTextFileExportSurface.endPlant(self)
-    
+
     def startNestedGroupOfPlantParts(self, groupName, shortName, nestingType):
         shortName = self.currentPlantNameShort + "_" + shortName
         if nestingType == kNestingTypeInflorescence:
@@ -879,7 +882,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
         elif self.options.vrml_version == kVRMLVersionTwo:
             self.writeThenIndent("DEF " + shortName + " Group {")
             self.writeThenIndent("children [")
-    
+
     def endNestedGroupOfPlantParts(self, nestingType):
         if nestingType == kNestingTypeInflorescence:
             if not self.options.nest_Inflorescence:
@@ -905,10 +908,10 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.endBracket("children")
             self.endBrace("nested group")
             writeln(self.outputFile)
-    
+
     def startPlantPart(self, aLongName, aShortName):
         shortName = ""
-        
+
         shortName = self.currentPlantNameShort + "_" + aShortName
         if self.options.vrml_version == kVRMLVersionOne:
             self.writeThenIndent("DEF " + shortName + " Group {")
@@ -916,7 +919,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.writeThenIndent("DEF " + shortName + " Group {")
             self.writeThenIndent("children [")
         self.lastPlantPartName = shortName
-    
+
     def endPlantPart(self):
         if self.options.vrml_version == kVRMLVersionOne:
             self.endBrace("plant part " + self.lastPlantPartName)
@@ -925,23 +928,23 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.endBracket("children")
             self.endBrace("plant part " + self.lastPlantPartName)
             writeln(self.outputFile)
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfTextFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         self.setColor(color)
         self.startMesh()
-    
+
     def endStemSegment(self):
         self.endMesh()
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfTextFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         self.setColor(color)
         self.startMesh()
-    
+
     def end3DObject(self):
         self.endMesh()
-    
+
     def startMesh(self):
         if self.options.vrml_version == kVRMLVersionOne:
             self.writeThenIndent("DEF " + self.currentGroupingString + " Group {")
@@ -951,7 +954,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             if self.options.writeColors:
                 self.writeConsideringIndenting("appearance Appearance { material Material { diffuseColor " + usupport.valueString(UNRESOLVED.getRValue(self.currentColor) / 256.0) + " " + usupport.valueString(UNRESOLVED.getGValue(self.currentColor) / 256.0) + " " + usupport.valueString(UNRESOLVED.getBValue(self.currentColor) / 256.0) + " } }")
         self.lastMeshName = self.currentGroupingString
-    
+
     def endMesh(self):
         self.writePointsAndTriangles()
         if self.options.vrml_version == kVRMLVersionOne:
@@ -960,10 +963,10 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
         elif self.options.vrml_version == kVRMLVersionTwo:
             self.endBrace("shape " + self.lastMeshName)
             writeln(self.outputFile)
-    
+
     def writePointsAndTriangles(self):
         i = 0
-        
+
         if self.options.vrml_version == kVRMLVersionOne:
             # shape hints
             self.writeThenIndent("ShapeHints {")
@@ -994,7 +997,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.writeThenIndent("coordIndex [")
             self.doIndenting()
             for i in range(0, self.numFaces):
-                write(self.outputFile, IntToStr(self.faces[i].vertex1) + ", " + IntToStr(self.faces[i].vertex2) + ", " + IntToStr(self.faces[i].vertex3) + ", -1")
+                write(self.outputFile, "%d, %d, %d, %d, -1" % (self.faces[i].vertex1, self.faces[i].vertex2, self.faces[i].vertex3))
                 if i < self.numFaces - 1:
                     write(self.outputFile, ", ")
                 if (i % kNumVRMLPointsPerLine == 0) or (i == self.numFaces - 1):
@@ -1023,7 +1026,7 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.writeThenIndent("coordIndex [")
             self.doIndenting()
             for i in range(0, self.numFaces):
-                write(self.outputFile, IntToStr(self.faces[i].vertex1) + ", " + IntToStr(self.faces[i].vertex2) + ", " + IntToStr(self.faces[i].vertex3) + ", -1")
+                write(self.outputFile, "%d, %d, %d, %d, -1" % (self.faces[i].vertex1, self.faces[i].vertex2, self.faces[i].vertex3))
                 if i < self.numFaces - 1:
                     write(self.outputFile, ", ")
                 if (i % kNumVRMLPointsPerLine == 0) or (i == self.numFaces - 1):
@@ -1037,52 +1040,52 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
             self.endBrace("IndexedFaceSet")
         self.numPoints = 0
         self.numFaces = 0
-    
+
     def setColor(self, aColor):
         self.currentColor = aColor
-    
+
     def endBrace(self, comment):
         self.doIndenting()
         writeln(self.outputFile, "} # " + comment)
         self.unindent()
-    
+
     def endBracket(self, comment):
         self.doIndenting()
         writeln(self.outputFile, "] # " + comment)
         self.unindent()
-    
+
     def indent(self):
         self.currentIndentLevel += 1
-    
+
     def unindent(self):
         self.currentIndentLevel -= 1
         if self.currentIndentLevel < 0:
             self.currentIndentLevel = 0
-    
+
     def doIndenting(self):
         i = 0
-        
+
         for i in range(1, self.currentIndentLevel + 1):
             # chr(9));
             write(self.outputFile, "  ")
-    
+
     def writeConsideringIndenting(self, aString):
         self.doIndenting()
         writeln(self.outputFile, aString)
-    
+
     def indentThenWrite(self, aString):
         self.indent()
         self.doIndenting()
         writeln(self.outputFile, aString)
-    
+
     def writeThenIndent(self, aString):
         self.doIndenting()
         writeln(self.outputFile, aString)
         self.indent()
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         numPointsAtStart = 0L
-        
+
         self.setColor(UNRESOLVED.rgb(100, 100, 100))
         self.currentGroupingString = self.currentPlantNameShort + "_reminder"
         self.startMesh()
@@ -1095,15 +1098,15 @@ class KfDrawingSurfaceForVRML(KfTextFileExportSurface):
         self.addTriangle(numPointsAtStart + 1, numPointsAtStart + 2, numPointsAtStart + 3)
         self.writePointsAndTriangles()
         self.endMesh()
-    
+
 class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
     def __init__(self):
         self.numMaterialsStored = 0
         self.materialColors = [0] * (range(0, kMaxStoredMaterials + 1) + 1)
         self.materialNames = [0] * (range(0, kMaxStoredMaterials + 1) + 1)
         self.materialsFileName = ""
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceForOBJ 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceForOBJ
     def startFile(self):
         KfTextFileExportSurface.startFile(self)
         writeln(self.outputFile, "# OBJ file created by PlantStudio http://www.kurtz-fernhout.com")
@@ -1112,12 +1115,12 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
             writeln(self.outputFile)
             writeln(self.outputFile, "# Materials file must be in same directory")
             writeln(self.outputFile, "mtllib " + ExtractFileName(self.materialsFileName))
-    
+
     def endFile(self):
         if self.options.writeColors:
             self.writeMaterialDescriptionsToFile()
         KfTextFileExportSurface.endFile(self)
-    
+
     def startPlant(self, aLongName, aPlantIndex):
         KfTextFileExportSurface.startPlant(self, aLongName, aPlantIndex)
         writeln(self.outputFile)
@@ -1125,7 +1128,7 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
         writeln(self.outputFile, "o " + self.currentPlantNameShort)
         if (udomain.domain.registered) and (self.options.layeringOption == kLayerOutputAllTogether):
             self.startGroup(self.currentPlantNameShort)
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfTextFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         if (self.options.layeringOption != kLayerOutputAllTogether) and (self.currentGroupingString != ""):
@@ -1133,30 +1136,30 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
         # color should always be set by the part type, no matter what grouping setting
         self.startColor(color, self.currentPlantNameShort + "_" + aShortName)
         self.startVerticesAndTriangles()
-    
+
     def endStemSegment(self):
         self.endVerticesAndTriangles()
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfTextFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         if (self.options.layeringOption != kLayerOutputAllTogether) and (self.currentGroupingString != ""):
             self.startGroup(self.currentGroupingString)
         # color should always be set by the part type, no matter what grouping setting
         self.startColor(color, self.currentPlantNameShort + "_" + aShortName)
-    
+
     def writeMaterialDescriptionsToFile(self):
         materialsFile = TextFile()
         i = 0
         colorString = ""
         fileInfo = SaveFileNamesStructure()
-        
+
         if self.numMaterialsStored <= 0:
             return
         if usupport.getFileSaveInfo(usupport.kFileTypeMTL, usupport.kDontAskForFileName, self.materialsFileName, fileInfo):
-            AssignFile(materialsFile, fileInfo.tempFile)
+            materialsFile.assignFilename(fileInfo.tempFile)
             try:
                 usupport.setDecimalSeparator()
-                Rewrite(materialsFile)
+                materialsFile.open_for_writing()
                 usupport.startFileSave(fileInfo)
                 writeln(materialsFile, "# Materials for file " + usupport.stringUpTo(ExtractFileName(self.materialsFileName), ".") + ".obj")
                 writeln(materialsFile, "# Created by PlantStudio http://www.kurtz-fernhout.com")
@@ -1181,12 +1184,12 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
                     writeln(materialsFile)
                 fileInfo.writingWasSuccessful = True
             finally:
-                CloseFile(materialsFile)
+                materialsFile.close()
                 usupport.cleanUpAfterFileSave(fileInfo)
-    
+
     def storeMaterialDescription(self, aName, aColor):
         i = 0
-        
+
         if self.numMaterialsStored > 0:
             for i in range(0, self.numMaterialsStored):
                 if self.materialNames[i] == aName:
@@ -1196,36 +1199,36 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
         self.numMaterialsStored += 1
         self.materialColors[self.numMaterialsStored] = aColor
         self.materialNames[self.numMaterialsStored] = aName
-    
+
     def startGroup(self, aName):
         writeln(self.outputFile)
         writeln(self.outputFile, "g " + aName)
         writeln(self.outputFile, "s off")
-    
+
     def startColor(self, aColor, aMaterialName):
         if not self.options.writeColors:
             return
         writeln(self.outputFile)
         writeln(self.outputFile, "usemtl " + aMaterialName)
         self.storeMaterialDescription(aMaterialName, aColor)
-    
+
     def endVerticesAndTriangles(self):
         i = 0
-        
+
         writeln(self.outputFile)
-        writeln(self.outputFile, "# " + IntToStr(self.numPoints) + " vertices")
+        writeln(self.outputFile, "# %d vertices" % (self.numPoints))
         for i in range(0, self.numPoints):
             writeln(self.outputFile, "v " + usupport.valueString(self.pressedOrNot(self.scale * self.points[i].x, kX)) + " " + usupport.valueString(self.pressedOrNot(self.scale * -self.points[i].y, kY)) + " " + usupport.valueString(self.pressedOrNot(self.scale * self.points[i].z, kZ)))
         writeln(self.outputFile)
-        writeln(self.outputFile, "# " + IntToStr(self.numFaces) + " faces")
+        writeln(self.outputFile, "# %d faces" % (self.numFaces))
         for i in range(0, self.numFaces):
-            writeln(self.outputFile, "f " + IntToStr(self.faces[i].vertex1 - self.numPoints) + " " + IntToStr(self.faces[i].vertex2 - self.numPoints) + " " + IntToStr(self.faces[i].vertex3 - self.numPoints) + " ")
+            writeln(self.outputFile, "f %d %d %d " % (self.faces[i].vertex1 - self.numPoints, self.faces[i].vertex2 - self.numPoints, self.faces[i].vertex3 - self.numPoints))
         self.numPoints = 0
         self.numFaces = 0
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         numPointsAtStart = 0
-        
+
         self.startGroup(self.currentPlantNameShort + "_reminder")
         self.startColor(UNRESOLVED.rgb(100, 100, 100), "reminder_gray")
         numPointsAtStart = self.numPoints
@@ -1239,18 +1242,18 @@ class KfDrawingSurfaceForOBJ(KfTextFileExportSurface):
         self.endVerticesAndTriangles()
         if self.options.layeringOption == kLayerOutputAllTogether:
             self.startGroup(self.currentPlantNameShort)
-    
+
 class KfBinaryFileExportSurface(KfFileExportSurface):
     def __init__(self):
         self.stream = TFileStream()
         self.chunkStartStack = TList()
-    
-    # ----------------------------------------------------------------------------- KfBinaryFileExportSurface 
+
+    # ----------------------------------------------------------------------------- KfBinaryFileExportSurface
     def createWithFileName(self, aFileName):
         KfFileExportSurface.createWithFileName(self, aFileName)
         self.chunkStartStack = delphi_compatability.TList().Create()
         return self
-    
+
     def destroy(self):
         self.chunkStartStack.free
         self.chunkStartStack = None
@@ -1258,17 +1261,17 @@ class KfBinaryFileExportSurface(KfFileExportSurface):
         self.stream.free
         self.stream = None
         KfFileExportSurface.destroy(self)
-    
+
     def startFile(self):
         self.stream = delphi_compatability.TFileStream().Create(self.fileName, delphi_compatability.fmCreate or UNRESOLVED.fmShareExclusive)
-    
+
     def endFile(self):
         raise GeneralException.create("subclasses must override")
-    
+
     def writeStringZ(self, value):
         stringBuffer = [0] * (range(0, 1024 + 1) + 1)
         i = 0
-        
+
         if len(value) > 1023:
             raise GeneralException.Create("Problem: String too long in KfBinaryFileExportSurface.writeStringZ.")
         for i in range(1, len(value) + 1):
@@ -1276,23 +1279,23 @@ class KfBinaryFileExportSurface(KfFileExportSurface):
         stringBuffer[len(value)] = chr(0)
         self.stream.WriteBuffer(stringBuffer, len(value) + 1)
         # maybe should align on four byte boundaries for efficiency of seeks later?
-    
+
     def writeByte(self, value):
         self.stream.WriteBuffer(value, 1)
-    
+
     def writeWord(self, value):
         swappedBytes = [0] * (range(0, 1 + 1) + 1)
-        
+
         if self.isLittleEndian():
             self.stream.WriteBuffer(value, 2)
         else:
             swappedBytes[1] = value and 255
             swappedBytes[0] = value >> 8
             self.stream.WriteBuffer(swappedBytes, 2)
-    
+
     def writeDword(self, value):
         swappedBytes = [0] * (range(0, 3 + 1) + 1)
-        
+
         if self.isLittleEndian():
             self.stream.WriteBuffer(value, 4)
         else:
@@ -1301,11 +1304,11 @@ class KfBinaryFileExportSurface(KfFileExportSurface):
             swappedBytes[1] = (value >> 16) and 255
             swappedBytes[0] = (value >> 24) and 255
             self.stream.WriteBuffer(swappedBytes, 4)
-    
+
     def writeFloat(self, value):
         convert = SingleOverlay()
         swappedBytes = [0] * (range(0, 3 + 1) + 1)
-        
+
         if self.isLittleEndian():
             self.stream.WriteBuffer(value, 4)
         else:
@@ -1315,58 +1318,58 @@ class KfBinaryFileExportSurface(KfFileExportSurface):
             swappedBytes[1] = convert.bytes[2]
             swappedBytes[0] = convert.bytes[3]
             self.stream.WriteBuffer(swappedBytes, 4)
-    
+
     def isLittleEndian(self):
         result = False
         # subclasses should override if they need to change this
         result = True
         return result
-    
+
 class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
     def __init__(self):
         self.currentMaterialName = ""
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceFor3DS 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceFor3DS
     def createWithFileName(self, aFileName):
         # we assume that the file name has been already okayed
         KfBinaryFileExportSurface.createWithFileName(self, aFileName)
         self.currentMaterialName = "not defined"
         return self
-    
+
     def destroy(self):
         KfBinaryFileExportSurface.destroy(self)
-    
+
     def startFile(self):
         KfBinaryFileExportSurface.startFile(self)
         # 4d4dH 	M3DMAGIC; 3DS Magic Number (.3DS file)
         self.startChunk(0x4D4D)
         # 3d3dH 	MDATA; Mesh Data Magic Number (.3DS files sub of 4d4d)
         self.startChunk(0x3D3D)
-    
+
     def endFile(self):
         # 3d3dH 	MDATA; Mesh Data Magic Number (.3DS files sub of 4d4d)
         self.finishChunk(0x3D3D)
         # 4d4dH 	M3DMAGIC; 3DS Magic Number (.3DS file)
         self.finishChunk(0x4D4D)
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfBinaryFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         self.currentMaterialName = self.currentPlantNameShort + "_" + aShortName
         self.startVerticesAndTriangles()
-    
+
     def endStemSegment(self):
         self.endVerticesAndTriangles()
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfBinaryFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         self.currentMaterialName = self.currentPlantNameShort + "_" + aShortName
-    
+
     def startVerticesAndTriangles(self):
         self.startMeshObject(self.currentGroupingString)
-    
+
     def endVerticesAndTriangles(self):
         i = 0
-        
+
         # 4110H 	POINT_ARRAY short npoints; struct (float x, y, z;) points[npoints];
         self.startChunk(0x4110)
         self.writeWord(self.numPoints)
@@ -1398,32 +1401,32 @@ class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
         # zero out
         self.numFaces = 0
         self.numPoints = 0
-    
+
     def startMeshObject(self, name):
         # 4000H 	NAMED_OBJECT cstr name;
         self.startChunk(0x4000)
         self.writeStringZ(name)
         # 4100H 	N_TRI_OBJECT named triangle object followed by point_array, point_flag_array, mesh_matrix, face_array
         self.startChunk(0x4100)
-    
+
     def finishMeshObject(self):
         # 4100H 	N_TRI_OBJECT named triangle object followed by point_array, point_flag_array, mesh_matrix, face_array
         self.finishChunk(0x4100)
         # 4000H 	NAMED_OBJECT cstr name;
         self.finishChunk(0x4000)
-    
+
     def pushChunkStart(self):
         position = 0
-        
+
         position = self.stream.Position
         self.chunkStartStack.Add(UNRESOLVED.Pointer(position))
-    
+
     def popChunkStartAndFixupChunkSize(self):
         chunkSize = 0
         startSize = 0
         totalSize = 0
         lastIndex = 0
-        
+
         totalSize = self.stream.Size
         lastIndex = len(self.chunkStartStack) - 1
         if lastIndex < 0:
@@ -1436,16 +1439,16 @@ class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
         self.stream.Seek(startSize + 2, delphi_compatability.soFromBeginning)
         self.writeDword(chunkSize)
         self.stream.Seek(0, delphi_compatability.soFromEnd)
-    
+
     def startChunk(self, chunkID):
         self.pushChunkStart()
         self.writeWord(chunkID)
         # write placeholder dword that will be patched later
         self.writeDword(0)
-    
+
     def finishChunk(self, chunkType):
         self.popChunkStartAndFixupChunkSize()
-    
+
     def writeMaterialDescription(self, index, aColor):
         if not self.options.writeColors:
             return
@@ -1453,14 +1456,14 @@ class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
             self.writeMaterialColorChunk(self.currentPlantNameShort + "_rem", UNRESOLVED.getRValue(aColor), UNRESOLVED.getGValue(aColor), UNRESOLVED.getBValue(aColor))
         else:
             self.writeMaterialColorChunk(self.currentPlantNameShort + "_" + shortNameForDXFPartType(index), UNRESOLVED.getRValue(aColor), UNRESOLVED.getGValue(aColor), UNRESOLVED.getBValue(aColor))
-    
+
     def writeColorChunk(self, r, g, b):
         self.startChunk(0x0011)
         self.writeByte(r)
         self.writeByte(g)
         self.writeByte(b)
         self.finishChunk(0x0011)
-    
+
     def writeMaterialColorChunk(self, materialName, r, g, b):
         # Material editor chunk
         self.startChunk(0xAFFF)
@@ -1477,10 +1480,10 @@ class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
         self.writeColorChunk(r, g, b)
         self.finishChunk(0xA020)
         self.finishChunk(0xAFFF)
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         numPointsAtStart = 0
-        
+
         self.currentGroupingString = self.currentPlantNameShort + "_rem"
         self.currentMaterialName = self.currentPlantNameShort + "_rem"
         numPointsAtStart = self.numPoints
@@ -1492,18 +1495,18 @@ class KfDrawingSurfaceFor3DS(KfBinaryFileExportSurface):
         self.addTriangle(numPointsAtStart, numPointsAtStart + 1, numPointsAtStart + 3)
         self.addTriangle(numPointsAtStart + 1, numPointsAtStart + 2, numPointsAtStart + 3)
         self.endVerticesAndTriangles()
-    
+
 class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
     def __init__(self):
         self.currentSurfaceID = 0
         self.numSurfacesStored = 0
         self.surfaceColors = [0] * (range(1, kMaxStoredMaterials + 1) + 1)
         self.surfaceNames = [0] * (range(1, kMaxStoredMaterials + 1) + 1)
-    
-    # ----------------------------------------------------------------------------- KfDrawingSurfaceForLWO 
+
+    # ----------------------------------------------------------------------------- KfDrawingSurfaceForLWO
     def endFile(self):
         i = 0L
-        
+
         # start file
         self.startChunk("FORM")
         self.writeTagOfFourCharacters("LWOB")
@@ -1519,7 +1522,7 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
             self.startChunk("SRFS")
             for i in range(1, self.numSurfacesStored + 1):
                 self.writeStringZ(self.surfaceNames[i])
-                if odd(len(self.surfaceNames[i]) + 1):
+                if umath.odd(len(self.surfaceNames[i]) + 1):
                     #1 is for terminating zero
                     self.writeByte(0)
             self.finishChunk()
@@ -1545,7 +1548,7 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
                 # surfaces again
                 self.startChunk("SURF")
                 self.writeStringZ(self.surfaceNames[i])
-                if odd(len(self.surfaceNames[i]) + 1):
+                if umath.odd(len(self.surfaceNames[i]) + 1):
                     #terminating zero
                     self.writeByte(0)
                 self.writeTagOfFourCharacters("COLR")
@@ -1577,16 +1580,16 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
         self.finishChunk()
         self.numFaces = 0
         self.numPoints = 0
-    
+
     def isLittleEndian(self):
         result = False
         return result
-    
+
     def startStemSegment(self, aLongName, aShortName, color, width, index):
         KfBinaryFileExportSurface.startStemSegment(self, aLongName, aShortName, color, width, index)
         #currentPlantNameShort + '_' + aShortName
         self.currentSurfaceID = self.lookUpSurfaceIDForName(self.currentGroupingString, color)
-    
+
     def lookUpSurfaceIDForName(self, aName, color):
         for i in range(1, self.numSurfacesStored + 1):
             if self.surfaceNames[i] == aName:
@@ -1598,7 +1601,7 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
             self.surfaceColors[self.numSurfacesStored] = color
         result = self.numSurfacesStored
         return result
-    
+
     def drawPipeFaces(self, startPoints, endPoints, faces, segmentNumber):
         firstPtIndex = self.numPoints
         for i in range(0, faces):
@@ -1608,15 +1611,15 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
         for i in range(0, faces):
             self.addTriangle(firstPtIndex + i, firstPtIndex + i + faces, firstPtIndex + (i + 1) % faces)
             self.addTriangle(firstPtIndex + (i + 1) % faces, firstPtIndex + i + faces, firstPtIndex + (i + 1) % faces + faces)
-    
+
     def start3DObject(self, aLongName, aShortName, color, index):
         KfBinaryFileExportSurface.start3DObject(self, aLongName, aShortName, color, index)
         #currentPlantNameShort + '_' + aShortName
         self.currentSurfaceID = self.lookUpSurfaceIDForName(self.currentGroupingString, color)
-    
+
     def addTriangle(self, a, b, c):
         self.addTriangleWithSurface(a, b, c, self.currentSurfaceID)
-    
+
     def addTriangleWithSurface(self, a, b, c, surfaceID):
         if self.numFaces >= kMax3DFaces:
             raise GeneralException.Create("Problem: Too many faces in LWO; in method KfDrawingSurfaceFor3DS.addTriangle.")
@@ -1625,11 +1628,11 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
         self.faces[self.numFaces].vertex3 = c
         self.faces[self.numFaces].surfaceID = self.currentSurfaceID
         self.numFaces += 1
-    
+
     def pushChunkStart(self):
         position = self.stream.Position
         self.chunkStartStack.Add(UNRESOLVED.Pointer(position))
-    
+
     def popChunkStartAndFixupChunkSize(self):
         totalSize = self.stream.Size
         lastIndex = len(self.chunkStartStack) - 1
@@ -1644,22 +1647,22 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
         # lwo chunk sizes do not include the header
         self.writeDword(chunkSize)
         self.stream.Seek(0, delphi_compatability.soFromEnd)
-    
+
     def startChunk(self, chunkName):
         self.writeTagOfFourCharacters(chunkName)
         # write placeholder dword that will be patched later
         self.writeDword(0)
         self.pushChunkStart()
-    
+
     def finishChunk(self):
         self.popChunkStartAndFixupChunkSize()
-    
+
     def writeTagOfFourCharacters(self, aString):
         self.writeByte(aString[1])
         self.writeByte(aString[2])
         self.writeByte(aString[3])
         self.writeByte(aString[4])
-    
+
     def writeRegistrationReminder(self, p1, p2, p3, p4):
         self.currentSurfaceID = self.lookUpSurfaceIDForName(self.currentPlantNameShort + "_rem", UNRESOLVED.rgb(100, 100, 100))
         numPointsAtStart = self.numPoints
@@ -1669,7 +1672,7 @@ class KfDrawingSurfaceForLWO(KfBinaryFileExportSurface):
         self.addPoint(p4)
         self.addTriangle(numPointsAtStart, numPointsAtStart + 1, numPointsAtStart + 3)
         self.addTriangle(numPointsAtStart + 1, numPointsAtStart + 2, numPointsAtStart + 3)
-    
+
 # VRML 1.0 spec
 #
 #DEF plantName Group {

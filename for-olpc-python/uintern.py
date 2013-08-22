@@ -1,5 +1,11 @@
 # unit uintern
 
+###
+# Class for internodes (derived from PdPlantPart class)
+# slots for Left and Right Branches and Next part.
+# also points to parent.
+
+
 from conversion_common import *
 import upart
 import umath
@@ -23,13 +29,16 @@ import delphi_compatability
 
 class PdInternode(upart.PdPlantPart):
     def __init__(self):
-        upart.PdPlantPart.__init__(self)
+        #upart.PdPlantPart.__init__(self)
+        super(PdInternode, self).__init__()
+        # structure
         self.leftBranchPlantPart = None
         self.rightBranchPlantPart = None
         self.nextPlantPart = None
         self.phytomerAttachedTo = None
         self.leftLeaf = None
         self.rightLeaf = None
+        #
         self.internodeColor = UnassignedColor
         self.internodeAngle = 0.0
         self.lengthExpansion = 0.0
@@ -39,12 +48,12 @@ class PdInternode(upart.PdPlantPart):
         self.traversingDirection = 0
         self.isFirstPhytomer = False
         self.newBiomassForDay_pctMPB = 0.0
-        self.distanceFromFirstPhytomer = 0L
-    
+        self.distanceFromFirstPhytomer = 0 #0L
+
     def NewWithPlantFractionOfInitialOptimalSize(self, aPlant, aFraction):
         self.InitializeFractionOfInitialOptimalSize(aPlant, aFraction)
         return self
-    
+
     #???
     def InitializeFractionOfInitialOptimalSize(self, thePlant, aFraction):
         self.initialize(thePlant)
@@ -61,18 +70,18 @@ class PdInternode(upart.PdPlantPart):
         self.leftLeaf = uleaf.PdLeaf().NewWithPlantFractionOfOptimalSize(self.plant, aFraction)
         if self.plant.pMeristem.branchingAndLeafArrangement == uplant.kArrangementOpposite:
             self.rightLeaf = uleaf.PdLeaf().NewWithPlantFractionOfOptimalSize(self.plant, aFraction)
-    
+
     def getName(self):
         result = ""
         result = "internode"
         return result
-    
+
     def makeSecondSeedlingLeaf(self, aFraction):
         if self.rightLeaf == None:
             self.rightLeaf = uleaf.PdLeaf().NewWithPlantFractionOfOptimalSize(self.plant, aFraction)
         if self.rightLeaf != None:
             self.rightLeaf.isSeedlingLeaf = True
-    
+
     def destroy(self):
         #note that if branch parts were phytomers they will have been
         #  freed and set to nil by the traverser
@@ -86,8 +95,8 @@ class PdInternode(upart.PdPlantPart):
         self.leftLeaf = None
         self.rightLeaf.free
         self.rightLeaf = None
-        PdPlantPart.destroy(self)
-    
+        upart.PdPlantPart.destroy(self)
+
     def setAsFirstPhytomer(self):
         self.isFirstPhytomer = True
         if self.leftLeaf != None:
@@ -95,7 +104,7 @@ class PdInternode(upart.PdPlantPart):
         if self.rightLeaf != None:
             self.rightLeaf.isSeedlingLeaf = True
         self.calculateInternodeAngle()
-    
+
     def determineAmendmentAndAlsoForChildrenIfAny(self):
         upart.PdPlantPart.determineAmendmentAndAlsoForChildrenIfAny(self)
         if self.amendment != None:
@@ -113,23 +122,23 @@ class PdInternode(upart.PdPlantPart):
             self.leftLeaf.parentAmendment = amendmentToPass
         if self.rightLeaf != None:
             self.leftLeaf.parentAmendment = amendmentToPass
-    
+
     def nextDay(self):
         tryExpansion = 0.0
-        
+
         try:
             upart.PdPlantPart.nextDay(self)
             if self.liveBiomass_pctMPB > 0:
                 try:
-                    # length and width expansion adjustment from new biomass (always decreases because new biomass is compact) 
-                    # if liveBiomass_pctMPB is extremely small, these divisions may produce an overflow 
-                    # must bound these because some accounting error is causing problems that should be fixed later 
-                    tryExpansion = umath.max(0.0, umath.min(500.0, umath.safedivExcept(self.liveBiomass_pctMPB - self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * self.lengthExpansion + umath.safedivExcept(self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * 1.0))
+                    # length and width expansion adjustment from new biomass (always decreases because new biomass is compact)
+                    # if liveBiomass_pctMPB is extremely small, these divisions may produce an overflow
+                    # must bound these because some accounting error is causing problems that should be fixed later
+                    tryExpansion = max(0.0, min(500.0, umath.safedivExcept(self.liveBiomass_pctMPB - self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * self.lengthExpansion + umath.safedivExcept(self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * 1.0))
                     self.lengthExpansion = tryExpansion
                 except:
                     pass
                 try:
-                    tryExpansion = umath.max(0.0, umath.min(50.0, umath.safedivExcept(self.liveBiomass_pctMPB - self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * self.widthExpansion + umath.safedivExcept(self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * 1.0))
+                    tryExpansion = max(0.0, min(50.0, umath.safedivExcept(self.liveBiomass_pctMPB - self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * self.widthExpansion + umath.safedivExcept(self.newBiomassForDay_pctMPB, self.liveBiomass_pctMPB, 0) * 1.0))
                     self.widthExpansion = tryExpansion
                 except:
                     pass
@@ -144,7 +153,7 @@ class PdInternode(upart.PdPlantPart):
                     #        linearGrowthWithFactor(self.widthExpansion,
                     #            widthMultiplierDueToExpansion, minDaysToExpand, 1.0);
                     #        end;
-                    #    
+                    #
                     #and
                     #      (plant.age - plant.ageAtWhichFloweringStarted <= plant.pInternode.maxDaysToBolt)
                     self.boltingExpansion = utravers.linearGrowthWithFactor(self.boltingExpansion, self.plant.pInternode.lengthMultiplierDueToBolting, self.plant.pInternode.minDaysToBolt, 1.0)
@@ -154,22 +163,22 @@ class PdInternode(upart.PdPlantPart):
             # PDF PORT ADDDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInternode.nextDay")
-    
+
     def optimalInitialBiomass_pctMPB(self, plant):
         result = umath.safedivExcept(plant.pInternode.optimalFinalBiomass_pctMPB, plant.pInternode.lengthMultiplierDueToBiomassAccretion * plant.pInternode.widthMultiplierDueToBiomassAccretion, 0)
         return result
     # PDF PORT __ IS IT OK TO BE ONLY A CLASS METHOD?
+    #!!
     optimalInitialBiomass_pctMPB = classmethod(optimalInitialBiomass_pctMPB)
-    
+
     def propFullLength(self):
         result = umath.safedivExcept(self.totalBiomass_pctMPB() * self.lengthExpansion * self.boltingExpansion, self.plant.pInternode.optimalFinalBiomass_pctMPB, 0)
         return result
-    
-    def propFullWidth(self):
 
+    def propFullWidth(self):
         result = umath.safedivExcept(self.totalBiomass_pctMPB() * self.widthExpansion, self.plant.pInternode.optimalFinalBiomass_pctMPB, 0)
         return result
-    
+
     def traverseActivity(self, mode, traverserProxy):
         upart.PdPlantPart.traverseActivity(self, mode, traverserProxy)
         traverser = traverserProxy
@@ -210,7 +219,7 @@ class PdInternode(upart.PdPlantPart):
                     #      this phytomer. Phytomers, inflorescences, and flowers themselves have no demands.
                     return
                 try:
-                    self.newBiomassForDay_pctMPB = umath.max(0.0, self.biomassDemand_pctMPB * traverser.fractionOfPotentialBiomass)
+                    self.newBiomassForDay_pctMPB = max(0.0, self.biomassDemand_pctMPB * traverser.fractionOfPotentialBiomass)
                     self.liveBiomass_pctMPB = self.liveBiomass_pctMPB + self.newBiomassForDay_pctMPB
                 except Exception, e:
                     usupport.messageForExceptionType(e, "PdInternode.traverseActivity (vegetative growth)")
@@ -234,7 +243,7 @@ class PdInternode(upart.PdPlantPart):
             elif mode == utravers.kActivityFree:
                 pass
             elif mode == utravers.kActivityVegetativeBiomassThatCanBeRemoved:
-                # free called by traverser 
+                # free called by traverser
                 traverser.total = traverser.total + self.liveBiomass_pctMPB
             elif mode == utravers.kActivityRemoveVegetativeBiomass:
                 biomassToRemove_pctMPB = self.liveBiomass_pctMPB * traverser.fractionOfPotentialBiomass
@@ -245,8 +254,8 @@ class PdInternode(upart.PdPlantPart):
             elif mode == utravers.kActivityRemoveReproductiveBiomass:
                 pass
             elif mode == utravers.kActivityGatherStatistics:
-                # none 
-                # none 
+                # none
+                # none
                 self.addToStatistics(traverser.statistics, utravers.kStatisticsPartTypeStem)
                 self.addToStatistics(traverser.statistics, utravers.kStatisticsPartTypeAllVegetative)
             elif mode == utravers.kActivityCountPlantParts:
@@ -267,7 +276,7 @@ class PdInternode(upart.PdPlantPart):
             # PDF PORT __ ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdInternode.traverseActivity")
-    
+
     def countPointsAndTrianglesFor3DExportAndAddToTraverserTotals(self, traverser):
         if traverser == None:
             return
@@ -275,38 +284,43 @@ class PdInternode(upart.PdPlantPart):
         self.addExportMaterial(traverser, u3dexport.kExportPartInternode, -1)
         if self.plant.pRoot.tdoParams.scaleAtFullSize > 0:
             self.addExportMaterial(traverser, u3dexport.kExportPartRootTop, -1)
-    
+
     def isPhytomer(self):
-        result = False
-        result = True
-        return result
-    
+        return True
+
     def blendColorsStrength(self, aColor, aStrength):
         if aStrength <= 0.0:
             return
         self.internodeColor = usupport.blendColors(self.internodeColor, aColor, aStrength)
-    
+
     def setColorsToParameters(self):
         #Initialize phytomer colors at those in plant parameters, before stresses are considered.
         self.internodeColor = self.plant.pInternode.faceColor
-    
+
     def calculateInternodeAngle(self):
-        if self.isFirstPhytomer:
+        ''' 0 if curvingIndex == 0
+            else 64% of random normal based around curving index
+        '''
+        if self.isFirstPhytomer: # use firstInternodeCurvingIndex instead of curvingIndex
             if (self.plant.pInternode.firstInternodeCurvingIndex == 0):
                 self.internodeAngle = 0
             else:
                 self.internodeAngle = 64.0 / 100.0 * (self.plant.randomNumberGenerator.randomNormalPercent(self.plant.pInternode.firstInternodeCurvingIndex))
-        else:
+        else: # not the first
             if (self.plant.pInternode.curvingIndex == 0):
                 self.internodeAngle = 0
             else:
                 self.internodeAngle = 64.0 / 100.0 * (self.plant.randomNumberGenerator.randomNormalPercent(self.plant.pInternode.curvingIndex))
+        # add to this a sway (from part)
         self.internodeAngle = self.angleWithSway(self.internodeAngle)
-    
+
     def distanceFromApicalMeristem(self):
-        result = 0L
-        aPhytomer = PdInternode()
-        
+        ''' counts nodes (not physical distance) to apical meristem or inflorescence
+            possibly misnamed !!
+        '''
+        #result = 0L
+        #!!aPhytomer = PdInternode()
+
         #Count phytomers along this apex until you reach an apical meristem or inflorescence.
         result = 0
         if (self.nextPlantPart.isPhytomer()):
@@ -320,11 +334,10 @@ class PdInternode(upart.PdPlantPart):
             else:
                 aPhytomer = None
         return result
-    
+
     def calculateDistanceFromFirstPhytomer(self):
-        aPhytomer = PdInternode()
-        result = 0L
-        
+        ''' count nodes back to first phytomer '''
+        #!!aPhytomer = PdInternode()
         #Count phytomers backwards along this apex until you reach the first.
         result = 0
         if self.isFirstPhytomer:
@@ -334,8 +347,9 @@ class PdInternode(upart.PdPlantPart):
             result += 1
             aPhytomer = aPhytomer.phytomerAttachedTo
         self.distanceFromFirstPhytomer = result
-    
+
     def firstPhytomerOnBranch(self):
+        ''' return the earliest phytomer on this branch  '''
         result = self
         while result != None:
             if (result.phytomerAttachedTo != None) and (result.phytomerAttachedTo.nextPlantPart == result):
@@ -345,8 +359,10 @@ class PdInternode(upart.PdPlantPart):
         if result == self:
             result = None
         return result
-    
+
+    # used by traverseActivity and uinflor/traverseActivity
     def biomassOfMeAndAllPartsConnectedToMe_pctMPB(self):
+        ''' return this phytomer's total biomass + total biomass of left and right leaves, if exist '''
         result = 0.0
         result = self.totalBiomass_pctMPB()
         if self.leftLeaf != None:
@@ -354,9 +370,10 @@ class PdInternode(upart.PdPlantPart):
         if self.rightLeaf != None:
             result = result + self.rightLeaf.totalBiomass_pctMPB()
         return result
-    
+
+    # used by traverseActivity
     def biomassOfPartsImmediatelyAboveMe_pctMPB(self):
-        result = 0.0
+        ''' return sum of all biomass aboveme and L,R branches if exist '''
         result = 0
         if self.leftBranchPlantPart != None:
             result = result + self.leftBranchPlantPart.biomassOfMeAndAllPartsAboveMe_pctMPB
@@ -365,7 +382,8 @@ class PdInternode(upart.PdPlantPart):
         if self.nextPlantPart != None:
             result = result + self.nextPlantPart.biomassOfMeAndAllPartsAboveMe_pctMPB
         return result
-    
+
+#-------------------
     def draw(self):
         #Draw all parts of phytomer. Consider if the phytomer is the first (has the seedling leaves) and whether
         #    the leaves attached to this phytomer have abscissed (and are not drawn).
@@ -396,12 +414,12 @@ class PdInternode(upart.PdPlantPart):
             # PDF PORT FIX TEMP RAISE
             raise
             usupport.messageForExceptionType(e, "PdInternode.draw")
-    
+
     def drawInternode(self):
         length = 0.0
         width = 0.0
         zAngle = 0.0
-        
+
         if (self.plant.turtle == None):
             return
         zAngle = self.internodeAngle
@@ -411,12 +429,12 @@ class PdInternode(upart.PdPlantPart):
             elif (self.phytomerAttachedTo.rightBranchPlantPart == self):
                 zAngle = zAngle + self.plant.pMeristem.branchingAngle
                 self.plant.turtle.rotateX(128)
-        length = umath.max(0.0, self.propFullLength() * self.plant.pInternode.lengthAtOptimalFinalBiomassAndExpansion_mm)
-        width = umath.max(0.0, self.propFullWidth() * self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm)
+        length = max(0.0, self.propFullLength() * self.plant.pInternode.lengthAtOptimalFinalBiomassAndExpansion_mm)
+        width = max(0.0, self.propFullWidth() * self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm)
         self.drawStemSegment(length, width, zAngle, 0, self.internodeColor, upart.kDontTaper, u3dexport.kExportPartInternode, upart.kUseAmendment)
-    
+
     def drawRootTop(self):
-        #Draw top of root above ground, if it can be seen. Adjust size for heat unit index of plant. 
+        #Draw top of root above ground, if it can be seen. Adjust size for heat unit index of plant.
         #constant
         numParts = 5
         turtle = self.plant.turtle
@@ -447,13 +465,18 @@ class PdInternode(upart.PdPlantPart):
             tdo.zForSorting = minZ
         turtle.pop()
         turtle.ifExporting_endPlantPart()
-    
+
     def report(self):
-        PdPlantPart.report(self)
-        #debugPrint('internode, age ' + IntToStr(age) + ' biomass ' + floatToStr(liveBiomass_pctMPB));
-        #DebugForm.printNested(plant.turtle.stackSize, 'phytomer, age ' + IntToStr(age));
-    
+        upart.PdPlantPart.report(self)
+        #debugPrint('internode, age %d biomass %f' % (age, liveBiomass_pctMPB))
+        #DebugForm.printNested(plant.turtle.stackSize, 'phytomer, age %d' % (age))
+
     def checkIfSeedlingLeavesHaveAbscissed(self):
+        ''' If first phytomer, only want to draw seedling leaves for some time after emergence.
+             For monopodial plant, stop drawing seedling leaves some number of nodes after emergence (parameter).
+             For sympodial plant, this doesn't work; use age of meristem instead; age is set as constant.
+            Set leaves to fallen off. No return value.
+        '''
         if (not self.isFirstPhytomer):
             #If first phytomer, only want to draw seedling leaves for some time after emergence.
             #  For monopodial plant, stop drawing seedling leaves some number of nodes after emergence (parameter).
@@ -466,26 +489,26 @@ class PdInternode(upart.PdPlantPart):
             if (self.distanceFromApicalMeristem() <= self.plant.pSeedlingLeaf.nodesOnStemWhenFallsOff):
                 return
         if umath.safedivExcept(self.plant.age, self.plant.pGeneral.ageAtMaturity, 0) < 0.25:
-            # absolute cut-off 
+            # absolute cut-off
             return
         if self.leftLeaf != None:
-            # CFK FIX - should really have removed biomass in seedling leaves from model plant 
+            # !!CFK FIX - should really have removed biomass in seedling leaves from model plant
             self.leftLeaf.hasFallenOff = True
         if self.rightLeaf != None:
             self.rightLeaf.hasFallenOff = True
-    
+
+#----------------------
     def partType(self):
-        result = 0
         result = uplant.kPartTypePhytomer
         return result
-    
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdInternode
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
-        PdPlantPart.streamDataWithFiler(self, filer, cvir)
+        upart.PdPlantPart.streamDataWithFiler(self, filer, cvir)
         filer.streamColorRef(self.internodeColor)
         self.internodeAngle = filer.streamSingle(self.internodeAngle)
         self.lengthExpansion = filer.streamSingle(self.lengthExpansion)
@@ -503,11 +526,11 @@ class PdInternode(upart.PdPlantPart):
         self.streamPlantPart(filer, self.nextPlantPart)
         self.streamPlantPart(filer, upart.PdPlantPart(self.leftLeaf))
         self.streamPlantPart(filer, upart.PdPlantPart(self.rightLeaf))
-    
+
     def streamPlantPart(self, filer, plantPart):
         raise "method streamPlantPart had assigned to var parameter plantPart not added to return; fixup manually"
         partType = 0
-        
+
         if filer.isWriting():
             if plantPart == None:
                 partType = uplant.kPartTypeNone
@@ -545,5 +568,5 @@ class PdInternode(upart.PdPlantPart):
                 plantPart.streamUsingFiler(filer)
                 # PDF PORT inserted semicolon
             else :
-                GeneralException.create("PdInternode: unknown plant part type " + IntToStr(partType))
-    
+                GeneralException.create("PdInternode: unknown plant part type %d" % (partType))
+

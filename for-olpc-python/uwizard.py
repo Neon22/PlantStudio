@@ -16,6 +16,8 @@ import updform
 import uplant
 import delphi_compatability
 
+import math
+
 # const
 kMeristem_AlternateOrOpposite = 1
 kMeristem_BranchIndex = 2
@@ -60,7 +62,7 @@ kDontReloadVariables = false
 # const
 kPreviewSize = 110
 
-# group indexes 
+# group indexes
 class TWizardForm(PdForm):
     def __init__(self):
         self.wizardNotebook = TNotebook()
@@ -307,13 +309,13 @@ class TWizardForm(PdForm):
         self.tdoSelectionChanged = false
         self.askedToSaveOptions = false
         self.previewPaintBox = PdPaintBoxWithPalette()
-    
+
     #$R *.DFM
-    # panels 
-    # -------------------------------------------------------------------------------------------- creation/destruction 
+    # panels
+    # -------------------------------------------------------------------------------------------- creation/destruction
     def create(self, AOwner):
         i = 0
-        
+
         PdForm.create(self, AOwner)
         self.leafTdoSelectedLabel.Caption = ""
         self.petalTdoSelectedLabel.Caption = ""
@@ -322,29 +324,29 @@ class TWizardForm(PdForm):
         self.previewPaintBox.Parent = self.previewPanel
         self.previewPaintBox.Align = delphi_compatability.TAlign.alClient
         self.previewPaintBox.OnPaint = self.previewPaintBoxPaint
-        # initialize default plant 
+        # initialize default plant
         self.plant = uplant.PdPlant().create()
         self.plant.defaultAllParameters()
-        self.plant.setName("New plant " + IntToStr(updcom.numPlantsCreatedThisSession + 1))
+        self.plant.setName("New plant %d" % (updcom.numPlantsCreatedThisSession + 1))
         updcom.numPlantsCreatedThisSession += 1
         self.newPlantName.Text = self.plant.getName()
-        # initialize tdos 
+        # initialize tdos
         self.tdos = ucollect.TListCollection().Create()
         self.readTdosFromFile()
         if udomain.domain != None:
             for i in range(1, udomain.kMaxWizardQuestions + 1):
-                # load info from domain on choices 
+                # load info from domain on choices
                 self.setDownButtonForGroupIndexFromName(i, udomain.domain.options.wizardChoices[i])
         if udomain.domain.options.wizardShowFruit:
-            # handle radio button choice separately 
+            # handle radio button choice separately
             self.showFruitsYes.Checked = true
         else:
             self.showFruitsNo.Checked = true
-        # colors are handled separately 
+        # colors are handled separately
         self.petalColor.Color = udomain.domain.options.wizardColors[1]
         self.fruitColor.Color = udomain.domain.options.wizardColors[2]
         if not self.selectFirstTdoInDrawGridWithStringInName(self.leafTdosDraw, udomain.domain.options.wizardTdoNames[1]):
-            # tdo choices are handled separately - if not found use defaults by type 
+            # tdo choices are handled separately - if not found use defaults by type
             self.selectFirstTdoInDrawGridWithStringInName(self.leafTdosDraw, "leaf")
         if not self.selectFirstTdoInDrawGridWithStringInName(self.petalTdosDraw, udomain.domain.options.wizardTdoNames[2]):
             self.selectFirstTdoInDrawGridWithStringInName(self.petalTdosDraw, "petal")
@@ -352,7 +354,7 @@ class TWizardForm(PdForm):
             self.selectFirstTdoInDrawGridWithStringInName(self.sectionTdosDraw, "section")
         self.updateForButtonInteractions()
         return self
-    
+
     def FormCreate(self, Sender):
         self.startPicture.Picture.Bitmap.Palette = UNRESOLVED.CopyPalette(umain.MainForm.paletteImage.Picture.Bitmap.Palette)
         self.wizardNotebook.Invalidate()
@@ -362,15 +364,15 @@ class TWizardForm(PdForm):
         self.progressDrawGrid.DefaultRowHeight = self.progressDrawGrid.Height
         self.setPageIndex(0)
         self.updateProgress()
-    
+
     def destroy(self):
         self.plant.free
         self.plant = None
         self.tdos.free
         self.tdos = None
         PdForm.destroy(self)
-    
-    # -------------------------------------------------------------------------------------------- *tdos 
+
+    # -------------------------------------------------------------------------------------------- *tdos
     def hintForTdosDrawGridAtPoint(self, aComponent, aPoint, cursorRect):
         raise "method hintForTdosDrawGridAtPoint had assigned to var parameter cursorRect not added to return; fixup manually"
         result = ""
@@ -378,7 +380,7 @@ class TWizardForm(PdForm):
         col = 0
         row = 0
         tdo = KfObject3D()
-        
+
         result = ""
         if (aComponent == None) or (not (aComponent.__class__ is delphi_compatability.TDrawGrid)):
             return result
@@ -410,71 +412,71 @@ class TWizardForm(PdForm):
             if tdo == None:
                 return result
             result = tdo.getName()
-        # change hint if cursor moves out of the current item's rectangle 
+        # change hint if cursor moves out of the current item's rectangle
         cursorRect = grid.CellRect(col, row)
         return result
-    
+
     def changeTdoLibraryClick(self, Sender):
         self.loadNewTdoLibrary()
         self.leafTdosDraw.Invalidate()
         self.petalTdosDraw.Invalidate()
         self.sectionTdosDraw.Invalidate()
-    
+
     def loadNewTdoLibrary(self):
         fileNameWithPath = ""
-        
+
         fileNameWithPath = usupport.getFileOpenInfo(usupport.kFileTypeTdo, udomain.domain.defaultTdoLibraryFileName, "Choose a 3D object library (tdo) file")
         if fileNameWithPath == "":
             return
         udomain.domain.defaultTdoLibraryFileName = fileNameWithPath
         self.readTdosFromFile()
-    
+
     def readTdosFromFile(self):
         newTdo = KfObject3D()
         inputFile = TextFile()
-        
+
         self.tdos.clear()
         if udomain.domain == None:
             return
         if not udomain.domain.checkForExistingDefaultTdoLibrary():
             MessageDialog("Because you didn't choose a 3D object library, you will only" + chr(13) + "be able to use a default 3D object on your new plant." + chr(13) + chr(13) + "You can also choose a 3D object library" + chr(13) + "by clicking the 3D Objects button in the wizard.", mtWarning, [mbOK, ], 0)
             return
-        AssignFile(inputFile, udomain.domain.defaultTdoLibraryFileName)
+        inputFile.assignFilename(udomain.domain.defaultTdoLibraryFileName)
         try:
             # v1.5
             usupport.setDecimalSeparator()
-            Reset(inputFile)
+            inputFile.open_for_reading()
             while not UNRESOLVED.eof(inputFile):
                 newTdo = utdo.KfObject3D().create()
                 newTdo.readFromFileStream(inputFile, utdo.kInTdoLibrary)
                 self.tdos.Add(newTdo)
         finally:
-            CloseFile(inputFile)
+            inputFile.close()
             self.leafTdosDraw.ColCount = self.tdos.Count
             self.petalTdosDraw.ColCount = self.tdos.Count
             self.sectionTdosDraw.ColCount = self.tdos.Count
-    
+
     def tdoForIndex(self, index):
         result = KfObject3D()
         result = None
         if (index >= 0) and (index <= self.tdos.Count - 1):
             result = utdo.KfObject3D(self.tdos.Items[index])
         return result
-    
+
     def leafTdosDrawDrawCell(self, Sender, Col, Row, Rect, State):
         self.drawCellInTdoDrawGrid(self.leafTdosDraw, Col, UNRESOLVED.gdSelected in State, Rect)
-    
+
     def petalTdosDrawDrawCell(self, Sender, Col, Row, Rect, State):
         self.drawCellInTdoDrawGrid(self.petalTdosDraw, Col, UNRESOLVED.gdSelected in State, Rect)
-    
+
     def sectionTdosDrawDrawCell(self, Sender, Col, Row, Rect, State):
         self.drawCellInTdoDrawGrid(self.sectionTdosDraw, Col, UNRESOLVED.gdSelected in State, Rect)
-    
+
     def drawCellInTdoDrawGrid(self, grid, column, selected, rect):
         tdo = KfObject3d()
         turtle = KfTurtle()
         bestPoint = TPoint()
-        
+
         if not selected:
             grid.Canvas.Brush.Color = delphi_compatability.clWhite
             grid.Canvas.Font.Color = UNRESOLVED.clBtnText
@@ -486,12 +488,12 @@ class TWizardForm(PdForm):
         tdo = self.tdoForIndex(column)
         if tdo == None:
             return
-        # draw tdo 
+        # draw tdo
         turtle = uturtle.KfTurtle.defaultStartUsing()
         try:
             turtle.drawingSurface.pane = grid.Canvas
             turtle.setDrawOptionsForDrawingTdoOnly()
-            # must be after pane and draw options set 
+            # must be after pane and draw options set
             turtle.reset()
             bestPoint = tdo.bestPointForDrawingAtScale(turtle, Point(Rect.left, Rect.top), Point(usupport.rWidth(Rect), usupport.rHeight(Rect)), 0.2)
             turtle.xyz(bestPoint.X, bestPoint.Y, 0)
@@ -504,14 +506,14 @@ class TWizardForm(PdForm):
             turtle.drawingSurface.clearTriangles()
         finally:
             uturtle.KfTurtle.defaultStopUsing()
-    
-    # ---------------------------------------------------------------------------------------- interactions 
+
+    # ---------------------------------------------------------------------------------------- interactions
     def updateForButtonInteractions(self):
         hadInflors = false
-        
+
         # do all of these at once, because then you can do them after loading options at startup
-        #    (it doesn't take very long) 
-        # meristems 
+        #    (it doesn't take very long)
+        # meristems
         self.arrowSecondaryBranching.Visible = not self.branchNone.Down
         self.secondaryBranchingLabel.Enabled = not self.branchNone.Down
         self.secondaryBranchingYes.Enabled = not self.branchNone.Down
@@ -521,9 +523,9 @@ class TWizardForm(PdForm):
         self.branchAngleSmall.Enabled = not self.branchNone.Down
         self.branchAngleMedium.Enabled = not self.branchNone.Down
         self.branchAngleLarge.Enabled = not self.branchNone.Down
-        # internodes 
-        # leaves 
-        # compound leaves 
+        # internodes
+        # leaves
+        # compound leaves
         self.arrowLeafletsShape.Visible = not self.leafletsOne.Down
         self.leafletsShapeLabel.Enabled = not self.leafletsOne.Down
         self.leafletsPinnate.Enabled = not self.leafletsOne.Down
@@ -533,7 +535,7 @@ class TWizardForm(PdForm):
         self.leafletSpacingClose.Enabled = not self.leafletsOne.Down
         self.leafletSpacingMedium.Enabled = not self.leafletsOne.Down
         self.leafletSpacingFar.Enabled = not self.leafletsOne.Down
-        # inflor placement 
+        # inflor placement
         hadInflors = self.plantHasInflorescences
         self.plantHasInflorescences = (not self.apicalInflorsNone.Down) or (not self.axillaryInflorsNone.Down)
         if hadInflors != self.plantHasInflorescences:
@@ -552,7 +554,7 @@ class TWizardForm(PdForm):
         self.axillaryStalkMedium.Enabled = not self.axillaryInflorsNone.Down
         self.axillaryStalkLong.Enabled = not self.axillaryInflorsNone.Down
         self.axillaryStalkVeryLong.Enabled = not self.axillaryInflorsNone.Down
-        # inflor drawing 
+        # inflor drawing
         self.arrowInflorShape.Visible = not self.inflorFlowersOne.Down
         self.inflorShapeLabel.Enabled = not self.inflorFlowersOne.Down
         self.inflorShapeSpike.Enabled = not self.inflorFlowersOne.Down
@@ -561,8 +563,8 @@ class TWizardForm(PdForm):
         self.inflorShapeUmbel.Enabled = not self.inflorFlowersOne.Down
         self.inflorShapeCluster.Enabled = not self.inflorFlowersOne.Down
         self.inflorShapeHead.Enabled = not self.inflorFlowersOne.Down
-        # flowers 
-        # fruit 
+        # flowers
+        # fruit
         self.arrowFruitTdo.Visible = not self.showFruitsNo.Checked
         self.fruitTdoLabel.Enabled = not self.showFruitsNo.Checked
         self.sectionTdosDraw.Visible = not self.showFruitsNo.Checked
@@ -585,89 +587,89 @@ class TWizardForm(PdForm):
         self.fruitColorLabel.Enabled = not self.showFruitsNo.Checked
         self.fruitColor.Visible = not self.showFruitsNo.Checked
         self.fruitColorExplainLabel.Enabled = not self.showFruitsNo.Checked
-    
+
     def branchNoneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def branchLittleClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def branchMediumClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def branchLotClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def leafletsOneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def leafletsThreeClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def leafletsFourClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def leafletsFiveClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def leafletsSevenClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersOneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersTwoClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersThreeClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersFiveClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersTenClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def inflorFlowersTwentyClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def apicalInflorsNoneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def apicalInflorsOneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def apicalInflorsTwoClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def apicalInflorsThreeClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def apicalInflorsFiveClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def axillaryInflorsNoneClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def axillaryInflorsThreeClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def axillaryInflorsFiveClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def axillaryInflorsTenClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def axillaryInflorsTwentyClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def showFruitsYesClick(self, Sender):
         self.updateForButtonInteractions()
-    
+
     def showFruitsNoClick(self, Sender):
         self.updateForButtonInteractions()
-    
-    # -------------------------------------------------------------------------------------------- transfer 
+
+    # -------------------------------------------------------------------------------------------- transfer
     def defaultChoicesClick(self, Sender):
         if MessageDialog("Are you sure you want to set all the wizard choices to defaults?" + chr(13) + chr(13) + "This action is not undoable.", mtConfirmation, [mbYes, mbNo, ], 0) == delphi_compatability.IDNO:
             return
@@ -685,15 +687,16 @@ class TWizardForm(PdForm):
         self.updateForButtonInteractions()
         if self.wizardNotebook.PageIndex == kLastPanel:
             self.drawPreview(kReloadVariables)
-    
+
     def selectFirstTdoInDrawGridWithStringInName(self, grid, aString):
+        print "selectFirstTdoInDrawGridWithStringInName"
         result = false
         indexToSelect = 0
         i = 0
         tdo = KfObject3D()
         gridRect = TGridRect()
-        
-        # returns true if a tdo was selected 
+
+        # returns true if a tdo was selected
         result = false
         indexToSelect = -1
         if self.tdos.Count > 0:
@@ -701,7 +704,7 @@ class TWizardForm(PdForm):
                 tdo = utdo.KfObject3D(self.tdos.Items[i])
                 if tdo == None:
                     return result
-                if UNRESOLVED.pos(uppercase(aString), uppercase(tdo.getName())) > 0:
+                if UNRESOLVED.pos(aString.upper(), tdo.getName().upper()) > 0:
                     indexToSelect = i
                     result = true
                     break
@@ -719,12 +722,12 @@ class TWizardForm(PdForm):
             elif grid == self.sectionTdosDraw:
                 self.showTdoNameInLabel(indexToSelect, self.sectionTdoSelectedLabel)
         return result
-    
+
     def setPlantVariables(self):
         if self.plant == None:
             return
         self.plant.defaultAllParameters()
-        # set variables in plant based on options 
+        # set variables in plant based on options
         self.finishForMeristems()
         self.finishForInternodes()
         self.finishForLeaves()
@@ -735,13 +738,13 @@ class TWizardForm(PdForm):
         self.finishForFruit()
         self.plant.setName(self.newPlantName.Text)
         self.plant.setAge(self.plant.pGeneral.ageAtMaturity)
-    
+
     def saveOptionsToDomain(self):
         i = 0
-        
+
         for i in range(1, udomain.kMaxWizardQuestions + 1):
             udomain.domain.options.wizardChoices[i] = self.downButtonNameForGroupIndex(i)
-        # handle radio button choice separately 
+        # handle radio button choice separately
         udomain.domain.options.wizardShowFruit = self.showFruitsYes.Checked
         udomain.domain.options.wizardColors[1] = self.petalColor.Color
         udomain.domain.options.wizardColors[2] = self.fruitColor.Color
@@ -752,12 +755,12 @@ class TWizardForm(PdForm):
             udomain.domain.options.wizardTdoNames[2] = self.plant.pFlower[uplant.kGenderFemale].tdoParams[uplant.kFirstPetals].object3D.getName()
         if self.plant.pFruit.tdoParams.object3D != None:
             udomain.domain.options.wizardTdoNames[3] = self.plant.pFruit.tdoParams.object3D.getName()
-    
+
     def optionsHaveChanged(self):
         result = false
         i = 0
         downButtonName = ""
-        
+
         result = false
         for i in range(1, udomain.kMaxWizardQuestions + 1):
             downButtonName = self.downButtonNameForGroupIndex(i)
@@ -768,11 +771,11 @@ class TWizardForm(PdForm):
         result = result or (udomain.domain.options.wizardColors[2] != self.fruitColor.Color)
         result = result or self.tdoSelectionChanged
         return result
-    
+
     def setDownButtonForGroupIndexFromName(self, aGroupIndex, aName):
         i = 0
         button = TSpeedButton()
-        
+
         if aName == "":
             return
         if self.ComponentCount > 0:
@@ -782,15 +785,15 @@ class TWizardForm(PdForm):
                 button = self.Components[i] as delphi_compatability.TSpeedButton
                 if button.GroupIndex == aGroupIndex:
                     if button.Name == aName:
-                        # only one can be down, so can exit when one is down 
+                        # only one can be down, so can exit when one is down
                         button.Down = true
                         return
-    
+
     def downButtonNameForGroupIndex(self, aGroupIndex):
         result = ""
         i = 0
         button = TSpeedButton()
-        
+
         result = ""
         if self.ComponentCount > 0:
             for i in range(0, self.ComponentCount):
@@ -800,21 +803,21 @@ class TWizardForm(PdForm):
                 if (button.GroupIndex == aGroupIndex) and (button.Enabled):
                     if button.Down:
                         # if not enabled, don't want to match
-                        # only one can be down, so can exit when one is down 
+                        # only one can be down, so can exit when one is down
                         result = button.Name
                         return result
         return result
-    
+
     def finishForMeristems(self):
         if self.leavesAlternate.Enabled:
             if self.leavesAlternate.Down:
-                # alternate/opposite 
+                # alternate/opposite
                 self.plant.pMeristem.branchingAndLeafArrangement = uplant.kArrangementAlternate
             else:
                 self.plant.pMeristem.branchingAndLeafArrangement = uplant.kArrangementOpposite
         if self.branchNone.Enabled:
             if self.branchNone.Down:
-                # branching index 
+                # branching index
                 self.plant.pMeristem.branchingIndex = 0
             elif self.branchLittle.Down:
                 self.plant.pMeristem.branchingIndex = 10
@@ -823,21 +826,21 @@ class TWizardForm(PdForm):
             elif self.branchLot.Down:
                 self.plant.pMeristem.branchingIndex = 80
         if self.secondaryBranchingYes.Enabled:
-            # secondary branching 
+            # secondary branching
             self.plant.pMeristem.secondaryBranchingIsAllowed = self.secondaryBranchingYes.Down
         if self.branchAngleSmall.Enabled:
             if self.branchAngleSmall.Down:
-                # branch angle 
+                # branch angle
                 self.plant.pMeristem.branchingAngle = 20
             elif self.branchAngleMedium.Down:
                 self.plant.pMeristem.branchingAngle = 40
             elif self.branchAngleLarge.Down:
                 self.plant.pMeristem.branchingAngle = 60
-    
+
     def finishForInternodes(self):
         if self.curvinessNone.Enabled:
             if self.curvinessNone.Down:
-                # curviness 
+                # curviness
                 self.plant.pInternode.curvingIndex = 0
                 self.plant.pInternode.firstInternodeCurvingIndex = 0
             elif self.curvinessLittle.Down:
@@ -851,7 +854,7 @@ class TWizardForm(PdForm):
                 self.plant.pInternode.firstInternodeCurvingIndex = 20
         if self.internodesVeryShort.Enabled:
             if self.internodesVeryShort.Down:
-                # length 
+                # length
                 self.plant.pInternode.lengthAtOptimalFinalBiomassAndExpansion_mm = 1
             elif self.internodesShort.Down:
                 self.plant.pInternode.lengthAtOptimalFinalBiomassAndExpansion_mm = 10
@@ -863,7 +866,7 @@ class TWizardForm(PdForm):
                 self.plant.pInternode.lengthAtOptimalFinalBiomassAndExpansion_mm = 50
         if self.internodeWidthVeryThin.Enabled:
             if self.internodeWidthVeryThin.Down:
-                # width 
+                # width
                 self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm = 0.5
             elif self.internodeWidthThin.Down:
                 self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm = 1
@@ -873,13 +876,13 @@ class TWizardForm(PdForm):
                 self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm = 3
             elif self.internodeWidthVeryThick.Down:
                 self.plant.pInternode.widthAtOptimalFinalBiomassAndExpansion_mm = 10
-    
+
     def finishForLeaves(self):
         tdo = KfObject3D()
-        
+
         if self.leafScaleTiny.Enabled:
             if self.leafScaleTiny.Down:
-                # scale 
+                # scale
                 self.plant.pLeaf.leafTdoParams.scaleAtFullSize = 5
             elif self.leafScaleSmall.Down:
                 self.plant.pLeaf.leafTdoParams.scaleAtFullSize = 20
@@ -891,7 +894,7 @@ class TWizardForm(PdForm):
                 self.plant.pLeaf.leafTdoParams.scaleAtFullSize = 100
         if self.petioleVeryShort.Enabled:
             if self.petioleVeryShort.Down:
-                # petiole length 
+                # petiole length
                 self.plant.pLeaf.petioleLengthAtOptimalBiomass_mm = 1
             elif self.petioleShort.Down:
                 self.plant.pLeaf.petioleLengthAtOptimalBiomass_mm = 10
@@ -903,22 +906,22 @@ class TWizardForm(PdForm):
                 self.plant.pLeaf.petioleLengthAtOptimalBiomass_mm = 60
         if self.leafAngleSmall.Enabled:
             if self.leafAngleSmall.Down:
-                # petiole angle 
+                # petiole angle
                 self.plant.pLeaf.petioleAngle = 20
             elif self.leafAngleMedium.Down:
                 self.plant.pLeaf.petioleAngle = 40
             elif self.leafAngleLarge.Down:
                 self.plant.pLeaf.petioleAngle = 60
         if self.leafTdosDraw.Visible:
-            # tdo 
+            # tdo
             tdo = self.tdoForIndex(self.leafTdosDraw.Selection.left)
             if (tdo != None) and (self.plant.pLeaf.leafTdoParams.object3D != None):
                 self.plant.pLeaf.leafTdoParams.object3D.copyFrom(tdo)
-    
+
     def finishForCompoundLeaves(self):
         if self.leafletsOne.Enabled:
             if self.leafletsOne.Down:
-                # num leaflets 
+                # num leaflets
                 self.plant.pLeaf.compoundNumLeaflets = 1
             elif self.leafletsThree.Down:
                 self.plant.pLeaf.compoundNumLeaflets = 3
@@ -930,23 +933,23 @@ class TWizardForm(PdForm):
                 self.plant.pLeaf.compoundNumLeaflets = 7
         if self.leafletsPinnate.Enabled:
             if self.leafletsPinnate.Down:
-                # shape 
+                # shape
                 self.plant.pLeaf.compoundPinnateOrPalmate = uplant.kCompoundLeafPinnate
             elif self.leafletsPalmate.Down:
                 self.plant.pLeaf.compoundPinnateOrPalmate = uplant.kCompoundLeafPalmate
         if self.leafletSpacingClose.Enabled:
             if self.leafletSpacingClose.Down:
-                # spread 
+                # spread
                 self.plant.pLeaf.compoundRachisToPetioleRatio = 10.0
             elif self.leafletSpacingMedium.Down:
                 self.plant.pLeaf.compoundRachisToPetioleRatio = 30.0
             elif self.leafletSpacingFar.Down:
                 self.plant.pLeaf.compoundRachisToPetioleRatio = 50.0
-    
+
     def finishForInflorescencePlacement(self):
         if self.apicalInflorsNone.Enabled:
             if self.apicalInflorsNone.Down:
-                # num apical inflors 
+                # num apical inflors
                 self.plant.pGeneral.numApicalInflors = 0
             elif self.apicalInflorsOne.Down:
                 self.plant.pGeneral.numApicalInflors = 1
@@ -958,7 +961,7 @@ class TWizardForm(PdForm):
                 self.plant.pGeneral.numApicalInflors = 5
         if self.axillaryInflorsNone.Enabled:
             if self.axillaryInflorsNone.Down:
-                # num axillary inflors 
+                # num axillary inflors
                 self.plant.pGeneral.numAxillaryInflors = 0
             elif self.axillaryInflorsThree.Down:
                 self.plant.pGeneral.numAxillaryInflors = 3
@@ -972,10 +975,10 @@ class TWizardForm(PdForm):
             # if no flowers, set age to allocate at max
             self.plant.pGeneral.ageAtWhichFloweringStarts = self.plant.pGeneral.ageAtMaturity + 1
         else:
-            self.plant.pGeneral.ageAtWhichFloweringStarts = intround(self.plant.pGeneral.ageAtMaturity * 0.6)
+            self.plant.pGeneral.ageAtWhichFloweringStarts = int(self.plant.pGeneral.ageAtMaturity * 0.6)
         if self.apicalStalkVeryShort.Enabled:
             if self.apicalStalkVeryShort.Down:
-                # apical stalk 
+                # apical stalk
                 self.plant.pInflor[uplant.kGenderFemale].terminalStalkLength_mm = 1
             elif self.apicalStalkShort.Down:
                 self.plant.pInflor[uplant.kGenderFemale].terminalStalkLength_mm = 10
@@ -987,7 +990,7 @@ class TWizardForm(PdForm):
                 self.plant.pInflor[uplant.kGenderFemale].terminalStalkLength_mm = 100
         if self.axillaryStalkVeryShort.Enabled:
             if self.axillaryStalkVeryShort.Down:
-                # axillary stalk (peduncle) 
+                # axillary stalk (peduncle)
                 self.plant.pInflor[uplant.kGenderFemale].peduncleLength_mm = 1
             elif self.axillaryStalkShort.Down:
                 self.plant.pInflor[uplant.kGenderFemale].peduncleLength_mm = 5
@@ -997,13 +1000,13 @@ class TWizardForm(PdForm):
                 self.plant.pInflor[uplant.kGenderFemale].peduncleLength_mm = 15
             elif self.axillaryStalkVeryLong.Down:
                 self.plant.pInflor[uplant.kGenderFemale].peduncleLength_mm = 40
-    
+
     def finishForInflorescences(self):
         numFlowers = 0
-        
+
         if not self.plantHasInflorescences:
             return
-        # num flowers 
+        # num flowers
         numFlowers = 0
         if self.inflorFlowersOne.Enabled:
             if self.inflorFlowersOne.Down:
@@ -1023,7 +1026,7 @@ class TWizardForm(PdForm):
         self.plant.pInflor[uplant.kGenderFemale].numBranches = 0
         if self.inflorShapeSpike.Enabled:
             if self.inflorShapeSpike.Down:
-                # shape 
+                # shape
                 self.plant.pInflor[uplant.kGenderFemale].numFlowersOnMainBranch = numFlowers
                 self.plant.pInflor[uplant.kGenderFemale].numFlowersPerBranch = 0
                 self.plant.pInflor[uplant.kGenderFemale].numBranches = 0
@@ -1097,7 +1100,7 @@ class TWizardForm(PdForm):
                 self.plant.pInflor[uplant.kGenderFemale].flowersSpiralOnStem = false
         if self.inflorWidthVeryThin.Enabled:
             if self.inflorWidthVeryThin.Down:
-                # width 
+                # width
                 self.plant.pInflor[uplant.kGenderFemale].internodeWidth_mm = 0.5
             elif self.inflorWidthThin.Down:
                 self.plant.pInflor[uplant.kGenderFemale].internodeWidth_mm = 1
@@ -1107,10 +1110,10 @@ class TWizardForm(PdForm):
                 self.plant.pInflor[uplant.kGenderFemale].internodeWidth_mm = 3
             elif self.inflorWidthVeryThick.Down:
                 self.plant.pInflor[uplant.kGenderFemale].internodeWidth_mm = 10
-    
+
     def finishForFlowers(self):
         tdo = KfObject3D()
-        
+
         if not self.plantHasInflorescences:
             return
         if self.petalsOne.Enabled:
@@ -1146,10 +1149,10 @@ class TWizardForm(PdForm):
             if (tdo != None) and (self.plant.pFlower[uplant.kGenderFemale].tdoParams[uplant.kFirstPetals].object3D != None):
                 # cfk first petals again
                 self.plant.pFlower[uplant.kGenderFemale].tdoParams[uplant.kFirstPetals].object3D.copyFrom(tdo)
-    
+
     def finishForFruit(self):
         tdo = KfObject3D()
-        
+
         if not self.plantHasInflorescences:
             return
         if self.showFruitsNo.Enabled:
@@ -1159,7 +1162,7 @@ class TWizardForm(PdForm):
                 self.plant.pFlower[uplant.kGenderFemale].minDaysBeforeSettingFruit = 3
         if self.fruitSectionsOne.Enabled:
             if self.fruitSectionsOne.Down:
-                # num sections 
+                # num sections
                 self.plant.pFruit.tdoParams.repetitions = 1
             elif self.fruitSectionsThree.Down:
                 self.plant.pFruit.tdoParams.repetitions = 3
@@ -1171,7 +1174,7 @@ class TWizardForm(PdForm):
                 self.plant.pFruit.tdoParams.repetitions = 10
         if self.fruitScaleTiny.Enabled:
             if self.fruitScaleTiny.Down:
-                # scale 
+                # scale
                 self.plant.pFruit.tdoParams.scaleAtFullSize = 4
             elif self.fruitScaleSmall.Down:
                 self.plant.pFruit.tdoParams.scaleAtFullSize = 10
@@ -1190,15 +1193,15 @@ class TWizardForm(PdForm):
             tdo = self.tdoForIndex(self.sectionTdosDraw.Selection.left)
             if (tdo != None) and (self.plant.pFruit.tdoParams.object3D != None):
                 self.plant.pFruit.tdoParams.object3D.copyFrom(tdo)
-    
-    # ------------------------------------------------------------------------------------------- *preview 
+
+    # ------------------------------------------------------------------------------------------- *preview
     def drawPreview(self, reloadVariables):
         if self.plant == None:
             return
         if reloadVariables:
             self.setPlantVariables()
         try:
-            # always update cache in case any params have changed 
+            # always update cache in case any params have changed
             ucursor.cursor_startWait()
             # want nice drawing here, only case
             self.plant.useBestDrawingForPreview = true
@@ -1207,15 +1210,15 @@ class TWizardForm(PdForm):
         finally:
             ucursor.cursor_stopWait()
         self.previewPaintBox.Invalidate()
-    
+
     def previewPaintBoxPaint(self, Sender):
         if (self.plant != None) and (self.plant.previewCache != None):
             ubmpsupport.copyBitmapToCanvasWithGlobalPalette(self.plant.previewCache, self.previewPaintBox.Canvas, Rect(0, 0, 0, 0))
-    
+
     def randomizePlantClick(self, Sender):
         self.plant.randomize()
         self.drawPreview(kDontReloadVariables)
-    
+
     def turnLeftClick(self, Sender):
         if self.plant == None:
             return
@@ -1223,7 +1226,7 @@ class TWizardForm(PdForm):
         if self.plant.xRotation < -360:
             self.plant.xRotation = 360
         self.drawPreview(kDontReloadVariables)
-    
+
     def turnRightClick(self, Sender):
         if self.plant == None:
             return
@@ -1231,11 +1234,11 @@ class TWizardForm(PdForm):
         if self.plant.xRotation > 360:
             self.plant.xRotation = -360
         self.drawPreview(kDontReloadVariables)
-    
-    # -------------------------------------------------------------------------------------------- buttons/notebook 
+
+    # -------------------------------------------------------------------------------------------- buttons/notebook
     def setPageIndex(self, newIndex):
         self.wizardNotebook.PageIndex = newIndex
-    
+
     def backClick(self, Sender):
         if self.wizardNotebook.PageIndex > 0:
             if self.wizardNotebook.PageIndex == kFinish:
@@ -1246,7 +1249,7 @@ class TWizardForm(PdForm):
             else:
                 self.setPageIndex(self.wizardNotebook.PageIndex - 1)
         self.updateProgress()
-    
+
     def nextClick(self, Sender):
         if self.wizardNotebook.PageIndex < kLastPanel:
             if self.wizardNotebook.PageIndex == kInflorescencesPlacement:
@@ -1262,13 +1265,13 @@ class TWizardForm(PdForm):
             self.saveOptionsToDomain()
             self.plant.shrinkPreviewCache()
             self.ModalResult = mrOK
-    
+
     def cancelClick(self, Sender):
         self.ModalResult = mrCancel
-    
+
     def FormClose(self, Sender, Action):
         response = 0
-        
+
         if (self.optionsHaveChanged()) and (self.ModalResult == mrCancel):
             # same as cancel, but if they click cancel on dialog, we must change action
             response = MessageDialog("Do you want to save the changes you made" + chr(13) + "to the wizard options?", mtConfirmation, [mbYes, mbNo, mbCancel, ], 0)
@@ -1279,7 +1282,7 @@ class TWizardForm(PdForm):
                 Action = delphi_compatability.TCloseAction.caFree
             elif response == delphi_compatability.IDCANCEL:
                 Action = delphi_compatability.TCloseAction.caNone
-    
+
     def updateProgress(self):
         self.progressDrawGrid.Invalidate()
         self.progressDrawGrid.Refresh()
@@ -1288,11 +1291,11 @@ class TWizardForm(PdForm):
             delphi_compatability.Application.ProcessMessages()
             self.drawPreview(kReloadVariables)
             self.previewPaintBox.Visible = true
-    
+
     def progressDrawGridDrawCell(self, Sender, Col, Row, Rect, State):
         bitmap = TBitmap()
         bitmapRect = TRect()
-        
+
         # need this to make bitmaps come on as transparent
         self.progressDrawGrid.Canvas.Brush.Color = UNRESOLVED.clBtnFace
         self.progressDrawGrid.Canvas.Pen.Style = delphi_compatability.TFPPenStyle.psClear
@@ -1310,7 +1313,7 @@ class TWizardForm(PdForm):
             self.progressDrawGrid.Canvas.Brush.Style = delphi_compatability.TFPBrushStyle.bsClear
             # FIX unresolved WITH expression: Rect
             self.progressDrawGrid.Canvas.Rectangle(self.Left, self.Top, UNRESOLVED.right, UNRESOLVED.bottom)
-    
+
     def bitmapForProgressPage(self, page):
         result = TBitmap()
         result = None
@@ -1344,7 +1347,7 @@ class TWizardForm(PdForm):
         elif page == kFinish:
             result = self.finishPageImage.Picture.Bitmap
         return result
-    
+
     def progressDrawGridSelectCell(self, Sender, Col, Row, CanSelect):
         if ((Col == kInflorescences) or (Col == kFlowers) or (Col == kFruit)) and (not self.plantHasInflorescences):
             CanSelect = false
@@ -1352,7 +1355,7 @@ class TWizardForm(PdForm):
             self.setPageIndex(Col)
             self.updateProgress()
         return CanSelect
-    
+
     def wizardNotebookPageChanged(self, Sender):
         if self.wizardNotebook.PageIndex == 0:
             self.back.Enabled = false
@@ -1365,41 +1368,41 @@ class TWizardForm(PdForm):
             self.back.Enabled = true
             self.next.Enabled = true
             self.next.Caption = "&Next >"
-    
+
     def petalColorMouseUp(self, Sender, Button, Shift, X, Y):
         self.petalColor.Color = udomain.domain.getColorUsingCustomColors(self.petalColor.Color)
-    
+
     def fruitColorMouseUp(self, Sender, Button, Shift, X, Y):
         self.fruitColor.Color = udomain.domain.getColorUsingCustomColors(self.fruitColor.Color)
-    
+
     def leafTdosDrawSelectCell(self, Sender, Col, Row, CanSelect):
         if (Col != self.leafTdosDraw.Selection.left):
             self.tdoSelectionChanged = true
             self.showTdoNameInLabel(Col, self.leafTdoSelectedLabel)
         return CanSelect
-    
+
     def petalTdosDrawSelectCell(self, Sender, Col, Row, CanSelect):
         if (Col != self.petalTdosDraw.Selection.left):
             self.tdoSelectionChanged = true
             self.showTdoNameInLabel(Col, self.petalTdoSelectedLabel)
         return CanSelect
-    
+
     def sectionTdosDrawSelectCell(self, Sender, Col, Row, CanSelect):
         if (Col != self.sectionTdosDraw.Selection.left):
             self.tdoSelectionChanged = true
             self.showTdoNameInLabel(Col, self.sectionTdoSelectedLabel)
         return CanSelect
-    
+
     def sectionTdosDrawMouseMove(self, Sender, Shift, X, Y):
         pass
         #var col, row: integer;
         #sectionTdosDraw.mouseToCell(x, y, col, row);
         #if (col <> sectionTdosDraw.selection.left) then
         #  self.showTdoNameInLabel(col, sectionTdoSelectedLabel);
-    
+
     def showTdoNameInLabel(self, index, aLabel):
         tdo = KfObject3D()
-        
+
         tdo = None
         if (index >= 0) and (index <= self.tdos.Count - 1):
             tdo = utdo.KfObject3D(self.tdos.Items[index])
@@ -1407,11 +1410,11 @@ class TWizardForm(PdForm):
             aLabel.Caption = tdo.getName()
         else:
             aLabel.Caption = ""
-    
+
     def helpButtonClick(self, Sender):
         delphi_compatability.Application.HelpJump("Making_a_new_plant_with_the_wizard")
-    
+
     def FormKeyPress(self, Sender, Key):
         Key = usupport.makeEnterWorkAsTab(self, self.ActiveControl, Key)
         return Key
-    
+

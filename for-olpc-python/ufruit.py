@@ -7,6 +7,8 @@ import utravers
 import umath
 import u3dexport
 
+import math
+
 """
 import uclasses
 import uturtle
@@ -36,7 +38,7 @@ class PdFlowerFruit(upart.PdPlantPart):
         self.hasBeenDrawn = False
         self.daysAccumulatingFruitBiomass = 0L
         self.daysOpen = 0L
-    
+
     def initializeGender(self, aPlant, aGender):
         self.initialize(aPlant)
         self.gender = aGender
@@ -46,11 +48,11 @@ class PdFlowerFruit(upart.PdPlantPart):
         self.biomassDemand_pctMPB = 0.0
         self.stage = uplant.kStageFlowerBud
         self.hasBeenDrawn = False
-    
+
     def getName(self):
         result = "flower/fruit"
         return result
-    
+
     def nextDay(self):
         if self.hasFallenOff:
             return
@@ -77,12 +79,12 @@ class PdFlowerFruit(upart.PdPlantPart):
                         if maxDaysWithMinFraction or minDaysWithOptimalBiomass:
                             self.stage = uplant.kStageUnripeFruit
                             self.daysAccumulatingFruitBiomass = 0
-                            # flower biomass drops off, 50% goes into developing fruit (ovary) 
-                            # choice of 50% is arbitrary - could be parameter in future depending on size of flower parts/ovary 
+                            # flower biomass drops off, 50% goes into developing fruit (ovary)
+                            # choice of 50% is arbitrary - could be parameter in future depending on size of flower parts/ovary
                             anthesisLoss_pctMPB = self.liveBiomass_pctMPB * 0.5
                             self.liveBiomass_pctMPB = self.liveBiomass_pctMPB - anthesisLoss_pctMPB
                             self.deadBiomass_pctMPB = self.deadBiomass_pctMPB + anthesisLoss_pctMPB
-                            self.propFullSize = (umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
+                            self.propFullSize = (min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
             elif self.stage == uplant.kStageUnripeFruit:
                 if (self.stage == uplant.kStageUnripeFruit) and (self.daysAccumulatingFruitBiomass >= self.plant.pFruit.daysToRipen):
                     self.stage = uplant.kStageRipeFruit
@@ -95,7 +97,7 @@ class PdFlowerFruit(upart.PdPlantPart):
             # PDF PORT TEMP ADDED RAISE FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdFlowerFruit.nextDay")
-    
+
     def traverseActivity(self, mode, traverserProxy):
         upart.PdPlantPart.traverseActivity(self, mode, traverserProxy)
         traverser = traverserProxy
@@ -112,55 +114,55 @@ class PdFlowerFruit(upart.PdPlantPart):
                 pass
             elif mode == utravers.kActivityDemandReproductive:
                 if self.stage == uplant.kStageFlowerBud:
-                    # has no vegetative demand 
-                    # accum. biomass for flower 
+                    # has no vegetative demand
+                    # accum. biomass for flower
                     self.biomassDemand_pctMPB = utravers.linearGrowthResult(self.liveBiomass_pctMPB, self.plant.pFlower[self.gender].optimalBiomass_pctMPB, self.plant.pFlower[self.gender].minDaysToGrow)
                     traverser.total = traverser.total + self.biomassDemand_pctMPB
                 elif self.stage == uplant.kStageOpenFlower:
-                    # has no vegetative demand 
-                    # accum. biomass for flower 
+                    # has no vegetative demand
+                    # accum. biomass for flower
                     self.biomassDemand_pctMPB = utravers.linearGrowthResult(self.liveBiomass_pctMPB, self.plant.pFlower[self.gender].optimalBiomass_pctMPB, self.plant.pFlower[self.gender].minDaysToGrow)
                     traverser.total = traverser.total + self.biomassDemand_pctMPB
                 elif self.stage == uplant.kStageUnripeFruit:
                     if self.daysAccumulatingFruitBiomass > self.plant.pFruit.maxDaysToGrow:
-                        # accum. biomass for fruit 
+                        # accum. biomass for fruit
                         self.biomassDemand_pctMPB = 0.0
                     else:
                         fractionOfMaxAge_frn = umath.safedivExcept(self.daysAccumulatingFruitBiomass + 1, self.plant.pFruit.maxDaysToGrow, 0.0)
-                        newPropFullSize = umath.max(0.0, umath.min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pFruit.sCurveParams.c1, self.plant.pFruit.sCurveParams.c2)))
+                        newPropFullSize = max(0.0, min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pFruit.sCurveParams.c1, self.plant.pFruit.sCurveParams.c2)))
                         newOptimalBiomass_pctMPB = newPropFullSize * self.plant.pFruit.optimalBiomass_pctMPB
                         self.biomassDemand_pctMPB = utravers.linearGrowthResult(self.liveBiomass_pctMPB, newOptimalBiomass_pctMPB, 1)
                         traverser.total = traverser.total + self.biomassDemand_pctMPB
                 elif self.stage == uplant.kStageRipeFruit:
                     if self.daysAccumulatingFruitBiomass > self.plant.pFruit.maxDaysToGrow:
-                        # accum. biomass for fruit 
+                        # accum. biomass for fruit
                         self.biomassDemand_pctMPB = 0.0
                     else:
                         fractionOfMaxAge_frn = umath.safedivExcept(self.daysAccumulatingFruitBiomass + 1, self.plant.pFruit.maxDaysToGrow, 0.0)
-                        newPropFullSize = umath.max(0.0, umath.min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pFruit.sCurveParams.c1, self.plant.pFruit.sCurveParams.c2)))
+                        newPropFullSize = max(0.0, min(1.0, umath.scurve(fractionOfMaxAge_frn, self.plant.pFruit.sCurveParams.c1, self.plant.pFruit.sCurveParams.c2)))
                         newOptimalBiomass_pctMPB = newPropFullSize * self.plant.pFruit.optimalBiomass_pctMPB
                         self.biomassDemand_pctMPB = utravers.linearGrowthResult(self.liveBiomass_pctMPB, newOptimalBiomass_pctMPB, 1)
                         traverser.total = traverser.total + self.biomassDemand_pctMPB
             elif mode == utravers.kActivityGrowVegetative:
                 pass
             elif mode == utravers.kActivityGrowReproductive:
-                # cannot grow vegetatively 
+                # cannot grow vegetatively
                 #Allocate portion of total new biomass based on this demand over total demand.
                 newBiomass_pctMPB = self.biomassDemand_pctMPB * traverser.fractionOfPotentialBiomass
                 self.liveBiomass_pctMPB = self.liveBiomass_pctMPB + newBiomass_pctMPB
                 if self.stage == uplant.kStageFlowerBud:
-                    self.propFullSize = (umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFlower[self.gender].optimalBiomass_pctMPB, 0.0)))
+                    self.propFullSize = (min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFlower[self.gender].optimalBiomass_pctMPB, 0.0)))
                 elif self.stage == uplant.kStageOpenFlower:
-                    self.propFullSize = (umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFlower[self.gender].optimalBiomass_pctMPB, 0.0)))
+                    self.propFullSize = (min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFlower[self.gender].optimalBiomass_pctMPB, 0.0)))
                 elif self.stage == uplant.kStageUnripeFruit:
-                    self.propFullSize = (umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
+                    self.propFullSize = (min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
                 elif self.stage == uplant.kStageRipeFruit:
-                    self.propFullSize = (umath.min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
+                    self.propFullSize = (min(1.0, umath.safedivExcept(self.totalBiomass_pctMPB(), self.plant.pFruit.optimalBiomass_pctMPB, 0.0)))
             elif mode == utravers.kActivityStartReproduction:
                 pass
             elif mode == utravers.kActivityFindPlantPartAtPosition:
                 if umath.pointsAreCloseEnough(traverser.point, self.position()):
-                    # can't switch because has no vegetative mode 
+                    # can't switch because has no vegetative mode
                     traverser.foundPlantPart = self
                     traverser.finished = True
             elif mode == utravers.kActivityDraw:
@@ -176,11 +178,11 @@ class PdFlowerFruit(upart.PdPlantPart):
             elif mode == utravers.kActivityRemoveVegetativeBiomass:
                 pass
             elif mode == utravers.kActivityReproductiveBiomassThatCanBeRemoved:
-                # inflorescence should handle telling flowers to draw 
+                # inflorescence should handle telling flowers to draw
                 #streaming called by inflorescence
-                # free called by inflorescence 
-                # none 
-                # do nothing 
+                # free called by inflorescence
+                # none
+                # do nothing
                 traverser.total = traverser.total + self.liveBiomass_pctMPB
             elif mode == utravers.kActivityRemoveReproductiveBiomass:
                 if self.liveBiomass_pctMPB <= 0.0:
@@ -243,11 +245,11 @@ class PdFlowerFruit(upart.PdPlantPart):
             #PDF PORT TEMP FOR TESTING
             raise
             usupport.messageForExceptionType(e, "PdFlowerFruit.traverseActivity")
-    
+
     def report(self):
-        PdPlantPart.report(self)
-        # DebugPrint(' flower/fruit, age '  + IntToStr(age) + ' biomass '  + floatToStr(self.liveBiomass_pctMPB));
-    
+        upart.PdPlantPart.report(self)
+        # DebugPrint(' flower/fruit, age %d biomas %f' % (age, self.liveBiomass_pctMPB))
+
     def dxfIndexForFloralLayerType(self, aType, line):
         result = 0
         if aType == uplant.kBud:
@@ -275,7 +277,7 @@ class PdFlowerFruit(upart.PdPlantPart):
         elif aType == uplant.kSepals:
             result = u3dexport.kExportPartSepalsFemale
         return result
-    
+
     def draw(self):
         if (self.plant.turtle == None):
             return
@@ -324,7 +326,7 @@ class PdFlowerFruit(upart.PdPlantPart):
             # PDF PORT ADDED RAISE FOR TESTIGN
             raise
             usupport.messageForExceptionType(e, "PdFlowerFruit.draw")
-    
+
     def drawFlower(self, drawAsOpening):
         if (self.plant.turtle == None):
             return
@@ -343,7 +345,7 @@ class PdFlowerFruit(upart.PdPlantPart):
             turtle.rotateZ(self.angleWithSway(self.plant.pFlower[self.gender].tdoParams[layerType].zRotationBeforeDraw))
             self.drawCircleOfTdos(self.plant.pFlower[self.gender].tdoParams[layerType].object3D, self.plant.pFlower[self.gender].tdoParams[layerType].faceColor, self.plant.pFlower[self.gender].tdoParams[layerType].backfaceColor, angle, scale, self.plant.pFlower[self.gender].tdoParams[layerType].repetitions, self.plant.pFlower[self.gender].tdoParams[layerType].radiallyArranged, kDrawTDOOpen, self.dxfIndexForFloralLayerType(layerType, kNotLine))
             turtle.pop()
-    
+
     def drawPistilsAndStamens(self, drawAsOpening):
         if (self.plant.turtle == None):
             return
@@ -362,8 +364,8 @@ class PdFlowerFruit(upart.PdPlantPart):
             for i in range(0, self.plant.pFlower[self.gender].numPistils):
                 turtle.push()
                 if (self.plant.pFlower[self.gender].styleLength_mm > 0) and (self.plant.pFlower[self.gender].styleWidth_mm > 0):
-                    length = umath.max(0.0, self.propFullSize * self.plant.pFlower[self.gender].styleLength_mm)
-                    width = umath.max(0.0, self.propFullSize * self.plant.pFlower[self.gender].styleWidth_mm)
+                    length = max(0.0, self.propFullSize * self.plant.pFlower[self.gender].styleLength_mm)
+                    width = max(0.0, self.propFullSize * self.plant.pFlower[self.gender].styleWidth_mm)
                     angle = self.angleWithSway(self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].pullBackAngle)
                     if drawAsOpening:
                         angle = angle * self.propFullSize
@@ -374,7 +376,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                 turtle.rotateZ(self.angleWithSway(self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].zRotationBeforeDraw))
                 self.drawCircleOfTdos(self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].object3D, self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].faceColor, self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].backfaceColor, 0, scale, self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].repetitions, self.plant.pFlower[self.gender].tdoParams[uplant.kPistils].radiallyArranged, kDrawTDOOpen, self.dxfIndexForFloralLayerType(uplant.kPistils, kNotLine))
                 turtle.pop()
-                addThisTime = trunc(addition + carryOver)
+                addThisTime = math.floor(addition + carryOver)
                 carryOver = carryOver + addition - addThisTime
                 if carryOver < 0:
                     carryOver = 0
@@ -400,8 +402,8 @@ class PdFlowerFruit(upart.PdPlantPart):
             for i in range(0, self.plant.pFlower[self.gender].numStamens):
                 turtle.push()
                 if (self.plant.pFlower[self.gender].filamentLength_mm > 0) and (self.plant.pFlower[self.gender].filamentWidth_mm > 0):
-                    length = umath.max(0.0, self.propFullSize * self.plant.pFlower[self.gender].filamentLength_mm)
-                    width = umath.max(0.0, self.propFullSize * self.plant.pFlower[self.gender].filamentWidth_mm)
+                    length = max(0.0, self.propFullSize * self.plant.pFlower[self.gender].filamentLength_mm)
+                    width = max(0.0, self.propFullSize * self.plant.pFlower[self.gender].filamentWidth_mm)
                     angle = self.angleWithSway(self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].pullBackAngle)
                     if drawAsOpening:
                         angle = angle * self.propFullSize
@@ -412,7 +414,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                 turtle.rotateZ(self.angleWithSway(self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].zRotationBeforeDraw))
                 self.drawCircleOfTdos(self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].object3D, self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].faceColor, self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].backfaceColor, 0, scale, self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].repetitions, self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].radiallyArranged, kDrawTDOOpen, self.dxfIndexForFloralLayerType(uplant.kStamens, kNotLine))
                 turtle.pop()
-                addThisTime = trunc(addition + carryOver)
+                addThisTime = math.floor(addition + carryOver)
                 carryOver = carryOver + addition - addThisTime
                 if carryOver < 0:
                     carryOver = 0
@@ -420,7 +422,7 @@ class PdFlowerFruit(upart.PdPlantPart):
             if ((self.plant.pFlower[self.gender].filamentLength_mm > 0) and (self.plant.pFlower[self.gender].filamentWidth_mm > 0)) or (self.plant.pFlower[self.gender].tdoParams[uplant.kStamens].scaleAtFullSize > 0):
                 turtle.ifExporting_endNestedGroupOfPlantParts(u3dexport.kNestingTypeFloralLayers)
         turtle.pop()
-    
+
     def countPointsAndTrianglesFor3DExportAndAddToTraverserTotals(self, traverser):
         if traverser == None:
             return
@@ -457,7 +459,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                 else:
                     self.addExportMaterial(traverser, u3dexport.kExportPartRipeFruit, -1)
         # pedicel handled by inflorescence
-    
+
     def addFloralPartsCountsToTraverser(self, traverser):
         for partType in range(uplant.kPistils, uplant.kSepals + 1):
             if self.plant.pFlower[self.gender].tdoParams[partType].scaleAtFullSize > 0:
@@ -486,7 +488,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                         self.addExportMaterial(traverser, u3dexport.kExportPartFifthPetalsFemale, -1)
                     elif partType == uplant.kSepals:
                         self.addExportMaterial(traverser, u3dexport.kExportPartSepalsFemale, u3dexport.kExportPartSepalsMale)
-    
+
     def triangleCountInFloralParts(self):
         result = 0
         for partType in range(uplant.kPistils, uplant.kSepals + 1):
@@ -498,7 +500,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                 else:
                     result = result + len(self.plant.pFlower[self.gender].tdoParams[partType].object3D.triangles) * self.plant.pFlower[self.gender].tdoParams[partType].repetitions
         return result
-    
+
     def tdoToSortLinesWith(self):
         result = None
         if self.plant == None:
@@ -514,7 +516,7 @@ class PdFlowerFruit(upart.PdPlantPart):
         elif self.stage == uplant.kStageRipeFruit:
             result = self.plant.pFruit.tdoParams.object3D
         return result
-    
+
     def drawCircleOfTdos(self, tdo, faceColor, backfaceColor, pullBackAngle, scale, numParts, partsArranged, open, dxfIndex):
         try:
             if (scale <= 0.0):
@@ -536,7 +538,7 @@ class PdFlowerFruit(upart.PdPlantPart):
                     addition = 0
                 carryOver = 0
                 for i in range(1, numParts + 1):
-                    addThisTime = trunc(addition + carryOver)
+                    addThisTime = math.floor(addition + carryOver)
                     carryOver = carryOver + addition - addThisTime
                     if carryOver < 0:
                         carryOver = 0
@@ -571,16 +573,15 @@ class PdFlowerFruit(upart.PdPlantPart):
             turtle.pop()
         except Exception, e:
             usupport.messageForExceptionType(e, "PdFlowerFruit.drawCircleOfTdos")
-    
+
     def partType(self):
-        result = uplant.kPartTypeFlowerFruit
-        return result
-    
+        return uplant.kPartTypeFlowerFruit
+
     def classAndVersionInformation(self, cvir):
         cvir.classNumber = uclasses.kPdFlowerFruit
         cvir.versionNumber = 0
         cvir.additionNumber = 0
-    
+
     def streamDataWithFiler(self, filer, cvir):
         upart.PdPlantPart.streamDataWithFiler(self, filer, cvir)
         self.propFullSize = filer.streamSingle(self.propFullSize)
@@ -588,12 +589,12 @@ class PdFlowerFruit(upart.PdPlantPart):
         self.hasBeenDrawn = filer.streamBoolean(self.hasBeenDrawn)
         self.daysAccumulatingFruitBiomass = filer.streamLongint(self.daysAccumulatingFruitBiomass)
         self.daysOpen = filer.streamLongint(self.daysOpen)
-    
-# cfk remember this 
-# ---------------------------------------------------------------------- wilting/falling down 
+
+# cfk remember this
+# ---------------------------------------------------------------------- wilting/falling down
 #procedure PdFlowerFruit.dragDownFromWeight;
 #  begin
-#  end; 
+#  end;
 #procedure PdFlowerFruit.dragDownFromWeight;
 #  var
 #    fractionOfOptimalFruitWeight_frn: single;
@@ -607,4 +608,4 @@ class PdFlowerFruit(upart.PdPlantPart):
 #  if plant.turtle.angleZ > -32 then
 #    angle := -angle;
 #  plant.turtle.rotateZ(angle);
-#  end;  
+#  end;

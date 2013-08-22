@@ -52,11 +52,11 @@ kChangeHeight = False
 # var
 numPlantsCreatedThisSession = 0L
 
-# ------------------------------------------------------------------------ local functions 
+# ------------------------------------------------------------------------ local functions
 def plantNamesForDescription(aList):
     result = ""
     firstPlant = PdPlant()
-    
+
     result = ""
     if (aList == None) or (aList.Count <= 0):
         return result
@@ -81,58 +81,58 @@ def nameForDirection(direction):
         result = "Z"
     return result
 
-# value classes to save information about each plant in list 
+# value classes to save information about each plant in list
 class PdBooleanValue:
     def __init__(self):
         self.saveBoolean = False
-    
-    # ------------------------------------------------------------------------ value objects 
+
+    # ------------------------------------------------------------------------ value objects
     def createWithBoolean(self, aBoolean):
         self.saveBoolean = aBoolean
         return self
-    
+
 class PdPointValue:
     def __init__(self):
         self.savePoint = TPoint()
-    
+
     def createWithPoint(self, aPoint):
         self.savePoint = aPoint
         return self
-    
+
 class PdSingleValue:
     def __init__(self):
         self.saveSingle = 0.0
-    
+
     def createWithSingle(self, aSingle):
         self.saveSingle = aSingle
         return self
-    
+
 class PdSinglePointValue:
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
-    
+
     def createWithSingleXY(self, anX, aY):
         self.x = anX
         self.y = aY
         return self
-    
+
 class PdXYZValue:
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
-    
+
     def createWithXYZ(self, anX, aY, aZ):
         self.x = anX
         self.y = aY
         self.z = aZ
         return self
-    
+
 class PdSmallintValue:
     def __init__(self):
         self.saveSmallint = 0
-    
+
     def createWithSmallint(self, aSmallint):
         self.saveSmallint = aSmallint
         return self
@@ -140,27 +140,27 @@ class PdSmallintValue:
 class PdLongintValue:
     def __init__(self):
         self.saveLongint = 0L
-    
+
     def createWithLongint(self, aLongint):
         self.saveLongint = aLongint
         return self
-    
+
 class PdColorValue:
     def __init__(self):
         self.saveColor = TColorRef()
-    
+
     def createWithColor(self, aColor):
         self.saveColor = aColor
         return self
-    
-# -------------------------------------- commands that affect only the drawing area (and domain options) 
+
+# -------------------------------------- commands that affect only the drawing area (and domain options)
 class PdScrollCommand(PdCommand):
     def __init__(self):
         self.dragStartPoint = TPoint()
         self.oldOffset_mm = SinglePoint()
         self.newOffSet_mm = SinglePoint()
-    
-    # ------------------------------------------------------------ PdScrollCommand 
+
+    # ------------------------------------------------------------ PdScrollCommand
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         result = self
@@ -177,7 +177,7 @@ class PdScrollCommand(PdCommand):
         elif aTrackPhase == ucommand.TrackPhase.trackRelease:
             pass
         return result
-    
+
     # PdDragCommand.doCommand should do nothing
     def redoCommand(self):
         #not redo
@@ -185,18 +185,18 @@ class PdScrollCommand(PdCommand):
         udomain.domain.plantManager.plantDrawOffset_mm = self.newOffSet_mm
         umain.MainForm.recalculateAllPlantBoundsRectsForOffsetChange()
         umain.MainForm.invalidateEntireDrawing()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.plantManager.plantDrawOffset_mm = self.oldOffset_mm
         umain.MainForm.recalculateAllPlantBoundsRectsForOffsetChange()
         umain.MainForm.invalidateEntireDrawing()
-    
+
     def description(self):
         result = ""
         result = "scroll in main window"
         return result
-    
+
 class PdChangeMagnificationCommand(PdCommand):
     def __init__(self):
         self.startDragPoint = TPoint()
@@ -206,8 +206,8 @@ class PdChangeMagnificationCommand(PdCommand):
         self.newOffset_mm = SinglePoint()
         self.clickPoint = SinglePoint()
         self.shift = False
-    
-    # -------------------------------------------------------- PdChangeMagnificationCommand 
+
+    # -------------------------------------------------------- PdChangeMagnificationCommand
     def createWithNewScaleAndPoint(self, aNewScale, aPoint):
         PdCommand.create(self)
         self.newScale_pixelsPerMm = aNewScale
@@ -216,13 +216,13 @@ class PdChangeMagnificationCommand(PdCommand):
         self.clickPoint.x = aPoint.X
         self.clickPoint.y = aPoint.Y
         return self
-    
+
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         size = TPoint()
         newScaleX = 0.0
         newScaleY = 0.0
-        
+
         result = self
         if aTrackPhase == ucommand.TrackPhase.trackPress:
             self.startDragPoint = nextPoint
@@ -232,13 +232,13 @@ class PdChangeMagnificationCommand(PdCommand):
             size = Point(abs(nextPoint.X - self.startDragPoint.X), abs(self.startDragPoint.Y - nextPoint.Y))
             if (size.X > 10) and (size.Y > 10):
                 # have min size in case they move the mouse by mistake
-                self.clickPoint.x = umath.min(nextPoint.X, self.startDragPoint.X) + abs(nextPoint.X - self.startDragPoint.X) / 2
-                self.clickPoint.y = umath.min(nextPoint.Y, self.startDragPoint.Y) + abs(nextPoint.Y - self.startDragPoint.Y) / 2
+                self.clickPoint.x = min(nextPoint.X, self.startDragPoint.X) + abs(nextPoint.X - self.startDragPoint.X) / 2
+                self.clickPoint.y = min(nextPoint.Y, self.startDragPoint.Y) + abs(nextPoint.Y - self.startDragPoint.Y) / 2
                 newScaleX = umath.safedivExcept(udomain.domain.plantDrawScale_PixelsPerMm() * umain.MainForm.drawingPaintBox.Width, size.X, 1.0)
                 newScaleY = umath.safedivExcept(udomain.domain.plantDrawScale_PixelsPerMm() * umain.MainForm.drawingPaintBox.Height, size.Y, 1.0)
                 self.oldScale_PixelsPerMm = udomain.domain.plantDrawScale_PixelsPerMm()
                 self.oldOffset_mm = udomain.domain.plantDrawOffset_mm()
-                self.newScale_pixelsPerMm = umath.min(newScaleX, newScaleY)
+                self.newScale_pixelsPerMm = min(newScaleX, newScaleY)
             else:
                 self.clickPoint.x = nextPoint.X
                 self.clickPoint.y = nextPoint.Y
@@ -249,23 +249,23 @@ class PdChangeMagnificationCommand(PdCommand):
                 else:
                     self.newScale_pixelsPerMm = self.oldScale_PixelsPerMm * 1.5
         return result
-    
+
     def doCommand(self):
         clickTPoint = TPoint()
-        
+
         PdCommand.doCommand(self)
         if self.newScale_pixelsPerMm != 0.0:
-            clickTPoint.X = intround(self.clickPoint.x)
-            clickTPoint.Y = intround(self.clickPoint.y)
+            clickTPoint.X = int(self.clickPoint.x)
+            clickTPoint.Y = int(self.clickPoint.y)
             umain.MainForm.magnifyOrReduce(self.newScale_pixelsPerMm, clickTPoint, umain.kDrawNow)
         self.newOffset_mm = udomain.domain.plantDrawOffset_mm()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.plantManager.plantDrawOffset_mm = self.oldOffset_mm
         if self.oldScale_PixelsPerMm != 0.0:
             umain.MainForm.magnifyOrReduce(self.oldScale_PixelsPerMm, Point(0, 0), umain.kDrawNow)
-    
+
     def description(self):
         result = ""
         if self.newScale_pixelsPerMm > self.oldScale_PixelsPerMm:
@@ -273,15 +273,15 @@ class PdChangeMagnificationCommand(PdCommand):
         else:
             result = "reduce in main window"
         return result
-    
+
 class PdCenterDrawingCommand(PdCommand):
     def __init__(self):
         self.oldScale_PixelsPerMm = 0.0
         self.newScale_pixelsPerMm = 0.0
         self.oldOffset_mm = SinglePoint()
         self.newOffset_mm = SinglePoint()
-    
-    # -------------------------------------------------------- PdCenterDrawingCommand 
+
+    # -------------------------------------------------------- PdCenterDrawingCommand
     def doCommand(self):
         PdCommand.doCommand(self)
         self.oldScale_PixelsPerMm = udomain.domain.plantDrawScale_PixelsPerMm()
@@ -290,26 +290,26 @@ class PdCenterDrawingCommand(PdCommand):
         umain.MainForm.recalculateAllPlantBoundsRects(uplant.kDontDrawNow)
         self.newScale_pixelsPerMm = udomain.domain.plantDrawScale_PixelsPerMm()
         self.newOffset_mm = udomain.domain.plantDrawOffset_mm()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.plantManager.plantDrawOffset_mm = self.oldOffset_mm
         umain.MainForm.recalculateAllPlantBoundsRects(umain.kDrawNow)
         if self.oldScale_PixelsPerMm != 0.0:
             umain.MainForm.magnifyOrReduce(self.oldScale_PixelsPerMm, Point(0, 0), umain.kDrawNow)
-    
+
     def redoCommand(self):
         PdCommand.doCommand(self)
         udomain.domain.plantManager.plantDrawOffset_mm = self.newOffset_mm
         umain.MainForm.recalculateAllPlantBoundsRects(umain.kDrawNow)
         if self.newScale_pixelsPerMm != 0.0:
             umain.MainForm.magnifyOrReduce(self.newScale_pixelsPerMm, Point(0, 0), umain.kDrawNow)
-    
+
     def description(self):
         result = ""
         result = "scale to fit in main window"
         return result
-    
+
 class PdChangeMainWindowOrientationCommand(PdCommand):
     def __init__(self):
         self.oldScale_PixelsPerMm = 0.0
@@ -318,8 +318,8 @@ class PdChangeMainWindowOrientationCommand(PdCommand):
         self.newOffset_mm = SinglePoint()
         self.oldWindowOrientation = 0
         self.newWindowOrientation = 0
-    
-    # ------------------------------------------------------------ PdChangeMainWindowOrientationCommand 
+
+    # ------------------------------------------------------------ PdChangeMainWindowOrientationCommand
     def createWithNewOrientation(self, aNewOrientation):
         PdCommand.create(self)
         #hidden flag not saved
@@ -327,7 +327,7 @@ class PdChangeMainWindowOrientationCommand(PdCommand):
         self.newWindowOrientation = aNewOrientation
         self.oldWindowOrientation = udomain.domain.options.mainWindowOrientation
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         try:
@@ -336,7 +336,7 @@ class PdChangeMainWindowOrientationCommand(PdCommand):
             umain.MainForm.updateForChangeToOrientation()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         try:
@@ -345,48 +345,48 @@ class PdChangeMainWindowOrientationCommand(PdCommand):
             umain.MainForm.updateForChangeToOrientation()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def description(self):
         result = ""
         result = "change top/side orientation in main window"
         return result
-    
-# ------------------------------------------------------------------ commands that affect only the domain 
+
+# ------------------------------------------------------------------ commands that affect only the domain
 class PdChangeDomainOptionsCommand(PdCommand):
     def __init__(self):
         self.oldOptions = DomainOptionsStructure()
         self.newOptions = DomainOptionsStructure()
-    
-    # -------------------------------------------------------- PdChangeDomainOptionsCommand 
+
+    # -------------------------------------------------------- PdChangeDomainOptionsCommand
     def createWithOptions(self, aNewOptions):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
         self.newOptions = aNewOptions
         self.oldOptions = udomain.domain.options
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         udomain.domain.options = self.newOptions
         umain.MainForm.updateForChangeToDomainOptions()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.options = self.oldOptions
         umain.MainForm.updateForChangeToDomainOptions()
-    
+
     def description(self):
         result = ""
         result = "change preferences"
         return result
-    
+
 class PdChangeDomain3DOptionsCommand(PdCommand):
     def __init__(self):
         self.outputType = 0
         self.oldOptions = FileExport3DOptionsStructure()
         self.newOptions = FileExport3DOptionsStructure()
-    
-    # -------------------------------------------------------- PdChangeDomain3DOptionsCommand 
+
+    # -------------------------------------------------------- PdChangeDomain3DOptionsCommand
     def createWithOptionsAndType(self, aNewOptions, anOutputType):
         PdCommand.create(self)
         self.outputType = anOutputType
@@ -394,57 +394,57 @@ class PdChangeDomain3DOptionsCommand(PdCommand):
         self.newOptions = aNewOptions
         self.oldOptions = udomain.domain.exportOptionsFor3D[self.outputType]
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         udomain.domain.exportOptionsFor3D[self.outputType] = self.newOptions
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.exportOptionsFor3D[self.outputType] = self.oldOptions
-    
+
     def description(self):
         result = ""
         result = "change " + usupport.nameStringForFileType(u3dexport.fileTypeFor3DExportType(self.outputType)) + " output options"
         return result
-    
-# ------------------------------------------------------------------- commands that affect one plant only 
+
+# ------------------------------------------------------------------- commands that affect one plant only
 class PdRenameCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
         self.oldName = ""
         self.newName = ""
-    
-    # ------------------------------------------------------------ PdRenameCommand 
+
+    # ------------------------------------------------------------ PdRenameCommand
     def createWithPlantAndNewName(self, aPlant, aNewName):
         PdCommand.create(self)
         self.plant = aPlant
         self.oldName = self.plant.getName()
         self.newName = aNewName
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         self.plant.setName(self.newName)
         umain.MainForm.updateForRenamingPlant(self.plant)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         self.plant.setName(self.oldName)
         umain.MainForm.updateForRenamingPlant(self.plant)
-    
+
     def description(self):
         result = ""
         result = "rename \"" + self.oldName + "\" to \"" + self.newName + "\""
         return result
-    
+
 class PdEditNoteCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
         self.oldStrings = TStringList()
         self.newStrings = TStringList()
-    
-    # ------------------------------------------------------------ PdEditNoteCommand 
+
+    # ------------------------------------------------------------ PdEditNoteCommand
     def createWithPlantAndNewTStrings(self, aPlant, aNewStrings):
         PdCommand.create(self)
         self.plant = aPlant
@@ -452,7 +452,7 @@ class PdEditNoteCommand(PdCommand):
         # we take ownership of this list and delete it if undone
         self.newStrings = aNewStrings
         return self
-    
+
     def destroy(self):
         if self.done:
             self.oldStrings.free
@@ -460,34 +460,34 @@ class PdEditNoteCommand(PdCommand):
         else:
             self.newStrings.free
             self.newStrings = None
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         self.plant.noteLines = self.newStrings
         umain.MainForm.updateForChangeToPlantNote(self.plant)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         self.plant.noteLines = self.oldStrings
         umain.MainForm.updateForChangeToPlantNote(self.plant)
-    
+
     def description(self):
         result = ""
         result = "change note for \"" + self.plant.getName() + "\""
         return result
-    
+
 class PdNewCommand(PdCommand):
     def __init__(self):
         self.newPlant = PdPlant()
         self.useWizardPlant = False
         self.wizardPlant = PdPlant()
         self.oldSelectedList = TList()
-    
+
     # v2.0
-    # --------------------------------------------------------------------------------------------- PdNewCommand 
+    # --------------------------------------------------------------------------------------------- PdNewCommand
     def createWithWizardPlantAndOldSelectedList(self, aPlant, anOldSelectedList):
         i = 0
-        
+
         PdCommand.create(self)
         self.useWizardPlant = True
         self.wizardPlant = aPlant
@@ -497,19 +497,19 @@ class PdNewCommand(PdCommand):
             for i in range(0, anOldSelectedList.Count):
                 self.oldSelectedList.Add(anOldSelectedList.Items[i])
         return self
-    
+
     def destroy(self):
         self.oldSelectedList.free
         self.oldSelectedList = None
         if (not self.done) and (self.newPlant != None):
-            # free created plant if change was undone 
+            # free created plant if change was undone
             self.newPlant.free
             self.newPlant = None
         if (self.useWizardPlant) and (self.wizardPlant != None):
             self.wizardPlant.free
             self.wizardPlant = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
@@ -518,7 +518,7 @@ class PdNewCommand(PdCommand):
         if (self.useWizardPlant) and (self.wizardPlant != None):
             result += 1
         return result
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         self.newPlant = None
@@ -529,24 +529,24 @@ class PdNewCommand(PdCommand):
             else:
                 self.newPlant = uplant.PdPlant()
                 self.newPlant.defaultAllParameters()
-                self.newPlant.setName("New plant " + IntToStr(numPlantsCreatedThisSession + 1))
+                self.newPlant.setName("New plant %d" %(numPlantsCreatedThisSession + 1))
                 numPlantsCreatedThisSession += 1
             self.newPlant.randomize()
             self.newPlant.moveTo(umain.MainForm.standardPastePosition())
             self.newPlant.calculateDrawingScaleToLookTheSameWithDomainScale()
             self.newPlant.recalculateBounds(umain.kDrawNow)
-            # put new plant at end of plant manager list 
+            # put new plant at end of plant manager list
             udomain.domain.plantManager.plants.Add(self.newPlant)
-            # make new plant the only selected plant 
+            # make new plant the only selected plant
             umain.MainForm.deselectAllPlants()
             umain.MainForm.addSelectedPlant(self.newPlant, kAddAtEnd)
             umain.MainForm.updateForChangeToPlantList()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommand.undoCommand(self)
         udomain.domain.plantManager.plants.Remove(self.newPlant)
         umain.MainForm.removeSelectedPlant(self.newPlant)
@@ -555,42 +555,42 @@ class PdNewCommand(PdCommand):
                 # put back selections from before new plant was added
                 umain.MainForm.selectedPlants.Add(self.oldSelectedList.Items[i])
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def redoCommand(self):
         PdCommand.doCommand(self)
         umain.MainForm.deselectAllPlants()
         udomain.domain.plantManager.plants.Add(self.newPlant)
         umain.MainForm.addSelectedPlant(self.newPlant, kAddAtEnd)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def description(self):
         result = ""
         result = "create new plant"
         return result
-    
+
 class PdSendBackwardOrForwardCommand(PdCommand):
     def __init__(self):
         self.backward = False
-    
-    # ----------------------------------------------------------- PdSendBackwardOrForwardCommand 
+
+    # ----------------------------------------------------------- PdSendBackwardOrForwardCommand
     def createWithBackwardOrForward(self, aBackward):
         PdCommand.create(self)
         self.backward = aBackward
         return self
-    
+
     def doCommand(self):
         if self.backward:
-            # assumption here is that selected plants list doesn't change between this command and undo 
+            # assumption here is that selected plants list doesn't change between this command and undo
             umain.MainForm.moveSelectedPlantsDown()
         else:
             umain.MainForm.moveSelectedPlantsUp()
-    
+
     def undoCommand(self):
         if self.backward:
             umain.MainForm.moveSelectedPlantsUp()
         else:
             umain.MainForm.moveSelectedPlantsDown()
-    
+
     def description(self):
         result = ""
         if self.backward:
@@ -598,13 +598,13 @@ class PdSendBackwardOrForwardCommand(PdCommand):
         else:
             result = "bring forward in main window"
         return result
-    
+
 class PdCreateAmendmentCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
         self.newAmendment = PdPlantDrawingAmendment()
-    
-    # ------------------------------------------------------------ PdCreateAmendmentCommand 
+
+    # ------------------------------------------------------------ PdCreateAmendmentCommand
     def createWithPlantAndAmendment(self, aPlant, aNewAmendment):
         PdCommand.create(self)
         self.plant = aPlant
@@ -613,12 +613,12 @@ class PdCreateAmendmentCommand(PdCommand):
         # we take ownership of this and delete it if undone
         self.newAmendment = aNewAmendment
         return self
-    
+
     def destroy(self):
         if not self.done:
             self.newAmendment.free
             self.newAmendment = None
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
@@ -626,7 +626,7 @@ class PdCreateAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.addAmendedPartToList(self.newAmendment.partID, self.newAmendment.typeOfPart)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
@@ -634,18 +634,18 @@ class PdCreateAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.removeAmendedPartFromList(self.newAmendment.partID, self.newAmendment.typeOfPart)
-    
+
     def description(self):
         result = ""
-        result = "pose part " + IntToStr(self.newAmendment.partID) + " in plant \"" + self.plant.getName() + "\""
+        result = "pose part %d" % (self.newAmendment.partID) + " in plant \"" + self.plant.getName() + "\""
         return result
-    
+
 class PdDeleteAmendmentCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
         self.amendment = PdPlantDrawingAmendment()
-    
-    # ------------------------------------------------------------ PdDeleteAmendmentCommand 
+
+    # ------------------------------------------------------------ PdDeleteAmendmentCommand
     def createWithPlantAndAmendment(self, aPlant, anAmendment):
         PdCommand.create(self)
         self.plant = aPlant
@@ -654,12 +654,12 @@ class PdDeleteAmendmentCommand(PdCommand):
         # we take ownership of this and delete it if done
         self.amendment = anAmendment
         return self
-    
+
     def destroy(self):
         if self.done:
             self.amendment.free
             self.amendment = None
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
@@ -667,7 +667,7 @@ class PdDeleteAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.removeAmendedPartFromList(self.amendment.partID, self.amendment.typeOfPart)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
@@ -675,20 +675,20 @@ class PdDeleteAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.addAmendedPartToList(self.amendment.partID, self.amendment.typeOfPart)
-    
+
     def description(self):
         result = ""
-        result = "unpose part " + IntToStr(self.amendment.partID) + " in plant \"" + self.plant.getName() + "\""
+        result = "unpose part %d" %(self.amendment.partID) + " in plant \"" + self.plant.getName() + "\""
         return result
-    
+
 class PdEditAmendmentCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
         self.field = ""
         self.oldAmendment = PdPlantDrawingAmendment()
         self.newAmendment = PdPlantDrawingAmendment()
-    
-    # ------------------------------------------------------------ PdEditAmendmentCommand 
+
+    # ------------------------------------------------------------ PdEditAmendmentCommand
     def createWithPlantAndAmendmentAndField(self, aPlant, aNewAmendment, aField):
         PdCommand.create(self)
         self.plant = aPlant
@@ -699,7 +699,7 @@ class PdEditAmendmentCommand(PdCommand):
         self.newAmendment = aNewAmendment
         self.oldAmendment = self.plant.amendmentForPartID(self.newAmendment.partID)
         return self
-    
+
     def destroy(self):
         if self.done:
             self.oldAmendment.free
@@ -707,11 +707,11 @@ class PdEditAmendmentCommand(PdCommand):
         else:
             self.newAmendment.free
             self.newAmendment = None
-    
+
     def doCommand(self):
         index = 0
         oldItemIndex = 0
-        
+
         PdCommand.doCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         if self.oldAmendment != None:
@@ -720,12 +720,12 @@ class PdEditAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.updatePoseInfo()
-    
+
     def undoCommand(self):
         oldString = ""
         index = 0
         oldItemIndex = 0
-        
+
         PdCommand.undoCommand(self)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         self.plant.removeAmendment(self.newAmendment)
@@ -734,11 +734,11 @@ class PdEditAmendmentCommand(PdCommand):
         self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.invalidateDrawingRect(self.plant.boundsRect_pixels())
         umain.MainForm.updatePoseInfo()
-    
+
     def description(self):
         result = ""
         fullString = ""
-        
+
         if self.field == "hide":
             if self.newAmendment.hide:
                 fullString = "hide"
@@ -761,9 +761,9 @@ class PdEditAmendmentCommand(PdCommand):
                 fullString = "remove scale-this-part-and-above for"
         else:
             fullString = "change " + self.field + " for"
-        result = "posing: " + fullString + " part " + IntToStr(self.newAmendment.partID) + " in plant \"" + self.plant.getName() + "\""
+        result = "posing: " + fullString + " part %d" % (self.newAmendment.partID) + " in plant \"" + self.plant.getName() + "\""
         return result
-    
+
 class PdSelectPosingPartCommand(PdCommand):
     def __init__(self):
         self.plant = PdPlant()
@@ -771,11 +771,11 @@ class PdSelectPosingPartCommand(PdCommand):
         self.oldPartID = 0L
         self.oldPartType = ""
         self.newPartType = ""
-    
-    # ------------------------------------------------------------ PdSelectPosingPartCommand 
+
+    # ------------------------------------------------------------ PdSelectPosingPartCommand
     def createWithPlantAndPartIDsAndTypes(self, aPlant, aNewPartID, anOldPartID, aNewPartType, anOldPartType):
         i = 0
-        
+
         PdCommand.create(self)
         # selected posed part not saved
         self.commandChangesPlantFile = False
@@ -785,7 +785,7 @@ class PdSelectPosingPartCommand(PdCommand):
         self.newPartType = aNewPartType
         self.oldPartType = anOldPartType
         return self
-    
+
     def doCommand(self):
         # selected posed part not saved
         self.commandChangesPlantFile = False
@@ -794,23 +794,23 @@ class PdSelectPosingPartCommand(PdCommand):
         umain.MainForm.selectedPlantPartType = self.newPartType
         umain.MainForm.updatePosingForSelectedPlantPart()
         umain.MainForm.redrawFocusedPlantOnly(umain.kDrawNow)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         umain.MainForm.selectedPlantPartID = self.oldPartID
         umain.MainForm.selectedPlantPartType = self.oldPartType
         umain.MainForm.updatePosingForSelectedPlantPart()
         umain.MainForm.redrawFocusedPlantOnly(umain.kDrawNow)
-    
+
     def description(self):
         result = ""
         if self.newPartID < 0:
             result = "deselect all parts of plant " + self.plant.getName()
         else:
-            result = "select part " + IntToStr(self.newPartID) + " of plant " + self.plant.getName()
+            result = "select part %d" %(self.newPartID) + " of plant " + self.plant.getName()
         return result
-    
-# ---------------------------------- commands that affect a list of plants, usually in a minor way 
+
+# ---------------------------------- commands that affect a list of plants, usually in a minor way
 class PdCommandWithListOfPlants(PdCommand):
     def __init__(self):
         self.plantList = TList()
@@ -818,12 +818,12 @@ class PdCommandWithListOfPlants(PdCommand):
         self.plant = PdPlant()
         self.removesPlantAmendments = False
         self.listOfAmendmentLists = TList()
-    
+
     #for temporary use
-    # ------------------------------------------------------------ PdCommandWithListOfPlants 
+    # ------------------------------------------------------------ PdCommandWithListOfPlants
     def createWithListOfPlants(self, aList):
         i = 0
-        
+
         PdCommand.create(self)
         self.plantList = delphi_compatability.TList().Create()
         if aList.Count > 0:
@@ -832,13 +832,13 @@ class PdCommandWithListOfPlants(PdCommand):
         self.values = ucollect.TListCollection().Create()
         self.listOfAmendmentLists = None
         return self
-    
+
     def setUpToRemoveAmendmentsWhenDone(self):
         i = 0
         j = 0
         plant = PdPlant()
         aList = TList()
-        
+
         # call this method after create method if the command should remove amendments
         self.removesPlantAmendments = True
         self.listOfAmendmentLists = delphi_compatability.TList().Create()
@@ -850,13 +850,13 @@ class PdCommandWithListOfPlants(PdCommand):
                     for j in range(0, plant.amendments.Count):
                         aList.Add(uamendmt.PdPlantDrawingAmendment(plant.amendments.Items[j]))
                 self.listOfAmendmentLists.Add(aList)
-    
+
     def destroy(self):
         i = 0
         j = 0
         amendment = PdPlantDrawingAmendment()
         aList = TList()
-        
+
         self.plantList.free
         self.plantList = None
         self.values.free
@@ -873,12 +873,12 @@ class PdCommandWithListOfPlants(PdCommand):
         self.listOfAmendmentLists.free
         self.listOfAmendmentLists = None
         PdCommand.destroy(self)
-    
+
     def doCommand(self):
         i = 0
         atLeastOnePlantHadAmendments = False
         aList = TList()
-        
+
         PdCommand.doCommand(self)
         if not self.removesPlantAmendments:
             return
@@ -891,12 +891,12 @@ class PdCommandWithListOfPlants(PdCommand):
                     uplant.PdPlant(self.plantList.Items[i]).clearPointersToAllAmendments()
         if atLeastOnePlantHadAmendments:
             umain.MainForm.updatePosingForFirstSelectedPlant()
-    
+
     def undoCommand(self):
         i = 0
         atLeastOnePlantHadAmendments = False
         aList = TList()
-        
+
         PdCommand.undoCommand(self)
         if not self.removesPlantAmendments:
             return
@@ -909,25 +909,25 @@ class PdCommandWithListOfPlants(PdCommand):
                     uplant.PdPlant(self.plantList.Items[i]).restoreAmendmentPointersToList(aList)
         if atLeastOnePlantHadAmendments:
             umain.MainForm.updatePosingForFirstSelectedPlant()
-    
+
     def invalidateCombinedPlantRects(self):
         redrawRect = TRect()
         i = 0
-        
+
         redrawRect = delphi_compatability.Bounds(0, 0, 0, 0)
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 delphi_compatability.UnionRect(redrawRect, redrawRect, uplant.PdPlant(self.plantList.Items[i]).boundsRect_pixels())
         umain.MainForm.invalidateDrawingRect(redrawRect)
-    
+
 class PdChangeSelectedPlantsCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newList = TList()
-    
-    # ------------------------------------------------------------ PdChangeSelectedPlantsCommand 
+
+    # ------------------------------------------------------------ PdChangeSelectedPlantsCommand
     def createWithOldListOFPlantsAndNewList(self, aList, aNewList):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         #which plants are selected not saved
         self.commandChangesPlantFile = False
@@ -936,15 +936,15 @@ class PdChangeSelectedPlantsCommand(PdCommandWithListOfPlants):
             for i in range(0, aNewList.Count):
                 self.newList.Add(aNewList.Items[i])
         return self
-    
+
     def destroy(self):
         self.newList.free
         self.newList = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         i = 0
-        
+
         #which plants are selected not saved
         self.commandChangesPlantFile = False
         PdCommandWithListOfPlants.doCommand(self)
@@ -959,10 +959,10 @@ class PdChangeSelectedPlantsCommand(PdCommandWithListOfPlants):
                     for i in range(1, self.newList.Count):
                         umain.MainForm.selectedPlants.Add(self.newList.Items[i])
         umain.MainForm.updateForChangeToPlantSelections()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         # MainForm.deselectAllPlants; // don't want this, it updates, and we will be updating soon
         umain.MainForm.selectedPlants.Clear()
@@ -975,7 +975,7 @@ class PdChangeSelectedPlantsCommand(PdCommandWithListOfPlants):
                     for i in range(1, self.plantList.Count):
                         umain.MainForm.selectedPlants.Add(self.plantList.Items[i])
         umain.MainForm.updateForChangeToPlantSelections()
-    
+
     def description(self):
         result = ""
         if self.newList.Count <= 0:
@@ -983,15 +983,15 @@ class PdChangeSelectedPlantsCommand(PdCommandWithListOfPlants):
         else:
             result = "select" + plantNamesForDescription(self.newList)
         return result
-    
+
 class PdSelectOrDeselectAllCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.deselect = False
-    
-    # ------------------------------------------------------------ PdSelectOrDeselectAllCommand 
+
+    # ------------------------------------------------------------ PdSelectOrDeselectAllCommand
     def doCommand(self):
         i = 0
-        
+
         #which plants are selected not saved
         self.commandChangesPlantFile = False
         PdCommandWithListOfPlants.doCommand(self)
@@ -1005,10 +1005,10 @@ class PdSelectOrDeselectAllCommand(PdCommandWithListOfPlants):
                 for i in range(0, udomain.domain.plantManager.plants.Count):
                     umain.MainForm.selectedPlants.Add(udomain.domain.plantManager.plants.Items[i])
         umain.MainForm.updateForChangeToPlantSelections()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         if not self.deselect:
             # MainForm.deselectAllPlants;
@@ -1019,7 +1019,7 @@ class PdSelectOrDeselectAllCommand(PdCommandWithListOfPlants):
             for i in range(0, self.plantList.Count):
                 umain.MainForm.selectedPlants.Add(self.plantList.Items[i])
         umain.MainForm.updateForChangeToPlantSelections()
-    
+
     def description(self):
         result = ""
         if self.deselect:
@@ -1027,7 +1027,7 @@ class PdSelectOrDeselectAllCommand(PdCommandWithListOfPlants):
         else:
             result = "select all plants"
         return result
-    
+
 class PdResizePlantsCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.initialized = False
@@ -1039,31 +1039,31 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
         self.offset = TPoint()
         self.multiplier = 0.0
         self.newValue = 0.0
-    
-    # ------------------------------------------------------------ PdResizePlantsCommand 
+
+    # ------------------------------------------------------------ PdResizePlantsCommand
     def createWithListOfPlants(self, aList):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newValues = ucollect.TListCollection().Create()
         self.oldSizes = ucollect.TListCollection().Create()
         self.aspectRatios = ucollect.TListCollection().Create()
         return self
-    
+
     def createWithListOfPlantsAndMultiplier(self, aList, aMultiplier):
         self.createWithListOfPlants(aList)
         self.saveInitialValues()
         self.multiplier = aMultiplier
         return self
-    
+
     def createWithListOfPlantsAndNewValue(self, aList, aNewValue):
         self.createWithListOfPlants(aList)
         self.saveInitialValues()
         self.newValue = aNewValue
         return self
-    
+
     def saveInitialValues(self):
         i = 0
         aspectRatio = 0.0
-        
+
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.plant = uplant.PdPlant(self.plantList.Items[i])
@@ -1074,7 +1074,7 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
                 self.aspectRatios.Add(PdSingleValue().createWithSingle(aspectRatio))
                 self.values.Add(PdSingleValue().createWithSingle(self.plant.drawingScale_PixelsPerMm))
                 self.oldSizes.Add(PdPointValue().createWithPoint(Point(usupport.rWidth(self.plant.boundsRect_pixels()), usupport.rHeight(self.plant.boundsRect_pixels()))))
-    
+
     def destroy(self):
         self.newValues.free
         self.newValues = None
@@ -1083,7 +1083,7 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
         self.aspectRatios.free
         self.aspectRatios = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         result = self
@@ -1106,14 +1106,14 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
                 result = None
                 self.free
         return result
-    
+
     def doCommand(self):
         i = 0
         newSize = TPoint()
         oldSize = TPoint()
         aspectRatio = 0.0
         oldScale = 0.0
-        
+
         if not self.doneInMouseCommand:
             PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
@@ -1137,8 +1137,8 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
                         aspectRatio = PdSingleValue(self.aspectRatios.Items[i]).saveSingle
                         oldScale = PdSingleValue(self.values.Items[i]).saveSingle
                         # 10 pixels is arbitrary minimum
-                        newSize.Y = umath.intMax(10, oldSize.Y - self.offset.Y)
-                        newSize.X = intround(newSize.Y * aspectRatio)
+                        newSize.Y = max(10, oldSize.Y - self.offset.Y)
+                        newSize.X = int(newSize.Y * aspectRatio)
                         self.plant.calculateDrawingScaleToFitSize(newSize)
                         if (self.plant.drawingScale_PixelsPerMm > oldScale) and (self.offset.Y > 0):
                             # this is to counteract a bug that when you resize down, it resizes up the first mouse move, then down
@@ -1151,10 +1151,10 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
         finally:
             if not self.doneInMouseCommand:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -1168,10 +1168,10 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         if not self.initialized:
             return
         PdCommandWithListOfPlants.undoCommand(self)
@@ -1187,12 +1187,12 @@ class PdResizePlantsCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def description(self):
         result = ""
         result = "resize" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newValues = TListCollection()
@@ -1200,8 +1200,8 @@ class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
         self.newWidth = 0.0
         self.newHeight = 0.0
         self.changeWidth = False
-    
-    # ------------------------------------------------------------ PdResizePlantsToSameWidthOrHeightCommand 
+
+    # ------------------------------------------------------------ PdResizePlantsToSameWidthOrHeightCommand
     def createWithListOfPlantsAndNewWidthOrHeight(self, aList, aNewWidth, aNewHeight, aChangeWidth):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newValues = ucollect.TListCollection().Create()
@@ -1211,28 +1211,28 @@ class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
         self.newHeight = aNewHeight
         self.changeWidth = aChangeWidth
         return self
-    
+
     def saveInitialValues(self):
         i = 0
-        
+
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.plant = uplant.PdPlant(self.plantList.Items[i])
                 self.values.Add(PdSingleValue().createWithSingle(self.plant.drawingScale_PixelsPerMm))
                 self.oldSizes.Add(PdPointValue().createWithPoint(Point(usupport.rWidth(self.plant.boundsRect_pixels()), usupport.rHeight(self.plant.boundsRect_pixels()))))
-    
+
     def destroy(self):
         self.newValues.free
         self.newValues = None
         self.oldSizes.free
         self.oldSizes = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         i = 0
         newScaleX = 0.0
         newScaleY = 0.0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
@@ -1254,10 +1254,10 @@ class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1267,10 +1267,10 @@ class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
         umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1280,12 +1280,12 @@ class PdResizePlantsToSameWidthOrHeightCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
         umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
-    
+
     def description(self):
         result = ""
         result = "scale" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdPackPlantsCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newScales = TListCollection()
@@ -1293,8 +1293,8 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
         self.newPoints = TListCollection()
         self.oldPoints = TListCollection()
         self.focusRect = TRect()
-    
-    # ------------------------------------------------------------ PdPackPlantsCommand 
+
+    # ------------------------------------------------------------ PdPackPlantsCommand
     def createWithListOfPlantsAndFocusRect(self, aList, aFocusRect):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newScales = ucollect.TListCollection().Create()
@@ -1304,17 +1304,17 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
         self.saveInitialValues()
         self.focusRect = aFocusRect
         return self
-    
+
     def saveInitialValues(self):
         i = 0
-        
+
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.plant = uplant.PdPlant(self.plantList.Items[i])
                 self.values.Add(PdSingleValue().createWithSingle(self.plant.drawingScale_PixelsPerMm))
                 self.oldPoints.Add(PdPointValue().createWithPoint(self.plant.basePoint_pixels()))
                 self.oldSizes.Add(PdPointValue().createWithPoint(Point(usupport.rWidth(self.plant.boundsRect_pixels()), usupport.rHeight(self.plant.boundsRect_pixels()))))
-    
+
     def destroy(self):
         self.newScales.free
         self.newScales = None
@@ -1325,7 +1325,7 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
         self.oldPoints.free
         self.oldPoints = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         i = 0
         newScaleX = 0.0
@@ -1341,7 +1341,7 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
         remainingX = 0
         plantScaleChanged = False
         newScale = 0.0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
@@ -1397,11 +1397,11 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
         oldScale = 0.0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -1421,11 +1421,11 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def redoCommand(self):
         i = 0
         oldScale = 0.0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -1445,12 +1445,12 @@ class PdPackPlantsCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateForChangeToSelectedPlantsDrawingScale()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def description(self):
         result = ""
         result = "pack" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.selectedList = TList()
@@ -1460,11 +1460,11 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
         self.newOffset_mm = SinglePoint()
         self.oldMainWindowViewingOption = 0
         self.newMainWindowViewingOption = 0
-    
-    # ------------------------------------------------------------ PdChangeMainWindowViewingOptionCommand 
+
+    # ------------------------------------------------------------ PdChangeMainWindowViewingOptionCommand
     def createWithListOfPlantsAndSelectedPlantsAndNewOption(self, aList, aSelectedList, aNewOption):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         #hidden flag not saved
         self.commandChangesPlantFile = False
@@ -1478,12 +1478,12 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
         self.oldMainWindowViewingOption = udomain.domain.options.mainWindowViewMode
         self.newMainWindowViewingOption = aNewOption
         return self
-    
+
     def destroy(self):
         self.selectedList.free
         self.selectedList = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         PdCommandWithListOfPlants.doCommand(self)
         try:
@@ -1514,10 +1514,10 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateMenusForChangeToViewingOption()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -1527,14 +1527,14 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
                 umain.MainForm.invalidateSelectedPlantRectangles()
                 udomain.domain.plantManager.plantDrawScale_PixelsPerMm = self.oldScale_PixelsPerMm
                 udomain.domain.plantManager.plantDrawOffset_mm = self.oldOffset_mm
-                # restore original hidden flags - all plants 
+                # restore original hidden flags - all plants
                 #not used
                 umain.MainForm.hideOrShowSomePlants(self.plantList, self.values, False, umain.kDontDrawYet)
                 umain.MainForm.fitVisiblePlantsInDrawingArea(umain.kDontDrawYet, umain.kScaleAndMove, umain.kAlwaysMove)
                 umain.MainForm.recalculateAllPlantBoundsRects(umain.kDrawNow)
                 #MainForm.invalidateSelectedPlantRectangles;
                 umain.MainForm.invalidateEntireDrawing()
-                # restore original selection - selected plants only 
+                # restore original selection - selected plants only
                 umain.MainForm.selectedPlants.Clear()
                 if self.selectedList.Count > 0:
                     for i in range(0, self.selectedList.Count):
@@ -1543,7 +1543,7 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
             elif self.newMainWindowViewingOption == udomain.kViewPlantsInMainWindowFreeFloating:
                 udomain.domain.plantManager.plantDrawScale_PixelsPerMm = self.oldScale_PixelsPerMm
                 udomain.domain.plantManager.plantDrawOffset_mm = self.oldOffset_mm
-                # restore original hidden flags - all plants 
+                # restore original hidden flags - all plants
                 #not used
                 umain.MainForm.hideOrShowSomePlants(self.plantList, self.values, False, umain.kDontDrawYet)
                 umain.MainForm.fitVisiblePlantsInDrawingArea(umain.kDontDrawYet, umain.kScaleAndMove, umain.kAlwaysMove)
@@ -1554,12 +1554,12 @@ class PdChangeMainWindowViewingOptionCommand(PdCommandWithListOfPlants):
             umain.MainForm.updateMenusForChangeToViewingOption()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def description(self):
         result = ""
         result = "change view all/one option in main window"
         return result
-    
+
 class PdDragCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.initialized = False
@@ -1568,11 +1568,11 @@ class PdDragCommand(PdCommandWithListOfPlants):
         self.dragStartPoint = TPoint()
         self.offset = TPoint()
         self.newPoint = TPoint()
-    
-    # ------------------------------------------------------------ PdDragCommand 
+
+    # ------------------------------------------------------------ PdDragCommand
     def createWithListOfPlantsAndDragOffset(self, aList, anOffset):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
@@ -1581,10 +1581,10 @@ class PdDragCommand(PdCommandWithListOfPlants):
         self.offset = anOffset
         self.initialized = True
         return self
-    
+
     def createWithListOfPlantsAndNewPoint(self, aList, aNewPoint):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.dragAllPlantsToOnePoint = True
         if self.plantList.Count > 0:
@@ -1594,11 +1594,11 @@ class PdDragCommand(PdCommandWithListOfPlants):
         self.newPoint = aNewPoint
         self.initialized = True
         return self
-    
+
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         i = 0
-        
+
         result = self
         if aTrackPhase == ucommand.TrackPhase.trackPress:
             self.dragStartPoint = nextPoint
@@ -1629,10 +1629,10 @@ class PdDragCommand(PdCommandWithListOfPlants):
                 result = None
                 self.free
         return result
-    
+
     def doCommand(self):
         i = 0
-        
+
         if self.doneInMouseCommand:
             #only used if not done by mouse command-otherwise done in trackMouse
             return
@@ -1654,10 +1654,10 @@ class PdDragCommand(PdCommandWithListOfPlants):
                         self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1668,10 +1668,10 @@ class PdDragCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         if not self.initialized:
             return
         PdCommandWithListOfPlants.doCommand(self)
@@ -1692,7 +1692,7 @@ class PdDragCommand(PdCommandWithListOfPlants):
                         self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         if self.dragAllPlantsToOnePoint:
@@ -1700,17 +1700,17 @@ class PdDragCommand(PdCommandWithListOfPlants):
         else:
             result = "drag" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdAlignPlantsCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newPoints = TListCollection()
         self.focusRect = TRect()
         self.alignDirection = 0
-    
-    # ------------------------------------------------------------ PdAlignPlantsCommand 
+
+    # ------------------------------------------------------------ PdAlignPlantsCommand
     def createWithListOfPlantsRectAndDirection(self, aList, aRect, aDirection):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
@@ -1720,17 +1720,17 @@ class PdAlignPlantsCommand(PdCommandWithListOfPlants):
         self.focusRect = aRect
         self.alignDirection = aDirection
         return self
-    
+
     def destroy(self):
         self.newPoints.free
         self.newPoints = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         i = 0
         newPoint = TPoint()
         offset = TPoint()
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         self.newPoints.clear()
         self.invalidateCombinedPlantRects()
@@ -1754,10 +1754,10 @@ class PdAlignPlantsCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1768,10 +1768,10 @@ class PdAlignPlantsCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1782,24 +1782,24 @@ class PdAlignPlantsCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBoundsForOffsetChange()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = "align" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdRotateCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.rotateDirection = 0
         self.newRotation = 0.0
         self.offsetRotation = 0.0
         self.startDragPoint = TPoint()
-    
-    # ------------------------------------------------------------ PdRotateCommand 
+
+    # ------------------------------------------------------------ PdRotateCommand
     def createWithListOfPlantsDirectionAndNewRotation(self, aList, aRotateDirection, aNewRotation):
         i = 0
-        
-        # create using this constructor if this is from clicking on a spinEdit 
+
+        # create using this constructor if this is from clicking on a spinEdit
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.rotateDirection = aRotateDirection
         self.newRotation = aNewRotation
@@ -1817,16 +1817,16 @@ class PdRotateCommand(PdCommandWithListOfPlants):
                 elif self.rotateDirection == kRotateZ:
                     self.values.Add(PdSingleValue().createWithSingle(self.plant.zRotation))
         return self
-    
+
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         i = 0
         newRotation = 0.0
-        
+
         result = self
         if aTrackPhase == ucommand.TrackPhase.trackPress:
             # assume that if this function is called, the command was not already initialized
-            #    from clicking on a spinEdit, so we have no values and no rotateDirection 
+            #    from clicking on a spinEdit, so we have no values and no rotateDirection
             self.startDragPoint = nextPoint
             self.invalidateCombinedPlantRects()
             PdCommandWithListOfPlants.doCommand(self)
@@ -1899,12 +1899,12 @@ class PdRotateCommand(PdCommandWithListOfPlants):
                 self.invalidateCombinedPlantRects()
                 umain.MainForm.updateForChangeToPlantRotations()
         return result
-    
+
     def doCommand(self):
         i = 0
-        
+
         if self.done:
-            #if done in mousemove 
+            #if done in mousemove
             return
         PdCommandWithListOfPlants.doCommand(self)
         self.invalidateCombinedPlantRects()
@@ -1913,26 +1913,26 @@ class PdRotateCommand(PdCommandWithListOfPlants):
                 self.plant = uplant.PdPlant(self.plantList.Items[i])
                 if self.rotateDirection == kRotateX:
                     if self.offsetRotation != 0:
-                        self.plant.xRotation = umath.min(360, umath.max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
+                        self.plant.xRotation = min(360, max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
                     else:
                         self.plant.xRotation = self.newRotation
                 elif self.rotateDirection == kRotateY:
                     if self.offsetRotation != 0:
-                        self.plant.yRotation = umath.min(360, umath.max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
+                        self.plant.yRotation = min(360, max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
                     else:
                         self.plant.yRotation = self.newRotation
                 elif self.rotateDirection == kRotateZ:
                     if self.offsetRotation != 0:
-                        self.plant.zRotation = umath.min(360, umath.max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
+                        self.plant.zRotation = min(360, max(-360, PdSingleValue(self.values.Items[i]).saveSingle + self.offsetRotation))
                     else:
                         self.plant.zRotation = self.newRotation
                 self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.updateForChangeToPlantRotations()
         self.invalidateCombinedPlantRects()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1947,22 +1947,22 @@ class PdRotateCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         umain.MainForm.updateForChangeToPlantRotations()
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = nameForDirection(self.rotateDirection) + " rotate" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdResetRotationsCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.oldX = 0.0
         self.oldY = 0.0
         self.oldZ = 0.0
-    
-    # ------------------------------------------------------------ PdResetRotationsCommand 
+
+    # ------------------------------------------------------------ PdResetRotationsCommand
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1975,10 +1975,10 @@ class PdResetRotationsCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
         umain.MainForm.updateForChangeToPlantRotations()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -1990,10 +1990,10 @@ class PdResetRotationsCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
         umain.MainForm.updateForChangeToPlantRotations()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2005,30 +2005,30 @@ class PdResetRotationsCommand(PdCommandWithListOfPlants):
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
         umain.MainForm.updateForChangeToPlantRotations()
-    
+
     def description(self):
         result = ""
         result = "reset rotation for" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeDrawingScaleCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newScale = 0.0
-    
-    # ------------------------------------------------------------ PdChangeDrawingScaleCommand 
+
+    # ------------------------------------------------------------ PdChangeDrawingScaleCommand
     def createWithListOfPlantsAndNewScale(self, aList, aNewScale):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newScale = aNewScale
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.values.Add(PdSingleValue().createWithSingle(uplant.PdPlant(self.plantList.Items[i]).drawingScale_PixelsPerMm))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2037,10 +2037,10 @@ class PdChangeDrawingScaleCommand(PdCommandWithListOfPlants):
                 self.plant.drawingScale_PixelsPerMm = self.newScale
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2049,30 +2049,30 @@ class PdChangeDrawingScaleCommand(PdCommandWithListOfPlants):
                 self.plant.drawingScale_PixelsPerMm = PdSingleValue(self.values.Items[i]).saveSingle
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = "change scale for" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangePlantAgeCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.newAge = 0
-    
-    # ----------------------------------------------------------------------- PdChangePlantAgeCommand 
+
+    # ----------------------------------------------------------------------- PdChangePlantAgeCommand
     def createWithListOfPlantsAndNewAge(self, aList, aNewAge):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newAge = aNewAge
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.values.Add(PdSmallintValue().createWithSmallint(uplant.PdPlant(self.plantList.Items[i]).age))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2081,19 +2081,19 @@ class PdChangePlantAgeCommand(PdCommandWithListOfPlants):
                 for i in range(0, self.plantList.Count):
                     self.plant = uplant.PdPlant(self.plantList.Items[i])
                     # if primary selected plant has longer lifespan than other selected plants, cut off age
-                    #        at max for those plants 
-                    self.plant.setAge(umath.intMin(self.newAge, self.plant.pGeneral.ageAtMaturity))
+                    #        at max for those plants
+                    self.plant.setAge(min(self.newAge, self.plant.pGeneral.ageAtMaturity))
                     self.plant.recalculateBounds(umain.kDrawNow)
             self.invalidateCombinedPlantRects()
             umain.MainForm.updateForChangeToSelectedPlantsLocation()
-            # changing age causes life cycle panel to need to redraw 
+            # changing age causes life cycle panel to need to redraw
             umain.MainForm.updateLifeCyclePanelForFirstSelectedPlant()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2105,47 +2105,47 @@ class PdChangePlantAgeCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBounds(umain.kDrawNow)
             self.invalidateCombinedPlantRects()
             umain.MainForm.updateForChangeToSelectedPlantsLocation()
-            # changing age causes life cycle panel to need to redraw 
+            # changing age causes life cycle panel to need to redraw
             umain.MainForm.updateLifeCyclePanelForFirstSelectedPlant()
         finally:
             ucursor.cursor_stopWait()
-    
-    # redo is same as do 
+
+    # redo is same as do
     def description(self):
         result = ""
-        result = "change age to " + IntToStr(self.newAge) + " for" + plantNamesForDescription(self.plantList)
+        result = "change age to %d" % (self.newAge) + " for" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdAnimatePlantCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.age = 0
         self.oldestAgeAtMaturity = 0
-    
-    # ----------------------------------------------------------------------- PdAnimatePlantCommand 
+
+    # ----------------------------------------------------------------------- PdAnimatePlantCommand
     def createWithListOfPlants(self, aList):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         if self.plantList.Count > 0:
             for i in range(0, self.plantList.Count):
                 self.values.Add(PdSmallintValue().createWithSmallint(uplant.PdPlant(self.plantList.Items[i]).age))
         return self
-    
+
     def doCommand(self):
         i = 0
         plant = PdPlant()
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
         self.age = 0
-        # find oldest age 
+        # find oldest age
         self.oldestAgeAtMaturity = 0
         for i in range(0, self.plantList.Count):
             plant = uplant.PdPlant(self.plantList.Items[i])
             if (i == 0) or (plant.pGeneral.ageAtMaturity > self.oldestAgeAtMaturity):
                 self.oldestAgeAtMaturity = plant.pGeneral.ageAtMaturity
-        # reset all plants to age zero and draw them 
+        # reset all plants to age zero and draw them
         udomain.domain.temporarilyHideSelectionRectangles = True
         self.invalidateCombinedPlantRects()
         try:
@@ -2159,12 +2159,12 @@ class PdAnimatePlantCommand(PdCommandWithListOfPlants):
             udomain.domain.temporarilyHideSelectionRectangles = False
         umain.MainForm.animateCommand = self
         umain.MainForm.startAnimation()
-    
+
     def animateOneDay(self):
         i = 0
         plant = PdPlant()
-        
-        # grow all plants one day 
+
+        # grow all plants one day
         udomain.domain.temporarilyHideSelectionRectangles = True
         try:
             self.invalidateCombinedPlantRects()
@@ -2175,7 +2175,7 @@ class PdAnimatePlantCommand(PdCommandWithListOfPlants):
                     plant.recalculateBounds(umain.kDrawNow)
             self.invalidateCombinedPlantRects()
             if umain.MainForm.lifeCycleShowing():
-                # don't want to update params, because they don't change during animation 
+                # don't want to update params, because they don't change during animation
                 umain.MainForm.updateLifeCyclePanelForFirstSelectedPlant()
             elif umain.MainForm.statsShowing():
                 umain.MainForm.updateStatisticsPanelForFirstSelectedPlant()
@@ -2186,10 +2186,10 @@ class PdAnimatePlantCommand(PdCommandWithListOfPlants):
         if self.age >= self.oldestAgeAtMaturity:
             umain.MainForm.stopAnimation()
         umain.MainForm.updateForChangeToSelectedPlantsLocation()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2201,26 +2201,26 @@ class PdAnimatePlantCommand(PdCommandWithListOfPlants):
                     self.plant.recalculateBounds(umain.kDrawNow)
             self.invalidateCombinedPlantRects()
             umain.MainForm.updateForChangeToSelectedPlantsLocation()
-            # changing age causes life cycle panel to need to redraw 
+            # changing age causes life cycle panel to need to redraw
             umain.MainForm.updateLifeCyclePanelForFirstSelectedPlant()
         finally:
             ucursor.cursor_stopWait()
-    
-    # redo is same as do 
+
+    # redo is same as do
     def description(self):
         result = ""
         result = "animate" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdHideOrShowCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.hide = False
         self.newValues = TListCollection()
-    
-    # ------------------------------------------------------------ PdHideOrShowCommand 
+
+    # ------------------------------------------------------------ PdHideOrShowCommand
     def createWithListOfPlantsAndHideOrShow(self, aList, aHide):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         #hidden flag not saved
         self.commandChangesPlantFile = False
@@ -2229,10 +2229,10 @@ class PdHideOrShowCommand(PdCommandWithListOfPlants):
             for i in range(0, self.plantList.Count):
                 self.values.Add(PdBooleanValue().createWithBoolean(uplant.PdPlant(self.plantList.Items[i]).hidden))
         return self
-    
+
     def createWithListOfPlantsAndListOfHides(self, aList, aHideList):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         #hidden flag not saved
         self.commandChangesPlantFile = False
@@ -2244,22 +2244,22 @@ class PdHideOrShowCommand(PdCommandWithListOfPlants):
             for i in range(0, aHideList.Count):
                 self.newValues.Add(PdBooleanValue().createWithBoolean(PdBooleanValue(aHideList.Items[i]).saveBoolean))
         return self
-    
+
     def destroy(self):
         self.newValues.free
         self.newValues = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def doCommand(self):
         PdCommandWithListOfPlants.doCommand(self)
         umain.MainForm.hideOrShowSomePlants(self.plantList, self.newValues, self.hide, umain.kDontDrawYet)
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         umain.MainForm.hideOrShowSomePlants(self.plantList, self.values, self.hide, umain.kDontDrawYet)
-    
+
     def description(self):
         result = ""
         if (self.newValues != None) and (self.newValues.Count > 0):
@@ -2269,7 +2269,7 @@ class PdHideOrShowCommand(PdCommandWithListOfPlants):
         else:
             result = "show" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdRandomizeCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.oldSeeds = TListCollection()
@@ -2280,8 +2280,8 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
         self.newXRotations = TListCollection()
         self.isInBreeder = False
         self.isRandomizeAllInBreeder = False
-    
-    # ----------------------------------------------------------------------- PdRandomizeCommand 
+
+    # ----------------------------------------------------------------------- PdRandomizeCommand
     def createWithListOfPlants(self, aList):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.oldSeeds = ucollect.TListCollection().Create()
@@ -2292,7 +2292,7 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
         self.newXRotations = ucollect.TListCollection().Create()
         self.setUpToRemoveAmendmentsWhenDone()
         return self
-    
+
     def destroy(self):
         self.oldSeeds.free
         self.oldSeeds = None
@@ -2306,10 +2306,10 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
         self.oldXRotations = None
         self.newXRotations.free
         self.newXRotations = None
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2340,13 +2340,13 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
                 umain.MainForm.updateForChangeToPlantRotations()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         i = 0
         seed = 0
         breedingSeed = 0L
         xRotation = 0.0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2374,13 +2374,13 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
                 umain.MainForm.updateForChangeToPlantRotations()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def redoCommand(self):
         i = 0
         seed = 0
         breedingSeed = 0L
         xRotation = 0.0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         try:
             ucursor.cursor_startWait()
@@ -2408,7 +2408,7 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
                 umain.MainForm.updateForChangeToPlantRotations()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def description(self):
         result = ""
         if self.isRandomizeAllInBreeder:
@@ -2418,19 +2418,19 @@ class PdRandomizeCommand(PdCommandWithListOfPlants):
         else:
             result = "randomize" + plantNamesForDescription(self.plantList)
         return result
-    
-# -------------------------------------------------------------- commands that add plants, no special superclass 
+
+# -------------------------------------------------------------- commands that add plants, no special superclass
 class PdPasteCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.useSpecialPastePosition = False
         self.oldSelectedList = TList()
-    
-    # doesn't use values, but uses plantList 
+
+    # doesn't use values, but uses plantList
     # v2.0
-    # --------------------------------------------------------------------------------------------- PdPasteCommand 
+    # --------------------------------------------------------------------------------------------- PdPasteCommand
     def createWithListOfPlantsAndOldSelectedList(self, aList, anOldSelectedList):
         i = 0
-        
+
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         # selected list is just pointers, this doesn't take control of them
         self.oldSelectedList = delphi_compatability.TList().Create()
@@ -2438,38 +2438,38 @@ class PdPasteCommand(PdCommandWithListOfPlants):
             for i in range(0, anOldSelectedList.Count):
                 self.oldSelectedList.Add(anOldSelectedList.Items[i])
         return self
-    
+
     def destroy(self):
         i = 0
-        
+
         self.oldSelectedList.free
         self.oldSelectedList = None
         if (not self.done) and (self.plantList != None) and (self.plantList.Count > 0):
             for i in range(0, self.plantList.Count):
-                # free copies of pasted plants if change was undone 
+                # free copies of pasted plants if change was undone
                 self.plant = uplant.PdPlant(self.plantList.Items[i])
                 self.plant.free
         #will free plantList TList
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
         if (not self.done) and (self.plantList != None):
             result = self.plantList.Count
         return result
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
-        # make new plants the only selected plants 
+        # make new plants the only selected plants
         umain.MainForm.deselectAllPlants()
         for i in range(0, self.plantList.Count):
             self.plant = uplant.PdPlant(self.plantList.Items[i])
-            # put new plants at end of plant manager list 
+            # put new plants at end of plant manager list
             udomain.domain.plantManager.plants.Add(self.plant)
             if not self.useSpecialPastePosition:
                 if not udomain.domain.viewPlantsInMainWindowOnePlantAtATime():
@@ -2479,10 +2479,10 @@ class PdPasteCommand(PdCommandWithListOfPlants):
             self.plant.recalculateBounds(umain.kDrawNow)
             umain.MainForm.addSelectedPlant(self.plant, kAddAtEnd)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         if self.plantList.Count <= 0:
             return
@@ -2495,50 +2495,50 @@ class PdPasteCommand(PdCommandWithListOfPlants):
                 # put back selections from before paste
                 umain.MainForm.selectedPlants.Add(self.oldSelectedList.Items[i])
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def description(self):
         result = ""
         result = "paste" + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdDuplicateCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.startDragPoint = TPoint()
         self.offset = TPoint()
         self.newPlants = TList()
         self.inTrackMouse = False
-    
-    # ------------------------------------------------------------------------ PdDuplicateCommand 
+
+    # ------------------------------------------------------------------------ PdDuplicateCommand
     def createWithListOfPlants(self, aList):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.newPlants = delphi_compatability.TList().Create()
         return self
-    
+
     def destroy(self):
         i = 0
-        
+
         if (not self.done) and (self.newPlants != None) and (self.newPlants.Count > 0):
             for i in range(0, self.newPlants.Count):
-                # free copies of created plants if change was undone 
+                # free copies of created plants if change was undone
                 self.plant = uplant.PdPlant(self.newPlants.Items[i])
                 self.plant.free
         self.newPlants.free
         self.newPlants = None
         #will free plantList
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
         if (not self.done) and (self.newPlants != None):
             result = self.newPlants.Count
         return result
-    
+
     def TrackMouse(self, aTrackPhase, anchorPoint, previousPoint, nextPoint, mouseDidMove, rightButtonDown):
         result = PdCommand()
         i = 0
         originalPlant = PdPlant()
-        
+
         result = self
         if aTrackPhase == ucommand.TrackPhase.trackPress:
             pass
@@ -2572,18 +2572,18 @@ class PdDuplicateCommand(PdCommandWithListOfPlants):
                 result = None
                 self.free
         return result
-    
+
     def doCommand(self):
         i = 0
         plantCopy = PdPlant()
-        
+
         if self.done:
-            # should have been done in the mouse down, unless it was done by a menu command 
+            # should have been done in the mouse down, unless it was done by a menu command
             return
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
-        # make new plants only selected plants 
+        # make new plants only selected plants
         umain.MainForm.deselectAllPlants()
         for i in range(0, self.plantList.Count):
             self.plant = uplant.PdPlant(self.plantList.Items[i])
@@ -2597,10 +2597,10 @@ class PdDuplicateCommand(PdCommandWithListOfPlants):
             udomain.domain.plantManager.addPlant(plantCopy)
             umain.MainForm.addSelectedPlant(plantCopy, kAddAtEnd)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         if self.newPlants.Count <= 0:
             return
@@ -2609,10 +2609,10 @@ class PdDuplicateCommand(PdCommandWithListOfPlants):
             udomain.domain.plantManager.plants.Remove(self.plant)
             umain.MainForm.removeSelectedPlant(self.plant)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def redoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.newPlants.Count <= 0:
             return
@@ -2622,58 +2622,58 @@ class PdDuplicateCommand(PdCommandWithListOfPlants):
             udomain.domain.plantManager.addPlant(self.plant)
             umain.MainForm.addSelectedPlant(self.plant, kAddAtEnd)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def description(self):
         result = ""
         result = "duplicate" + plantNamesForDescription(self.plantList)
         return result
-    
-# -------------------------------------------------------------------------------- remove command is unique 
+
+# -------------------------------------------------------------------------------- remove command is unique
 class PdRemoveCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.removedPlants = TList()
         self.copyToClipboard = False
-    
-    # doesn't use values, but uses plantList 
-    # --------------------------------------------------------------------------------------------- PdRemoveCommand 
+
+    # doesn't use values, but uses plantList
+    # --------------------------------------------------------------------------------------------- PdRemoveCommand
     def createWithListOfPlantsAndClipboardFlag(self, aList, aCopyToClipboard):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.removedPlants = delphi_compatability.TList().Create()
         self.copyToClipboard = aCopyToClipboard
         return self
-    
+
     def destroy(self):
         i = 0
-        
+
         if (self.done) and (self.removedPlants != None) and (self.removedPlants.Count > 0):
             for i in range(0, self.removedPlants.Count):
-                # free copies of cut plants if change was done 
+                # free copies of cut plants if change was done
                 self.plant = uplant.PdPlant(self.removedPlants.Items[i])
                 self.plant.free
         self.removedPlants.free
         self.removedPlants = None
         PdCommandWithListOfPlants.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
         if (self.done) and (self.removedPlants != None):
             result = self.removedPlants.Count
         return result
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.doCommand(self)
         if self.plantList.Count <= 0:
             return
         if self.copyToClipboard:
-            # copy plants 
+            # copy plants
             umain.MainForm.copySelectedPlantsToClipboard()
-        # save copy of plants before deleting 
+        # save copy of plants before deleting
         self.removedPlants.Clear()
         for i in range(0, self.plantList.Count):
-            # don't remove plants from plant manager and MainForm.selectedPlants until all indexes have been recorded 
+            # don't remove plants from plant manager and MainForm.selectedPlants until all indexes have been recorded
             self.plant = uplant.PdPlant(self.plantList.Items[i])
             self.removedPlants.Add(self.plant)
             self.plant.indexWhenRemoved = udomain.domain.plantManager.plants.IndexOf(self.plant)
@@ -2688,10 +2688,10 @@ class PdRemoveCommand(PdCommandWithListOfPlants):
             # if only looking at one, select first in list so you are not left with nothing
             umain.MainForm.selectFirstPlantInPlantList()
             umain.MainForm.showOnePlantExclusively(umain.kDrawNow)
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommandWithListOfPlants.undoCommand(self)
         if udomain.domain.viewPlantsInMainWindowOnePlantAtATime():
             # remove selection if created
@@ -2703,10 +2703,10 @@ class PdRemoveCommand(PdCommandWithListOfPlants):
                     udomain.domain.plantManager.plants.Insert(self.plant.indexWhenRemoved, self.plant)
                 else:
                     udomain.domain.plantManager.plants.Add(self.plant)
-                # all removed plants must have been selected, so also add them to the selected list 
+                # all removed plants must have been selected, so also add them to the selected list
                 umain.MainForm.addSelectedPlant(self.plant, self.plant.selectedIndexWhenRemoved)
         umain.MainForm.updateForChangeToPlantList()
-    
+
     def description(self):
         result = ""
         if self.copyToClipboard:
@@ -2714,15 +2714,15 @@ class PdRemoveCommand(PdCommandWithListOfPlants):
         else:
             result = "delete" + plantNamesForDescription(self.plantList)
         return result
-    
-# ---------------------------------------------------------------------------------- domain change commands 
+
+# ---------------------------------------------------------------------------------- domain change commands
 class PdChangeValueCommand(PdCommandWithListOfPlants):
     def __init__(self):
         self.fieldNumber = 0
         self.regrow = False
-    
-    # ------------------------------------------------------------------------------- value change commands 
-    # -------------------------------------------------------------------------------- PdChangeValueCommand 
+
+    # ------------------------------------------------------------------------------- value change commands
+    # -------------------------------------------------------------------------------- PdChangeValueCommand
     def createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow):
         PdCommandWithListOfPlants.createWithListOfPlants(self, aList)
         self.fieldNumber = aFieldNumber
@@ -2730,30 +2730,30 @@ class PdChangeValueCommand(PdCommandWithListOfPlants):
         if self.regrow:
             self.setUpToRemoveAmendmentsWhenDone()
         return self
-    
+
     def description(self):
         result = ""
         param = PdParameter()
-        
+
         result = ""
         param = None
         if (udomain.domain != None) and (udomain.domain.parameterManager != None):
-            # subclasses may want to call 
+            # subclasses may want to call
             param = udomain.domain.parameterManager.parameterForFieldNumber(self.fieldNumber)
             if (param != None):
                 result = "\"" + param.getName() + "\""
         return result
-    
+
 class PdChangeRealValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newValue = 0.0
         self.arrayIndex = 0
-    
-    # ------------------------------------------------------------ PdChangeRealValueCommand 
+
+    # ------------------------------------------------------------ PdChangeRealValueCommand
     def createCommandWithListOfPlants(self, aList, aNewValue, aFieldNumber, anArrayIndex, aRegrow):
         oldValue = 0.0
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newValue = aNewValue
         self.arrayIndex = anArrayIndex
@@ -2763,10 +2763,10 @@ class PdChangeRealValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kGetField, oldValue, self.fieldNumber, uparams.kFieldFloat, self.arrayIndex, self.regrow)
                 self.values.Add(PdSingleValue().createWithSingle(oldValue))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -2781,11 +2781,11 @@ class PdChangeRealValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldValue = 0.0
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2795,28 +2795,28 @@ class PdChangeRealValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kSetField, oldValue, self.fieldNumber, uparams.kFieldFloat, self.arrayIndex, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = PdChangeValueCommand.description(self)
         result = "change " + result
         if self.arrayIndex != -1:
-            result = result + " (" + IntToStr(self.arrayIndex + 1) + ")"
+            result = result + " (%d)" % (self.arrayIndex + 1)
         result = result + " to " + usupport.digitValueString(self.newValue) + " in " + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeSCurvePointValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newX = 0.0
         self.newY = 0.0
         self.pointIndex = 0
-    
-    # ------------------------------------------------------------ PdChangeSCurvePointValueCommand 
+
+    # ------------------------------------------------------------ PdChangeSCurvePointValueCommand
     def createCommandWithListOfPlants(self, aList, aNewX, aNewY, aFieldNumber, aPointIndex, aRegrow):
         oldX = 0.0
         oldY = 0.0
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newX = aNewX
         self.newY = aNewY
@@ -2828,10 +2828,10 @@ class PdChangeSCurvePointValueCommand(PdChangeValueCommand):
                 oldY = self.plant.editTransferField(umath.kGetField, oldY, self.fieldNumber, uparams.kFieldFloat, self.pointIndex * 2 + 1, self.regrow)
                 self.values.Add(PdSinglePointValue().createWithSingleXY(oldX, oldY))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -2852,12 +2852,12 @@ class PdChangeSCurvePointValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldX = 0.0
         oldY = 0.0
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2869,22 +2869,22 @@ class PdChangeSCurvePointValueCommand(PdChangeValueCommand):
                 oldY = self.plant.editTransferField(umath.kSetField, oldY, self.fieldNumber, uparams.kFieldFloat, self.pointIndex * 2 + 1, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = PdChangeValueCommand.description(self)
-        result = "change " + result + " point " + IntToStr(self.pointIndex + 1) + " to (" + usupport.digitValueString(self.newX) + ", " + usupport.digitValueString(self.newY) + ")" + " in " + plantNamesForDescription(self.plantList)
+        result = "change " + result + " point %d" % (self.pointIndex + 1) + " to (" + usupport.digitValueString(self.newX) + ", " + usupport.digitValueString(self.newY) + ")" + " in " + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeColorValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newColor = TColorRef()
-    
-    # ------------------------------------------------------------ PdChangeColorValueCommand 
+
+    # ------------------------------------------------------------ PdChangeColorValueCommand
     def createCommandWithListOfPlants(self, aList, aNewValue, aFieldNumber, anArrayIndex, aRegrow):
         oldValue = TColorRef()
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newColor = aNewValue
         if self.plantList.Count > 0:
@@ -2893,10 +2893,10 @@ class PdChangeColorValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kGetField, oldValue, self.fieldNumber, uparams.kFieldColor, uparams.kNotArray, self.regrow)
                 self.values.Add(PdColorValue().createWithColor(oldValue))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -2911,11 +2911,11 @@ class PdChangeColorValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldValue = TColorRef()
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2925,22 +2925,22 @@ class PdChangeColorValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kSetField, oldValue, self.fieldNumber, uparams.kFieldColor, uparams.kNotArray, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = PdChangeValueCommand.description(self)
-        result = "change " + result + " to (R " + IntToStr(UNRESOLVED.getRValue(self.newColor)) + ", G " + IntToStr(UNRESOLVED.getGValue(self.newColor)) + ", B " + IntToStr(UNRESOLVED.getBValue(self.newColor)) + ")" + " in " + plantNamesForDescription(self.plantList)
+        result = "change " + result + " to (R %d, G %d, B %d) in " % (UNRESOLVED.getRValue(self.newColor), UNRESOLVED.getGValue(self.newColor), UNRESOLVED.getBValue(self.newColor)) + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeTdoValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newTdo = KfObject3D()
-    
-    # ------------------------------------------------------------ PdChangeTdoValueCommand 
+
+    # ------------------------------------------------------------ PdChangeTdoValueCommand
     def createCommandWithListOfPlants(self, aList, aNewValue, aFieldNumber, aRegrow):
         valueTdo = KfObject3D()
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newTdo = utdo.KfObject3D().create()
         self.newTdo.copyFrom(aNewValue)
@@ -2951,16 +2951,16 @@ class PdChangeTdoValueCommand(PdChangeValueCommand):
                 valueTdo = self.plant.editTransferField(umath.kGetField, valueTdo, self.fieldNumber, uparams.kFieldThreeDObject, uparams.kNotArray, self.regrow)
                 self.values.Add(valueTdo)
         return self
-    
+
     def destroy(self):
         self.newTdo.free
         self.newTdo = None
-        # value tdos will be freed by values listCollection 
+        # value tdos will be freed by values listCollection
         PdChangeValueCommand.destroy(self)
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -2975,11 +2975,11 @@ class PdChangeTdoValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldValue = KfObject3D()
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -2989,23 +2989,23 @@ class PdChangeTdoValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kSetField, oldValue, self.fieldNumber, uparams.kFieldThreeDObject, uparams.kNotArray, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = PdChangeValueCommand.description(self)
         result = "change " + result + " to \"" + self.newTdo.getName() + "\" in " + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeSmallintValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newValue = 0
         self.arrayIndex = 0
-    
-    # ------------------------------------------------------------ PdChangeSmallintValueCommand 
+
+    # ------------------------------------------------------------ PdChangeSmallintValueCommand
     def createCommandWithListOfPlants(self, aList, aNewValue, aFieldNumber, anArrayIndex, aRegrow):
         oldValue = 0
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newValue = aNewValue
         self.arrayIndex = anArrayIndex
@@ -3015,10 +3015,10 @@ class PdChangeSmallintValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kGetField, oldValue, self.fieldNumber, uparams.kFieldSmallint, self.arrayIndex, self.regrow)
                 self.values.Add(PdSmallintValue().createWithSmallint(oldValue))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -3033,11 +3033,11 @@ class PdChangeSmallintValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldValue = 0
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -3047,23 +3047,23 @@ class PdChangeSmallintValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kSetField, oldValue, self.fieldNumber, uparams.kFieldSmallint, self.arrayIndex, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         result = PdChangeValueCommand.description(self)
-        result = "change " + result + " to " + IntToStr(self.newValue) + " in " + plantNamesForDescription(self.plantList)
+        result = "change " + result + " to %d" % (self.newValue) + " in " + plantNamesForDescription(self.plantList)
         return result
-    
+
 class PdChangeBooleanValueCommand(PdChangeValueCommand):
     def __init__(self):
         self.newValue = False
         self.arrayIndex = 0
-    
-    # ------------------------------------------------------------ PdChangeBooleanValueCommand 
+
+    # ------------------------------------------------------------ PdChangeBooleanValueCommand
     def createCommandWithListOfPlants(self, aList, aNewValue, aFieldNumber, anArrayIndex, aRegrow):
         oldValue = False
         i = 0
-        
+
         PdChangeValueCommand.createCommandWithListOfPlants(self, aList, aFieldNumber, aRegrow)
         self.newValue = aNewValue
         self.arrayIndex = anArrayIndex
@@ -3073,10 +3073,10 @@ class PdChangeBooleanValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kGetField, oldValue, self.fieldNumber, uparams.kFieldBoolean, self.arrayIndex, self.regrow)
                 self.values.Add(PdBooleanValue().createWithBoolean(oldValue))
         return self
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdChangeValueCommand.doCommand(self)
         try:
             if self.regrow:
@@ -3091,11 +3091,11 @@ class PdChangeBooleanValueCommand(PdChangeValueCommand):
         finally:
             if self.regrow:
                 ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         oldValue = False
         i = 0
-        
+
         PdChangeValueCommand.undoCommand(self)
         self.invalidateCombinedPlantRects()
         if self.plantList.Count > 0:
@@ -3105,11 +3105,11 @@ class PdChangeBooleanValueCommand(PdChangeValueCommand):
                 oldValue = self.plant.editTransferField(umath.kSetField, oldValue, self.fieldNumber, uparams.kFieldBoolean, self.arrayIndex, self.regrow)
                 self.plant.recalculateBounds(umain.kDrawNow)
         self.invalidateCombinedPlantRects()
-    
+
     def description(self):
         result = ""
         newValueString = ""
-        
+
         result = PdChangeValueCommand.description(self)
         if self.newValue:
             newValueString = "yes"
@@ -3117,8 +3117,8 @@ class PdChangeBooleanValueCommand(PdChangeValueCommand):
             newValueString = "no"
         result = "change " + result + " to " + newValueString + " in " + plantNamesForDescription(self.plantList)
         return result
-    
-# ---------------------------------------------------------------------------- breeder commands 
+
+# ---------------------------------------------------------------------------- breeder commands
 class PdBreedFromParentsCommand(PdCommand):
     def __init__(self):
         self.firstParent = None
@@ -3130,8 +3130,8 @@ class PdBreedFromParentsCommand(PdCommand):
         self.firstGeneration = None
         self.createFirstGeneration = False
         self.rowSelectedAtStart = 0
-    
-    # ---------------------------------------------------------------------------- PdBreedFromTwoParentsCommand 
+
+    # ---------------------------------------------------------------------------- PdBreedFromTwoParentsCommand
     def createWithInfo(self, existingGenerations, aFirstParent, aSecondParent, aRow, aFractionOfMaxAge, aCreateFirstGeneration):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
@@ -3143,23 +3143,23 @@ class PdBreedFromParentsCommand(PdCommand):
         self.row = aRow
         self.createFirstGeneration = aCreateFirstGeneration
         if self.row < 0:
-            #from main window 
+            #from main window
             self.row = ubreedr.BreederForm.selectedRow
         self.oldGenerations = ucollect.TListCollection()
         for generation in existingGenerations:
             self.oldGenerations.Add(generation)
         return self
-    
+
     def destroy(self):
         lastGeneration = PdGeneration()
-        
+
         if self.done:
             while self.oldGenerations.Count - 1 > self.row:
-                # free all generations below row 
+                # free all generations below row
                 lastGeneration = ugener.PdGeneration(self.oldGenerations.Items[self.oldGenerations.Count - 1])
                 self.oldGenerations.Remove(lastGeneration)
                 lastGeneration.free
-            # free new generation (and first generation if created, if not it will be nil) 
+            # free new generation (and first generation if created, if not it will be nil)
         else:
             self.firstGeneration.free
             self.firstGeneration = None
@@ -3168,12 +3168,12 @@ class PdBreedFromParentsCommand(PdCommand):
         self.oldGenerations.free
         self.oldGenerations = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         i = 0
         generation = PdGeneration()
-        
+
         result = 0
         if self.done:
             if self.oldGenerations.Count > 0:
@@ -3186,19 +3186,19 @@ class PdBreedFromParentsCommand(PdCommand):
             if self.newGeneration != None:
                 result = self.newGeneration.plants.Count
         return result
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         try:
             ucursor.cursor_startWait()
             self.rowSelectedAtStart = ubreedr.BreederForm.selectedRow
             if self.createFirstGeneration:
-                # if command created from main window, create first generation to put in breeder 
+                # if command created from main window, create first generation to put in breeder
                 self.firstGeneration = ugener.PdGeneration().createWithParents(self.firstParent, self.secondParent, self.fractionOfMaxAge)
-            # create generation that is outcome of breeding and do breeding 
+            # create generation that is outcome of breeding and do breeding
             self.newGeneration = ugener.PdGeneration()
             self.newGeneration.breedFromParents(self.firstParent, self.secondParent, self.fractionOfMaxAge)
-            # tell breeder to forget about other generations below the selected row  
+            # tell breeder to forget about other generations below the selected row
             ubreedr.BreederForm.forgetGenerationsListBelowRow(self.row)
             if self.firstGeneration != None:
                 ubreedr.BreederForm.addGeneration(self.firstGeneration)
@@ -3206,23 +3206,23 @@ class PdBreedFromParentsCommand(PdCommand):
             ubreedr.BreederForm.updateForChangeToGenerations()
             if self.row < len(self.oldGenerations):
                 # set the firstParent and secondParent pointers in the generation that was bred (either the firstGeneration
-                #      or the generation selected in the breeder) 
+                #      or the generation selected in the breeder)
                 generationBred = self.oldGenerations[self.row]
                 generationBred.firstParent = generationBred.firstSelectedPlant()
                 generationBred.secondParent = generationBred.secondSelectedPlant()
-            # add and select the new generation in the breeder 
+            # add and select the new generation in the breeder
             ubreedr.BreederForm.addGeneration(self.newGeneration)
             ubreedr.BreederForm.selectGeneration(self.newGeneration)
             ubreedr.BreederForm.updateForChangeToGenerations()
         finally:
             ucursor.cursor_stopWait()
-    
+
     def undoCommand(self):
         generationBred = PdGeneration()
-        
+
         PdCommand.undoCommand(self)
         # tell the breeder to forget about the generation(s) created by this command, and if there were any generations
-        #    wiped out by it, tell the breeder to restore pointers to all generations that were forgotten 
+        #    wiped out by it, tell the breeder to restore pointers to all generations that were forgotten
         ubreedr.BreederForm.forgetLastGeneration()
         if self.firstGeneration != None:
             ubreedr.BreederForm.forgetLastGeneration()
@@ -3230,17 +3230,17 @@ class PdBreedFromParentsCommand(PdCommand):
         ubreedr.BreederForm.addGenerationsFromListBelowRow(self.row, self.oldGenerations)
         ubreedr.BreederForm.selectedRow = self.rowSelectedAtStart
         if self.row <= self.oldGenerations.Count - 1:
-            # set parent pointers of generation that was bred (firstGeneration or generation selected) to nil 
+            # set parent pointers of generation that was bred (firstGeneration or generation selected) to nil
             generationBred = ugener.PdGeneration(self.oldGenerations.Items[self.row])
             generationBred.firstParent = None
             generationBred.secondParent = None
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     def redoCommand(self):
         generationBred = PdGeneration()
-        
+
         PdCommand.doCommand(self)
-        # tell breeder to forget about other generations below the selected row (the whole list if from the main window) 
+        # tell breeder to forget about other generations below the selected row (the whole list if from the main window)
         ubreedr.BreederForm.forgetGenerationsListBelowRow(self.row)
         if self.firstGeneration != None:
             ubreedr.BreederForm.addGeneration(self.firstGeneration)
@@ -3248,15 +3248,15 @@ class PdBreedFromParentsCommand(PdCommand):
         ubreedr.BreederForm.updateForChangeToGenerations()
         if self.row <= self.oldGenerations.Count - 1:
             # set the firstParent and secondParent pointers in the generation that was bred (either the firstGeneration
-            #    or the generation selected in the breeder) 
+            #    or the generation selected in the breeder)
             generationBred = ugener.PdGeneration(self.oldGenerations.Items[self.row])
             generationBred.firstParent = generationBred.firstSelectedPlant()
             generationBred.secondParent = generationBred.secondSelectedPlant()
-        # add and select the new generation in the breeder 
+        # add and select the new generation in the breeder
         ubreedr.BreederForm.addGeneration(self.newGeneration)
         ubreedr.BreederForm.selectGeneration(self.newGeneration)
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     def description(self):
         result = ""
         if self.createFirstGeneration:
@@ -3267,9 +3267,9 @@ class PdBreedFromParentsCommand(PdCommand):
             if self.secondParent != None:
                 result = result + ", \"" + self.secondParent.getName() + "\""
         else:
-            result = "breed from breeder row " + IntToStr(self.row + 1)
+            result = "breed from breeder row %d" % (self.row + 1)
         return result
-    
+
 class PdReplaceBreederPlant(PdCommand):
     def __init__(self):
         self.originalPlant = PdPlant()
@@ -3277,8 +3277,8 @@ class PdReplaceBreederPlant(PdCommand):
         self.plantDraggedFrom = PdPlant()
         self.row = 0
         self.column = 0
-    
-    # ------------------------------------------------------------------- PdReplaceBreederPlant 
+
+    # ------------------------------------------------------------------- PdReplaceBreederPlant
     def createWithPlantRowAndColumn(self, aPlant, aRow, aColumn):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
@@ -3288,7 +3288,7 @@ class PdReplaceBreederPlant(PdCommand):
         self.row = aRow
         self.column = aColumn
         return self
-    
+
     def destroy(self):
         if self.done:
             self.originalPlant.free
@@ -3297,13 +3297,13 @@ class PdReplaceBreederPlant(PdCommand):
             self.newPlant.free
             self.newPlant = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         #has one plant in either case (done or undone)
         result = 1
         return result
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         self.originalPlant = ubreedr.BreederForm.plantForRowAndColumn(self.row, self.column)
@@ -3311,28 +3311,28 @@ class PdReplaceBreederPlant(PdCommand):
             raise GeneralException.create("Problem: Invalid row and column in method PdReplaceBreederPlant.doCommand.")
         self.newPlant = self.plantDraggedFrom.makeCopy()
         ubreedr.BreederForm.replacePlantInRow(self.originalPlant, self.newPlant, self.row)
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         ubreedr.BreederForm.replacePlantInRow(self.newPlant, self.originalPlant, self.row)
-    
+
     def redoCommand(self):
         PdCommand.doCommand(self)
         ubreedr.BreederForm.replacePlantInRow(self.originalPlant, self.newPlant, self.row)
-    
+
     def description(self):
         result = ""
-        result = "replace breeder plant in row " + IntToStr(self.row + 1) + ", column " + IntToStr(self.column)
+        result = "replace breeder plant in row %d, column %d" % (self.row + 1, self.column)
         return result
-    
+
 class PdMakeTimeSeriesCommand(PdCommand):
     def __init__(self):
         self.oldPlants = TList()
         self.newPlants = TList()
         self.newPlant = PdPlant()
         self.isPaste = False
-    
-    # ------------------------------------------------------------------- PdMakeTimeSeriesCommand 
+
+    # ------------------------------------------------------------------- PdMakeTimeSeriesCommand
     def createWithNewPlant(self, aNewPlant):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
@@ -3342,10 +3342,10 @@ class PdMakeTimeSeriesCommand(PdCommand):
         self.oldPlants = delphi_compatability.TList().Create()
         self.newPlants = delphi_compatability.TList().Create()
         return self
-    
+
     def destroy(self):
         i = 0
-        
+
         if self.done:
             if (self.oldPlants != None) and (self.oldPlants.Count > 0):
                 for i in range(0, self.oldPlants.Count):
@@ -3359,7 +3359,7 @@ class PdMakeTimeSeriesCommand(PdCommand):
         self.newPlants.free
         self.newPlants = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
@@ -3370,10 +3370,10 @@ class PdMakeTimeSeriesCommand(PdCommand):
             if self.newPlants != None:
                 result = self.newPlants.Count
         return result
-    
+
     def doCommand(self):
         i = 0
-        
+
         PdCommand.doCommand(self)
         if utimeser.TimeSeriesForm.plants.Count > 0:
             for i in range(0, utimeser.TimeSeriesForm.plants.Count):
@@ -3385,27 +3385,27 @@ class PdMakeTimeSeriesCommand(PdCommand):
             for i in range(0, utimeser.TimeSeriesForm.plants.Count):
                 self.newPlants.Add(utimeser.TimeSeriesForm.plants.Items[i])
         utimeser.TimeSeriesForm.updateForChangeToPlants(utimeser.kRecalculateScale)
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommand.undoCommand(self)
         utimeser.TimeSeriesForm.plants.clearPointersWithoutDeletingObjects()
         if self.oldPlants.Count > 0:
             for i in range(0, self.oldPlants.Count):
                 utimeser.TimeSeriesForm.plants.Add(self.oldPlants.Items[i])
         utimeser.TimeSeriesForm.updateForChangeToPlants(utimeser.kDontRecalculateScale)
-    
+
     def redoCommand(self):
         i = 0
-        
+
         PdCommand.doCommand(self)
         utimeser.TimeSeriesForm.plants.clearPointersWithoutDeletingObjects()
         if self.newPlants.Count > 0:
             for i in range(0, self.newPlants.Count):
                 utimeser.TimeSeriesForm.plants.Add(self.newPlants.Items[i])
         utimeser.TimeSeriesForm.updateForChangeToPlants(utimeser.kDontRecalculateScale)
-    
+
     def description(self):
         result = ""
         if self.isPaste:
@@ -3415,15 +3415,15 @@ class PdMakeTimeSeriesCommand(PdCommand):
             if self.newPlant != None:
                 result = result + " for plant \"" + self.newPlant.getName() + "\""
         return result
-    
+
 class PdChangeBreedingAndTimeSeriesOptionsCommand(PdCommand):
     def __init__(self):
         self.oldOptions = BreedingAndTimeSeriesOptionsStructure()
         self.newOptions = BreedingAndTimeSeriesOptionsStructure()
         self.oldDomainOptions = DomainOptionsStructure()
         self.newDomainOptions = DomainOptionsStructure()
-    
-    # -------------------------------------------------------------- PdChangeBreederOptionsCommand 
+
+    # -------------------------------------------------------------- PdChangeBreederOptionsCommand
     def createWithOptionsAndDomainOptions(self, anOptions, aDomainOptions):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
@@ -3432,33 +3432,33 @@ class PdChangeBreedingAndTimeSeriesOptionsCommand(PdCommand):
         self.newDomainOptions = aDomainOptions
         self.oldDomainOptions = udomain.domain.options
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         udomain.domain.breedingAndTimeSeriesOptions = self.newOptions
         udomain.domain.options = self.newDomainOptions
         ubreedr.BreederForm.updateForChangeToDomainOptions()
         utimeser.TimeSeriesForm.updateForChangeToDomainOptions()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.breedingAndTimeSeriesOptions = self.oldOptions
         udomain.domain.options = self.oldDomainOptions
         ubreedr.BreederForm.updateForChangeToDomainOptions()
         utimeser.TimeSeriesForm.updateForChangeToDomainOptions()
-    
-    # redo is same as do 
+
+    # redo is same as do
     def description(self):
         result = ""
         result = "change breeding and time series options"
         return result
-    
+
 class PdDeleteBreederGenerationCommand(PdCommand):
     def __init__(self):
         self.generation = PdGeneration()
         self.row = 0
-    
-    # ------------------------------------------------------------------------ PdDeleteBreederGenerationCommand 
+
+    # ------------------------------------------------------------------------ PdDeleteBreederGenerationCommand
     def createWithGeneration(self, aGeneration):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
@@ -3469,67 +3469,67 @@ class PdDeleteBreederGenerationCommand(PdCommand):
         if self.row < 0:
             raise GeneralException.create("Problem: Generation not in list in method PdDeleteBreederGenerationCommand.createWithGeneration.")
         return self
-    
+
     def destroy(self):
         if self.done:
             self.generation.free
             self.generation = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         result = 0
         if (self.done) and (self.generation != None):
             result = self.generation.plants.Count
         return result
-    
+
     def doCommand(self):
         index = 0
-        
+
         PdCommand.doCommand(self)
         index = ubreedr.BreederForm.generations.IndexOf(self.generation)
         ubreedr.BreederForm.generations.Remove(self.generation)
         if index > 0:
             ubreedr.BreederForm.selectedRow = index - 1
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         ubreedr.BreederForm.generations.Insert(self.row, self.generation)
         ubreedr.BreederForm.selectedRow = ubreedr.BreederForm.generations.IndexOf(self.generation)
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     def description(self):
         result = ""
         result = "delete breeder generation"
         return result
-    
+
 class PdDeleteAllBreederGenerationsCommand(PdCommand):
     def __init__(self):
         self.generations = TListCollection()
-    
-    # ------------------------------------------------------------------- PdDeleteAllBreederGenerationsCommand 
+
+    # ------------------------------------------------------------------- PdDeleteAllBreederGenerationsCommand
     def create(self):
         i = 0
-        
+
         self.generations = ucollect.TListCollection().Create()
         if ubreedr.BreederForm.generations.Count > 0:
             for i in range(0, ubreedr.BreederForm.generations.Count):
                 self.generations.Add(ubreedr.BreederForm.generations.Items[i])
         return self
-    
+
     def destroy(self):
         if not self.done:
             self.generations.clearPointersWithoutDeletingObjects()
         self.generations.free
         self.generations = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         i = 0
         generation = PdGeneration()
-        
+
         result = 0
         if self.done:
             if self.generations.Count > 0:
@@ -3537,77 +3537,77 @@ class PdDeleteAllBreederGenerationsCommand(PdCommand):
                     generation = ugener.PdGeneration(self.generations.Items[i])
                     result = result + generation.plants.Count
         return result
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         ubreedr.BreederForm.generations.clearPointersWithoutDeletingObjects()
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommand.undoCommand(self)
         if self.generations.Count > 0:
             for i in range(0, self.generations.Count):
                 ubreedr.BreederForm.generations.Add(self.generations.Items[i])
         ubreedr.BreederForm.updateForChangeToGenerations()
-    
+
     #redo same as do
     def description(self):
         result = ""
         result = "delete all breeder generations"
         return result
-    
-# ------------------------------------------------------------------------ time series 
+
+# ------------------------------------------------------------------------ time series
 class PdChangeNumberOfTimeSeriesStagesCommand(PdCommand):
     def __init__(self):
         self.newNumber = 0
         self.oldNumber = 0
-    
-    # -------------------------------------------------------- PdChangeNumberOfTimeSeriesStagesCommand 
+
+    # -------------------------------------------------------- PdChangeNumberOfTimeSeriesStagesCommand
     def createWithNewNumberOfStages(self, aNumber):
         PdCommand.create(self)
         self.commandChangesPlantFile = False
         self.newNumber = aNumber
         self.oldNumber = udomain.domain.breedingAndTimeSeriesOptions.numTimeSeriesStages
         return self
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         udomain.domain.breedingAndTimeSeriesOptions.numTimeSeriesStages = self.newNumber
         utimeser.TimeSeriesForm.updateForChangeToDomainOptions()
-    
+
     def undoCommand(self):
         PdCommand.undoCommand(self)
         udomain.domain.breedingAndTimeSeriesOptions.numTimeSeriesStages = self.oldNumber
         utimeser.TimeSeriesForm.updateForChangeToDomainOptions()
-    
+
     def description(self):
         result = ""
         result = "change number of time series stages"
         return result
-    
+
 class PdDeleteTimeSeriesCommand(PdCommand):
     def __init__(self):
         self.plants = TListCollection()
-    
-    # -------------------------------------------------------- PdDeleteTimeSeriesCommand 
+
+    # -------------------------------------------------------- PdDeleteTimeSeriesCommand
     def create(self):
         i = 0
-        
+
         self.plants = ucollect.TListCollection().Create()
         if utimeser.TimeSeriesForm.plants.Count > 0:
             for i in range(0, utimeser.TimeSeriesForm.plants.Count):
                 self.plants.Add(utimeser.TimeSeriesForm.plants.Items[i])
         return self
-    
+
     def destroy(self):
         if not self.done:
             self.plants.clearPointersWithoutDeletingObjects()
         self.plants.free
         self.plants = None
         PdCommand.destroy(self)
-    
+
     def numberOfStoredLargeObjects(self):
         result = 0L
         if self.done:
@@ -3615,24 +3615,24 @@ class PdDeleteTimeSeriesCommand(PdCommand):
         else:
             result = 0
         return result
-    
+
     def doCommand(self):
         PdCommand.doCommand(self)
         utimeser.TimeSeriesForm.plants.clearPointersWithoutDeletingObjects()
         utimeser.TimeSeriesForm.updateForChangeToPlants(utimeser.kDontRecalculateScale)
-    
+
     def undoCommand(self):
         i = 0
-        
+
         PdCommand.undoCommand(self)
         if self.plants.Count > 0:
             for i in range(0, self.plants.Count):
                 utimeser.TimeSeriesForm.plants.Add(self.plants.Items[i])
         utimeser.TimeSeriesForm.updateForChangeToPlants(utimeser.kDontRecalculateScale)
-    
+
     #redo same as do
     def description(self):
         result = ""
         result = "delete time series"
         return result
-    
+
