@@ -61,7 +61,7 @@ kNotExactAge = False
 kExactAge = True
 
 # record
-class BreedingAndTimeSeriesOptionsStructure:
+class BreedingAndTimeSeriesOptionsStructure(object):
     def __init__(self):
         self.mutationStrengths = [0] * (kMaxBreedingSections + 1)
         self.firstPlantWeights = [0] * (kMaxBreedingSections + 1)
@@ -114,7 +114,7 @@ import ufiler
 
 # v2.0
 # record
-class TdoParamsStructure:
+class TdoParamsStructure(object):
     def __init__(self):
         self.object3D = None
         self.xRotationBeforeDraw = 0.0
@@ -133,7 +133,7 @@ class TdoParamsStructure:
 # params->start
 # access->pGeneral
 # record
-class ParamsGeneral:
+class ParamsGeneral(object):
     def __init__(self):
         self.randomSway = 0.0
         self.startingSeedForRandomNumberGenerator = 0
@@ -154,7 +154,7 @@ class ParamsGeneral:
 #not using yet
 # access->pLeaf
 # record
-class ParamsLeaf:
+class ParamsLeaf(object):
     def __init__(self):
         self.leafTdoParams = TdoParamsStructure()
         self.stipuleTdoParams = TdoParamsStructure()
@@ -179,14 +179,14 @@ class ParamsLeaf:
 #ENUM
 # access->pSeedlingLeaf
 # record
-class ParamsSeedlingLeaf:
+class ParamsSeedlingLeaf(object):
     def __init__(self):
         self.leafTdoParams = TdoParamsStructure()
         self.nodesOnStemWhenFallsOff = 0
 
 # access->pInternode
 # record
-class ParamsInternode:
+class ParamsInternode(object):
     def __init__(self):
         self.faceColor = UnassignedColor
         self.backfaceColor = UnassignedColor
@@ -217,7 +217,7 @@ class ParamsInternode:
 # access->pFlower
 #kBud = 0; kPistil = 1; kStamens = 2; kFirstPetals = 3; kSecondPetals = 4; kThirdPetals = 5; kSepals = 6;
 # record
-class ParamsFlower:
+class ParamsFlower(object):
     def __init__(self):
         self.tdoParams = [] # was: kBud..kSepals
         for i in range(0, kSepals + 1):
@@ -247,7 +247,7 @@ class ParamsFlower:
 
 # access->pInflor
 # record
-class ParamsInflorescence:
+class ParamsInflorescence(object):
     def __init__(self):
         self.bractTdoParams = TdoParamsStructure()
         self.optimalBiomass_pctMPB = 0.0
@@ -282,13 +282,13 @@ class ParamsInflorescence:
 
 # access->pAxillaryBud
 # record
-class ParamsAxillaryBud:
+class ParamsAxillaryBud(object):
     def __init__(self):
         self.tdoParams = TdoParamsStructure()
 
 # access->pMeristem
 # record
-class ParamsMeristem:
+class ParamsMeristem(object):
     def __init__(self):
         self.branchingIndex = 0.0
         self.branchingDistance = 0.0
@@ -300,7 +300,7 @@ class ParamsMeristem:
 
 # access->pFruit
 # record
-class ParamsFruit:
+class ParamsFruit(object):
     def __init__(self):
         self.tdoParams = TdoParamsStructure()
         self.sCurveParams = umath.SCurveStructure()
@@ -312,7 +312,7 @@ class ParamsFruit:
 
 # access->pRoot
 # record
-class ParamsRoot:
+class ParamsRoot(object):
     def __init__(self):
         self.tdoParams = TdoParamsStructure()
         self.showsAboveGround = False
@@ -347,7 +347,7 @@ def cancelOutOppositeAmounts(amountAdded, amountTakenAway):
 
 
 # aspects->stop
-class PdPlant:
+class PdPlant(object):
     # graphical
     # parameters
     # all vars following don't need to be saved in the plant file (but should be copied when streaming)
@@ -2456,7 +2456,7 @@ class PdPlant:
             raise GeneralException.create("Problem: Invalid part type in method colorForDXFPartType.")
         return result
 
-class PdPlantUpdateEvent:
+class PdPlantUpdateEvent(object):
     def __init__(self):
         self.plant = None
         self.fieldID = 0
@@ -2474,7 +2474,7 @@ def checkVersionNumberInPlantNameLine(aLine):
         ShowMessage("The plant \"" + plantName + "\" has a major version number of %d " %(versionNumber) + "," + chr(13) + "which is higher than this major version of PlantStudio (2)." + chr(13) + chr(13) + "That means that although I may be able to read the plant," + chr(13) + "it will probably look better in the most up-to-date version of PlantStudio," + chr(13) + "which you can get at the PlantStudio web site.")
 
 # --------------------------------------------------------------------------------------- input/output
-class PlantLoader:
+class PlantLoader(object):
     def __init__(self):
         self.plants = ucollect.TListCollection()
 

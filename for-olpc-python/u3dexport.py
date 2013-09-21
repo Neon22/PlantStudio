@@ -103,14 +103,14 @@ kZ = 2
 # VRML
 # general
 # record
-class Vertex:
+class Vertex(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
 
 # record
-class Triangle:
+class Triangle(object):
     def __init__(self):
         self.vertex1 = 0
         self.vertex2 = 0
@@ -119,7 +119,7 @@ class Triangle:
 
 # generic
 # record
-class FileExport3DOptionsStructure:
+class FileExport3DOptionsStructure(object):
     def __init__(self):
         self.exportType = 0
         self.layeringOption = 0
@@ -151,7 +151,7 @@ class FileExport3DOptionsStructure:
 kNumVRMLPointsPerLine = 4
 
 # record
-class SingleOverlay:
+class SingleOverlay(object):
     def __init__(self):
         pass
 

@@ -22,7 +22,7 @@ import delphi_compatability
 
 # Pdf port (TList)
 
-class TListCollection:
+class TListCollection(object):
     def __init__(self, *args):
         self.list = []
         for arg in args:

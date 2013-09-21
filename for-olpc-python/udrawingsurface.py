@@ -13,7 +13,7 @@ kInitialDrawingSurfaceTriangles = 1000
 
 # ----------------------------------------------------------------------------- *KfDrawingSurface creating/destroying
 
-class KfDrawingSurface:
+class KfDrawingSurface(object):
     def __init__(self):
         self.drawingContext = None
         self.lineContrastIndex = 0

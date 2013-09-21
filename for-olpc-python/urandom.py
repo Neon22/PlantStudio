@@ -10,7 +10,7 @@ import ufiler
 import delphi_compatability
 """
 
-class PdRandom:
+class PdRandom(object):
     def __init__(self):
         self.seed = 0L
 

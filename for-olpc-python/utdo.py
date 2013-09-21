@@ -44,7 +44,7 @@ kEndTdoString = "end 3D object"
 ##    return result
 
 #class KfIndexTriangle(PdStreamableObject):
-class KfIndexTriangle:
+class KfIndexTriangle(object):
     def __init__(self):
         self.pointIndexes = [0] * 3
 
@@ -79,7 +79,7 @@ class KfIndexTriangle:
 #class KfObject3D(PdStreamableObject):
 # doesn't need to be streamed, only used while drawing
 # ---------------------------------------------------------------------------------- KfObject3D
-class KfObject3D:
+class KfObject3D(object):
     def __init__(self):
         self.points = []
         self.originPointIndex = 0

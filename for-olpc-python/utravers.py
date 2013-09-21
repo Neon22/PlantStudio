@@ -135,7 +135,7 @@ def linearGrowth(current, optimal, minDays):
     return current
 
 # meristems
-class PdPlantStatistics:
+class PdPlantStatistics(object):
     def __init__(self):
         self.count = [0] * (kStatisticsPartTypeLast + 1)
         self.liveBiomass_pctMPB = [0.0] * (kStatisticsPartTypeLast + 1)
@@ -155,7 +155,7 @@ class PdPlantStatistics:
             result = result + self.deadBiomass_pctMPB[i]
         return result
 
-class PdTraverser:
+class PdTraverser(object):
     def __init__(self):
         self.plant = None
         self.filer = None

@@ -21,14 +21,14 @@ gVersionName = ""
 kMaxEvaluationTime_hours = 10
 
 # record
-class SinglePoint:
+class SinglePoint(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
         self.reservedZ = 0.0
 
 # record
-class SaveFileNamesStructure:
+class SaveFileNamesStructure(object):
     def __init__(self):
         self.fileType = 0
         self.tempFile = ""

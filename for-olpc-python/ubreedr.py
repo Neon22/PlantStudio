@@ -146,7 +146,7 @@ class DrawGrid(gtk.DrawingArea):
     def Invalidate(self):
         InvalidateWidget(self)
 
-class TBreederForm:
+class TBreederForm(object):
     def __init__(self):
         self.generations = ucollect.TListCollection()
         self.lightUpCell = delphi_compatability.TPoint(0, 0)

@@ -29,7 +29,7 @@ kInitialTurtleMatrixStackDepth = 250
 # $ DEFINE DEBUG_TURTLE
 # general options
 # record
-class PlantDrawOptionsStructure:
+class PlantDrawOptionsStructure(object):
     def __init__(self):
         self.sortPolygons = False
         self.drawLines = True
@@ -67,7 +67,7 @@ def debugDrawAxis(turtle, pixels):
 
 # ---------------------------------------------------------------------------------- *KfTurtle creating/destroying
 #PDF FIX - may want to think about size of recorded points
-class KfTurtle:
+class KfTurtle(object):
     def __init__(self):
         # v1.60final looked at giving hint with plant part name again; still has problem
         # that what you record is only points, and what you need to record is rects

@@ -79,7 +79,7 @@ kNotInPlantMover = False
 #pf32bit
 # v1.60
 # record
-class BitmapOptionsStructure:
+class BitmapOptionsStructure(object):
     def __init__(self):
         self.exportType = 0
         self.colorType = TPixelFormat()
@@ -109,7 +109,7 @@ class BitmapOptionsStructure:
 # 1 to 100
 # don't save these, they are for storing to use during printing only
 # record
-class NozzleOptionsStructure:
+class NozzleOptionsStructure(object):
     def __init__(self):
         self.exportType = 0
         self.resolution_pixelsPerInch = 0
@@ -121,7 +121,7 @@ class NozzleOptionsStructure:
 # don't save in settings
 # don't save in settings
 # record
-class NumberedAnimationOptionsStructure:
+class NumberedAnimationOptionsStructure(object):
     def __init__(self):
         self.animateBy = 0
         self.xRotationIncrement = 0
@@ -136,7 +136,7 @@ class NumberedAnimationOptionsStructure:
 # don't save in settings
 # don't save in settings
 # record
-class DomainOptionsStructure:
+class DomainOptionsStructure(object):
     def __init__(self):
         self.hideWelcomeForm = False
         self.openMostRecentFileAtStart = False
@@ -233,7 +233,7 @@ kGetValues = False
 #seconds
 # v1.4
 #cfk change length if needed
-class PdDomain:
+class PdDomain(object):
     def __init__(self):
         self.plantFileName = ""
         self.lastOpenedPlantFileName = ""

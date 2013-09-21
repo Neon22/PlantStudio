@@ -45,7 +45,7 @@ kNotArray = -1
 # v2.1
 # ---------------------------------------------------------- PdParameter
 
-class PdParameter:
+class PdParameter(object):
     ''' Primary class for manipulating paramters of a plant '''
     def __init__(self):
         self.fieldNumber = 0

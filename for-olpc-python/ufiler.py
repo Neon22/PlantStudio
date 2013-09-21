@@ -24,7 +24,7 @@ class PdClassAndVersionInformationRecord:
         self.additionNumber = 0
 
 # enumerated type PdFilerMode
-class PdFilerMode:
+class PdFilerMode(object):
     filerModeReading, filerModeWriting, filerModeCounting = range(3)
 
 # const
@@ -93,7 +93,7 @@ def StreamComboBoxItemIndexToTempVarWithFiler(filer, cvir, comboBox, saveIndex):
 
 
 ###------------------
-class PdFiler:
+class PdFiler(object):
     def __init__(self):
         self.stream = TStream()
         self.mode = PdFilerMode()

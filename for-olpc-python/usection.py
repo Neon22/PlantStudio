@@ -12,8 +12,8 @@ kMaxSectionItems = 200
 
 # v2.0 increased
 # v2.1
-# ----------------------------------------------------------------- PdSection 
-class PdSection:
+# ----------------------------------------------------------------- PdSection
+class PdSection(object):
     def __init__(self):
         self.numSectionItems = 0
         self.sectionItems = [0] * (kMaxSectionItems + 1)
@@ -25,29 +25,29 @@ class PdSection:
     def addSectionItem(self, newSectionItem):
         self.numSectionItems += 1
         self.sectionItems[self.numSectionItems - 1] = newSectionItem
-    
+
     def getName(self):
         result = ""
         result = self.name
         return result
-    
+
     def setName(self, newName):
         self.name = newName
- 
-# ----------------------------------------------------------------- PdSectionManager    
-class PdSectionManager:
+
+# ----------------------------------------------------------------- PdSectionManager
+class PdSectionManager(object):
     def __init__(self):
         self.sections = ucollect.TListCollection()
         # v2.1
         self.orthogonalSections = ucollect.TListCollection()
-    
+
     def addSection(self, aName):
         section = PdSection()
         section.name = aName
         self.sections.Add(section)
         result = section
         return result
-    
+
     # v2.1
     def addOrthogonalSection(self, aName):
         section = PdSection()
@@ -58,7 +58,7 @@ class PdSectionManager:
         udomain.domain.parameterManager.addParameterForSection(section.name, "", uparams.PdParameter().make(1000 + len(self.orthogonalSections), "header", section.name, 7, 0, 0, 0, 0, 0, 0.00000000, 0.00000000, "", False, False, "", 0, "These parameters can also be found in other (main) sections, but you may want to look at together here."))
         result = section
         return result
-    
+
     def sectionForName(self, aName):
         result = None
         for section in self.sections:
@@ -71,7 +71,7 @@ class PdSectionManager:
                 result = section
                 return result
         return result
-    
+
     # v2.1 override changed to use section and parameter name
     def parameterForSectionAndName(self, aSectionName, aParameterName):
         result = None
@@ -91,4 +91,4 @@ class PdSectionManager:
                             result = parameter
                             return result
         return result
-    
+

@@ -45,7 +45,7 @@ kRotateZ = 2
 # const
 kMaxLineOutputPoints = 200
 
-class PdPlantPart(ufiler.PdStreamableObject): # object):#!! removed
+class PdPlantPart(object):#ufiler.PdStreamableObject): # object):#!! removed
     def __init__(self):
         # structure
         self.plant = None

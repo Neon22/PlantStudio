@@ -14,7 +14,7 @@ import delphi_compatability
 kStartAmendmentString = "start posing change"
 kEndAmendmentString = "end posing change"
 
-class PdPlantDrawingAmendment:
+class PdPlantDrawingAmendment(object):
     def __init__(self):
         self.partID = 0L
         self.typeOfPart = ""

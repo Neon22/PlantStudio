@@ -21,7 +21,7 @@ CosCache = [0] * (kFastTrigArraySize + 1)
 
 #if you change this - you need to change angleX etc. functions
 # record
-class TRealRect:
+class TRealRect(object):
     def __init__(self):
         self.top = 0.0
         self.left = 0.0
@@ -29,14 +29,14 @@ class TRealRect:
         self.right = 0.0
 
 # record
-class Vertex:
+class Vertex(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
 
 # record
-class VertexTriangle:
+class VertexTriangle(object):
     def __init__(self):
         self.vertex1 = 0
         self.vertex2 = 0
@@ -102,7 +102,7 @@ def pointInTriangle(point, triangle):
     return result
 
 # ---------------------------------------------------------------------------------- KfPoint3D
-class KfPoint3D:
+class KfPoint3D(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
@@ -162,7 +162,7 @@ def KfPoint3D_addPointToBoundsRect(boundsRect, aPoint):
         elif y > boundsRect.Bottom:
             boundsRect.Bottom = y
 
-class KfMatrix:
+class KfMatrix(object):
     def __init__(self):
         self.a0 = 0.0
         self.a1 = 0.0
@@ -407,7 +407,7 @@ class KfMatrix:
         return result
 
 #these can only be triangular
-class KfTriangle:
+class KfTriangle(object):
     def __init__(self):
         self.foreColor = delphi_compatability.EmptyColor
         self.backColor = delphi_compatability.EmptyColor

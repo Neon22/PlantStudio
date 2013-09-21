@@ -10,7 +10,7 @@ import uplant
 import delphi_compatability
 
 # --------------------------------------------------------------------------------- PdGeneration
-class PdGeneration:
+class PdGeneration(object):
     def __init__(self):
         self.firstParent = None
         self.secondParent = None

@@ -29,7 +29,7 @@ def skipToProfileSection(fileStream, section):
         inputLine = fileStream.readln()
     return result
 
-class KfStringStream:
+class KfStringStream(object):
     def __init__(self):
         self.source = ""
         self.remainder = ""

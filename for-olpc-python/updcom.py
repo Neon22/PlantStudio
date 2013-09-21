@@ -82,7 +82,7 @@ def nameForDirection(direction):
     return result
 
 # value classes to save information about each plant in list
-class PdBooleanValue:
+class PdBooleanValue(object):
     def __init__(self):
         self.saveBoolean = False
 
@@ -91,7 +91,7 @@ class PdBooleanValue:
         self.saveBoolean = aBoolean
         return self
 
-class PdPointValue:
+class PdPointValue(object):
     def __init__(self):
         self.savePoint = TPoint()
 
@@ -99,7 +99,7 @@ class PdPointValue:
         self.savePoint = aPoint
         return self
 
-class PdSingleValue:
+class PdSingleValue(object):
     def __init__(self):
         self.saveSingle = 0.0
 
@@ -107,7 +107,7 @@ class PdSingleValue:
         self.saveSingle = aSingle
         return self
 
-class PdSinglePointValue:
+class PdSinglePointValue(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
@@ -117,7 +117,7 @@ class PdSinglePointValue:
         self.y = aY
         return self
 
-class PdXYZValue:
+class PdXYZValue(object):
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
@@ -129,7 +129,7 @@ class PdXYZValue:
         self.z = aZ
         return self
 
-class PdSmallintValue:
+class PdSmallintValue(object):
     def __init__(self):
         self.saveSmallint = 0
 
@@ -137,7 +137,7 @@ class PdSmallintValue:
         self.saveSmallint = aSmallint
         return self
 
-class PdLongintValue:
+class PdLongintValue(object):
     def __init__(self):
         self.saveLongint = 0L
 
@@ -145,7 +145,7 @@ class PdLongintValue:
         self.saveLongint = aLongint
         return self
 
-class PdColorValue:
+class PdColorValue(object):
     def __init__(self):
         self.saveColor = TColorRef()
 

@@ -14,7 +14,7 @@ import delphi_compatability
 """
 
 # record
-class SCurveStructure:
+class SCurveStructure(object):
     def __init__(self, x1=0.0, y1=0.0, x2=0.0, y2=0.0, c1=0.0, c2=0.0):
         self.x1 = x1
         self.y1 = y1
