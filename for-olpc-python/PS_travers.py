@@ -1,8 +1,15 @@
-# unit Utravers
+### PS_travers
+### - used to travers PLant 'tree'
+### Dependencies:
+###     - PS_math for safediv
+### Classes:
+###     - PdPlantStatistics, PdTraverser
+### Funcs for lineargrowth calcs
+
+
 
 from PS_common import *
 from PS_constants import *
-#import PS_3dexport
 import PS_math
 
 

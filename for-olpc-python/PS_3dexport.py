@@ -1,7 +1,12 @@
-# unit U3dexport
+### PS_3dexport
+### - enable exporting geometry to various file formats.
+### - Dependencies:
+###       - PS_drawingsurface - used to inherit for: KfFileExportSurface
 
-""" enable exporting eth geometry to various file formats.
-"""
+### - Classes: Vertex, Triangle, Single Overlay
+### - Classes: many for formats derived from KfFileExportSurface
+###            - (which has a FileExport3DOptionsStructure)
+
 
 from PS_common import *
 from PS_constants import *

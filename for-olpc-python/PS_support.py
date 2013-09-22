@@ -2,7 +2,7 @@
 
 from PS_common import *
 from PS_constants import *
-import usstream
+import PS_sstream
 import PS_makeparams
 import PS_math
 import udebug
@@ -593,7 +593,7 @@ def rectToString(aRect):
 
 def stringToRect(aString):
     result = Rect(0, 0, 0, 0)
-    stream = usstream.KfStringStream()
+    stream = PS_sstream.KfStringStream()
     stream.onStringSeparator(aString, " ")
     result.Left = StrToIntDef(stream.nextToken(), 0)
     result.Top = StrToIntDef(stream.nextToken(), 0)
@@ -607,7 +607,7 @@ def pointToString(aPoint):
 
 def stringToPoint(aString):
     result = Point(0, 0)
-    stream = usstream.KfStringStream()
+    stream = PS_sstream.KfStringStream()
     stream.onStringSeparator(aString, " ")
     result.X = StrToIntDef(stream.nextToken(), 0)
     result.Y = StrToIntDef(stream.nextToken(), 0)
@@ -623,7 +623,7 @@ def singlePointToString(aPoint):
 
 def stringToSinglePoint(aString):
     result = SinglePoint()
-    stream = usstream.KfStringStream()
+    stream = PS_sstream.KfStringStream()
     stream.onStringSeparator(aString, " ")
     token = stream.nextToken()
     if token.find(".") == -1:
@@ -651,7 +651,7 @@ def colorToRGBString(color):
 
 def rgbStringToColor(aString):
     # format is r g b
-    stream = usstream.KfStringStream()
+    stream = PS_sstream.KfStringStream()
     stream.onStringSeparator(aString, " ")
     r = StrToIntDef(stream.nextToken(), 0)
     g = StrToIntDef(stream.nextToken(), 0)

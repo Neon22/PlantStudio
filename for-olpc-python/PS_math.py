@@ -1,10 +1,14 @@
-# unit umath
+### PS_math
+### - used for SCurve data structure and safedivexcept, odd
+### Dependencies:
+###     - PS_sstream for reading Scurves only
+###     - PS_support for reading Scurves only
+
 import math
 
 from PS_constants import *
-import usstream
+import PS_sstream  # only used by Scurve.fromString
 import PS_support
-#import uparams
 
 
 ###---------------------------
@@ -40,7 +44,7 @@ class SCurveStructure(object):
 
     def fromString(self, aString):
         # format is x1 y1 x2 y2
-        stream = usstream.KfStringStream()
+        stream = PS_sstream.KfStringStream()
         stream.onStringSeparator(aString, " ")
         succesful, self.x1 = PS_support.boundForString(stream.nextToken(), kFieldFloat)
         succesful, self.y1 = PS_support.boundForString(stream.nextToken(), kFieldFloat)
@@ -109,6 +113,7 @@ def transferSCurveValue(direction, param, index, value):
 #returns zero for convenience
 #these consts are really defined in uplant.pas but we don't want to include it - keep current
 # error message - returns zero for convenience
+#!! should not be here... (PS_common..?)
 def ErrorMessage(errorString):
     udebug.DebugPrint(errorString)
     return 0
@@ -223,7 +228,7 @@ def safedivExcept(x, y, exceptionResult):
 ##    result.c1 = 0
 ##    result.c2 = 0
 ##    # format is x1 y1 x2 y2
-##    stream = usstream.KfStringStream()
+##    stream = PS_sstream.KfStringStream()
 ##    stream.onStringSeparator(aString, " ")
 ##    succesful, result.x1 = usupport.boundForString(stream.nextToken(), uparams.kFieldFloat)
 ##    succesful, result.y1 = usupport.boundForString(stream.nextToken(), uparams.kFieldFloat)

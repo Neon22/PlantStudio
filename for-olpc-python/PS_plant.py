@@ -83,24 +83,24 @@ class BreedingAndTimeSeriesOptionsStructure(object):
 import copy
 
 from PS_common import *
-#import delphi_compatability
 import PS_random
 import PS_math
-import ubitmap
-import ucollect
-import PS_tdo
-import PS_support
-import uamendmt
-import uparams
-import utransfr
 import PS_travers
 import PS_merist
+import PS_intern
+import PS_tdo
+import PS_support
+import PS_cursor
+#import PS_params
+import uamendmt
+import utransfr
+import ubitmap
+import ucollect
 import udomain
 import udebug
 import ubmpsupport
 import uturtle
 
-import ucursor
 
 
 # v2.0
@@ -529,13 +529,13 @@ class PdPlant(object):
 
     def setAge(self, newAge):
         newAge = max(0, min(self.pGeneral.ageAtMaturity, newAge))
-        ucursor.cursor_startWait()
+        PS_cursor.cursor_startWait()
         try:
             self.reset()
             while self.age < newAge:
                 self.nextDay()
         finally:
-            ucursor.cursor_stopWait()
+            PS_cursor.cursor_stopWait()
 
     # ---------------------------------------------------------------------------------------  drawing and graphics
     def draw(self):
@@ -1296,30 +1296,30 @@ class PdPlant(object):
     # ----------------------------------------------------------------------------------  i/o and data transfer
     def defaultAllParameters(self):
         for param in udomain.domain.parameterManager.parameters:
-            if param.fieldType != uparams.kFieldHeader:
+            if param.fieldType != kFieldHeader:
                 self.defaultParameter(param, kDontCheckForUnreadParams)
         self.finishLoadingOrDefaulting(kDontCheckForUnreadParams)
 
     def defaultParameter(self, param, writeDebugMessage):
         if param == None:
             return
-        if param.fieldType == uparams.kFieldBoolean:
+        if param.fieldType == kFieldBoolean:
             tempBoolean = PS_support.strToBool(param.defaultValueString())
             tempBoolean = self.transferField(kSetField, tempBoolean, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldSmallint:
+        elif param.fieldType == kFieldSmallint:
             tempSmallint = StrToIntDef(PS_support.stringUpTo(param.defaultValueString(), " "), 0)
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldEnumeratedList:
+        elif param.fieldType == kFieldEnumeratedList:
             tempSmallint = StrToIntDef(PS_support.stringUpTo(param.defaultValueString(), " "), 0)
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldLongint:
+        elif param.fieldType == kFieldLongint:
             tempLongint = StrToIntDef(param.defaultValueString(), 0)
             tempLongint = self.transferField(kSetField, tempLongint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldColor:
+        elif param.fieldType == kFieldColor:
             tempColorRef = PS_support.rgbStringToColor(param.defaultValueString())
             tempColorRef = self.transferField(kSetField, tempColorRef, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldFloat:
-            if param.indexType == uparams.kIndexTypeSCurve:
+        elif param.fieldType == kFieldFloat:
+            if param.indexType == kIndexTypeSCurve:
                 #this is the only array
                 self.changingWholeSCurves = True
                 #tempSCurve = PS_math.stringToSCurve(param.defaultValueString())
@@ -1327,9 +1327,9 @@ class PdPlant(object):
                 self.transferWholeSCurve(kSetField, tempSCurve, param.fieldNumber, param.fieldType, False, None)
                 self.changingWholeSCurves = False
             else:
-                succesful, tempFloat = PS_support.boundForString(param.defaultValueString(), uparams.kFieldFloat)
+                succesful, tempFloat = PS_support.boundForString(param.defaultValueString(), kFieldFloat)
                 tempFloat = self.transferField(kSetField, tempFloat, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldThreeDObject:
+        elif param.fieldType == kFieldThreeDObject:
             tempTdo = PS_tdo.KfObject3D()
             tempTdo.readFromInputString(param.defaultValueString(), kAdjustForOrigin)
             tempTdo = self.transferField(kSetField, tempTdo, param.fieldNumber, param.fieldType, 0, False, None)
@@ -1379,26 +1379,26 @@ class PdPlant(object):
                     param = udomain.domain.parameterManager.parameterForFieldNumber(section.sectionItems[j])
                     if param == None:
                         continue
-                    if param.fieldType == uparams.kFieldHeader:
+                    if param.fieldType == kFieldHeader:
                         pass
-                    elif param.fieldType == uparams.kFieldBoolean:
+                    elif param.fieldType == kFieldBoolean:
                         #skip
                         tempBoolean = self.transferField(kGetField, tempBoolean, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + PS_support.boolToStr(tempBoolean))
-                    elif param.fieldType == uparams.kFieldSmallint:
+                    elif param.fieldType == kFieldSmallint:
                         tempSmallint = self.transferField(kGetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempSmallint))
-                    elif param.fieldType == uparams.kFieldEnumeratedList:
+                    elif param.fieldType == kFieldEnumeratedList:
                         tempSmallint = self.transferField(kGetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempSmallint))
-                    elif param.fieldType == uparams.kFieldLongint:
+                    elif param.fieldType == kFieldLongint:
                         tempLongint = self.transferField(kGetField, tempLongint, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempLongint))
-                    elif param.fieldType == uparams.kFieldColor:
+                    elif param.fieldType == kFieldColor:
                         tempColorRef = self.transferField(kGetField, tempColorRef, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + "%d" % (tempColorRef))
-                    elif param.fieldType == uparams.kFieldFloat:
-                        if param.indexType == uparams.kIndexTypeSCurve:
+                    elif param.fieldType == kFieldFloat:
+                        if param.indexType == kIndexTypeSCurve:
                             #this is the only array
                             self.transferWholeSCurve(kGetField, tempSCurve, param.fieldNumber, param.fieldType, False, None)
                             #self.writeLine(plantFile, param.name + start + param.fieldID + stop + PS_math.sCurveToString(tempSCurve))
@@ -1406,7 +1406,7 @@ class PdPlant(object):
                         else:
                             tempFloat = self.transferField(kGetField, tempFloat, param.fieldNumber, param.fieldType, 0, False, None)
                             self.writeLine(plantFile, param.name + start + param.fieldID + stop + PS_support.digitValueString(tempFloat))
-                    elif param.fieldType == uparams.kFieldThreeDObject:
+                    elif param.fieldType == kFieldThreeDObject:
                         tempTdo = PS_tdo.KfObject3D()
                         tempTdo = self.transferField(kGetField, tempTdo, param.fieldNumber, param.fieldType, 0, False, None)
                         self.writeLine(plantFile, param.name + start + param.fieldID + stop + tempTdo.name)
@@ -1482,13 +1482,13 @@ class PdPlant(object):
         if not found:
             return
 
-        if param.fieldType == uparams.kFieldHeader:
+        if param.fieldType == kFieldHeader:
             pass
-        elif param.fieldType == uparams.kFieldBoolean:
+        elif param.fieldType == kFieldBoolean:
             #skip
             tempBoolean = PS_support.strToBool(paramValue)
             tempBoolean = self.transferField(kSetField, tempBoolean, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldSmallint:
+        elif param.fieldType == kFieldSmallint:
             tempSmallint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
                 if tempSmallint < int(param.lowerBound()):
@@ -1497,7 +1497,7 @@ class PdPlant(object):
                 if tempSmallint > int(param.upperBound()):
                     tempSmallint = int(param.upperBound())
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldEnumeratedList:
+        elif param.fieldType == kFieldEnumeratedList:
             tempSmallint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
                 if tempSmallint < int(param.lowerBound()):
@@ -1506,7 +1506,7 @@ class PdPlant(object):
                 if tempSmallint > int(param.upperBound()):
                     tempSmallint = int(param.upperBound())
             tempSmallint = self.transferField(kSetField, tempSmallint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldLongint:
+        elif param.fieldType == kFieldLongint:
             tempLongint = StrToIntDef(paramValue, 0)
             if (param.lowerBound() != 0) or (param.upperBound() != 0):
                 if tempLongint < int(param.lowerBound()):
@@ -1517,11 +1517,11 @@ class PdPlant(object):
             if param.fieldNumber == utransfr.kStateBasePointY:
                 tempLongint = tempLongint
             tempLongint = self.transferField(kSetField, tempLongint, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldColor:
+        elif param.fieldType == kFieldColor:
             tempColorRef = StrToIntDef(paramValue, 0)
             tempColorRef = self.transferField(kSetField, tempColorRef, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldFloat:
-            if param.indexType == uparams.kIndexTypeSCurve:
+        elif param.fieldType == kFieldFloat:
+            if param.indexType == kIndexTypeSCurve:
                 #this is the only array
                 self.changingWholeSCurves = True
                 #tempSCurve = PS_math.stringToSCurve(paramValue)
@@ -1539,7 +1539,7 @@ class PdPlant(object):
                 self.transferWholeSCurve(kSetField, tempSCurve, param.fieldNumber, param.fieldType, False, None)
                 self.changingWholeSCurves = False
             else:
-                succesful, tempFloat = PS_support.boundForString(paramValue, uparams.kFieldFloat)
+                succesful, tempFloat = PS_support.boundForString(paramValue, kFieldFloat)
                 if string_match("Drawing scale", param.name):
                     tempTdo = None
                 if (param.lowerBound() != 0) or (param.upperBound() != 0):
@@ -1549,7 +1549,7 @@ class PdPlant(object):
                     if tempFloat > param.upperBound():
                         tempFloat = param.upperBound()
                 tempFloat = self.transferField(kSetField, tempFloat, param.fieldNumber, param.fieldType, 0, False, None)
-        elif param.fieldType == uparams.kFieldThreeDObject:
+        elif param.fieldType == kFieldThreeDObject:
             tempTdo = PS_tdo.KfObject3D()
             tempTdo.setName(paramValue.strip())
             if self.readingFromMemo:
@@ -1564,7 +1564,7 @@ class PdPlant(object):
         if checkForUnreadParams:
             parameters = udomain.domain.parameterManager.parameters
             for param in parameters:
-                if (not param.valueHasBeenReadForCurrentPlant) and (param.fieldType != uparams.kFieldHeader):
+                if (not param.valueHasBeenReadForCurrentPlant) and (param.fieldType != kFieldHeader):
                     self.defaultParameter(param, checkForUnreadParams)
         self.pGeneral.ageAtWhichFloweringStarts = min(self.pGeneral.ageAtWhichFloweringStarts, self.pGeneral.ageAtMaturity)
         self.age = min(self.age, self.pGeneral.ageAtMaturity)
@@ -1580,7 +1580,7 @@ class PdPlant(object):
     #    PdChangeTdoValueCommand, PdChangeSmallintValueCommand, PdChangeBooleanValueCommand
     def editTransferField(self, d, value, fieldID, fieldType, fieldIndex, regrow):
         ''' '''
-        if fieldType == uparams.kFieldHeader:
+        if fieldType == kFieldHeader:
             return value
         if (d == kGetField):
             value = self.transferField(d, value, fieldID, fieldType, fieldIndex, regrow, None)
@@ -1598,7 +1598,7 @@ class PdPlant(object):
 
     # used here by many above
     def transferField(self, d, v, fieldID, ft, index, regrow, updateList):
-        if ft == uparams.kFieldHeader:
+        if ft == kFieldHeader:
             return v
         v = self.directTransferField(d, v, fieldID, ft, index, updateList)
         if d == kSetField:
@@ -1619,7 +1619,7 @@ class PdPlant(object):
             elif fieldID == utransfr.kGeneralAgeAtMaturity:
                 if (self.age > v):
                     self.setAge(v)
-            if (ft == uparams.kFieldColor):
+            if (ft == kFieldColor):
                 self.needToRecalculateColors = True
         return v
 
@@ -1696,33 +1696,33 @@ class PdPlant(object):
 ##            - Could do this shorter
 ##        '''
 ##        if direction == kGetField:
-##            if fieldType == uparams.kFieldFloat:
+##            if fieldType == kFieldFloat:
 ##                #MFD = MoveFieldData
 ##                value = objectValue
-##            elif fieldType == uparams.kFieldSmallint:
+##            elif fieldType == kFieldSmallint:
 ##                value = objectValue
-##            elif fieldType == uparams.kFieldLongint:
+##            elif fieldType == kFieldLongint:
 ##                value = objectValue
-##            elif fieldType == uparams.kFieldColor:
+##            elif fieldType == kFieldColor:
 ##                value = objectValue
-##            elif fieldType == uparams.kFieldBoolean:
+##            elif fieldType == kFieldBoolean:
 ##                value = objectValue
-##            elif fieldType == uparams.kFieldEnumeratedList:
+##            elif fieldType == kFieldEnumeratedList:
 ##                value = objectValue
 ##            else :
 ##                raise GeneralException.create("Problem: Unsupported transfer from field %d in method PdPlant.MFD." % (fieldType))
 ##        elif direction == kSetField:
-##            if fieldType == uparams.kFieldFloat:
+##            if fieldType == kFieldFloat:
 ##                objectValue = value
-##            elif fieldType == uparams.kFieldSmallint:
+##            elif fieldType == kFieldSmallint:
 ##                objectValue = value
-##            elif fieldType == uparams.kFieldLongint:
+##            elif fieldType == kFieldLongint:
 ##                objectValue = value
-##            elif fieldType == uparams.kFieldColor:
+##            elif fieldType == kFieldColor:
 ##                objectValue = value
-##            elif fieldType == uparams.kFieldBoolean:
+##            elif fieldType == kFieldBoolean:
 ##                objectValue = value
-##            elif fieldType == uparams.kFieldEnumeratedList:
+##            elif fieldType == kFieldEnumeratedList:
 ##                objectValue = value
 ##            else :
 ##                raise GeneralException.create("Problem: Unsupported transfer to field %d in method PdPlant.MFD." % (fieldType))
@@ -1736,12 +1736,12 @@ class PdPlant(object):
             - shorter
         '''
         if direction == kGetField:
-            if fieldType not in [uparams.kFieldUndefined, uparams.kFieldThreeDObject, uparams.kFieldHeader]:
+            if fieldType not in [kFieldUndefined, kFieldThreeDObject, kFieldHeader]:
                 value = objectValue
             else :
                 raise GeneralException.create("Problem: Unsupported transfer from field %d in method PdPlant.MFD." % (fieldType))
         else: # direction == kSetField:
-            if fieldType not in [uparams.kFieldUndefined, uparams.kFieldThreeDObject, uparams.kFieldHeader]:
+            if fieldType not in [kFieldUndefined, kFieldThreeDObject, kFieldHeader]:
                 objectValue = value
             else :
                 raise GeneralException.create("Problem: Unsupported transfer to field %d in method PdPlant.MFD." % (fieldType))
@@ -1759,10 +1759,10 @@ class PdPlant(object):
                 continue
             for paramIndex in range(0, section.numSectionItems):
                 param = udomain.domain.parameterManager.parameterForFieldNumber(section.sectionItems[paramIndex])
-                if (param == None) or (param.fieldType == uparams.kFieldHeader):
+                if (param == None) or (param.fieldType == kFieldHeader):
                     continue
                 #case
-                if param.fieldType == uparams.kFieldBoolean:
+                if param.fieldType == kFieldBoolean:
                     #non-numeric
                     firstBoolean = False
                     firstBoolean = firstPlant.transferField(kGetField, firstBoolean, param.fieldNumber, param.fieldType, 0, False, None)
@@ -1776,7 +1776,7 @@ class PdPlant(object):
                         else:
                             newBoolean = secondBoolean
                     newBoolean = self.transferField(kSetField, newBoolean, param.fieldNumber, param.fieldType, 0, False, None)
-                elif param.fieldType == uparams.kFieldSmallint:
+                elif param.fieldType == kFieldSmallint:
                     #numeric
                     newInteger = 0
                     firstInteger = 0
@@ -1796,9 +1796,9 @@ class PdPlant(object):
                     newInteger = int(self.breedingGenerator.randomNormalWithStdDev(newInteger * 1.0, stdDev))
                     newInteger = int(min(param.upperBound(), max(param.lowerBound(), 1.0 * newInteger)))
                     newInteger = self.transferField(kSetField, newInteger, param.fieldNumber, param.fieldType, 0, False, None)
-                elif param.fieldType == uparams.kFieldLongint:
+                elif param.fieldType == kFieldLongint:
                     pass
-                elif param.fieldType == uparams.kFieldEnumeratedList:
+                elif param.fieldType == kFieldEnumeratedList:
                     # the only numeric fields so far are the plant's position x and y (which is redone anyway)
                     #            and the random number seed, which shouldn't really be bred anyway, so we will do nothing
                     #            here. if you want to add longint parameters later, you will have to copy the smallint stuff
@@ -1816,7 +1816,7 @@ class PdPlant(object):
                         else:
                             newInteger = secondInteger
                     newInteger = self.transferField(kSetField, newInteger, param.fieldNumber, param.fieldType, 0, False, None)
-                elif param.fieldType == uparams.kFieldColor:
+                elif param.fieldType == kFieldColor:
                     #numeric if option is set, otherwise non-numeric
                     firstColor = None
                     secondColor = None
@@ -1833,8 +1833,8 @@ class PdPlant(object):
                     if options.mutateAndBlendColorValues:
                         newColor = self.blendAndMutateColors(options, sectionIndex, (secondPlant != None), firstColor, secondColor)
                     newColor = self.transferField(kSetField, newColor, param.fieldNumber, param.fieldType, 0, False, None)
-                elif param.fieldType == uparams.kFieldFloat:
-                    if param.indexType == uparams.kIndexTypeSCurve:
+                elif param.fieldType == kFieldFloat:
+                    if param.indexType == kIndexTypeSCurve:
                         firstSCurve = PS_math.SCurveStructure()
                         secondSCurve = PS_math.SCurveStructure()
                         # considering s curve non-numeric, too much trouble to make sure it is all right, and there are only two
@@ -1872,7 +1872,7 @@ class PdPlant(object):
                         # for now, don't let float get to zero because it causes problems
                         # newFloat := max(0.0001, newFloat);  v2.0 removed this to enable breeding with no variation
                         newFloat = self.transferField(kSetField, newFloat, param.fieldNumber, param.fieldType, 0, False, None)
-                elif param.fieldType == uparams.kFieldThreeDObject:
+                elif param.fieldType == kFieldThreeDObject:
                     #non-numeric
                     firstTdo = PS_tdo.KfObject3D()
                     secondTdo = PS_tdo.KfObject3D()
@@ -2113,9 +2113,9 @@ class PdPlant(object):
                 self.freeAllDrawingPlantParts()
             if hasFirstPhytomer:
                 self.firstPhytomer = None
-                self.firstPhytomer = uintern.PdInternode()
+                self.firstPhytomer = PS_intern.PdInternode()
                 if self.firstPhytomer != None:
-                    uintern.PdInternode(self.firstPhytomer).plant = self
+                    PS_intern.PdInternode(self.firstPhytomer).plant = self
                 else:
                     raise GeneralException.create("Problem: Could not create first internode in method PdPlant.streamDataWithFiler.")
         elif filer.isWriting():

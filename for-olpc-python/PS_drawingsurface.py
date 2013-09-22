@@ -1,9 +1,9 @@
-### drawingsurface
-###
-# used to draw in 2D pane the 3D object
+### PS_drawingsurface
+### - root class for drawing 3D objects onto windows and into files.
+### - dependencies:
+###     - uses PS_3dsupport for KfTriangle, KfPoint3D
 
 
-#import delphi_compatability
 from PS_common import *
 import PS_3dsupport
 

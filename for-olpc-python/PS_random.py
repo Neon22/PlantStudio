@@ -1,4 +1,8 @@
-# unit Urandom
+### PS_random
+### - used obviously
+### !! LongInt and smallInt variants should be combined.
+
+
 
 import time
 from PS_common import *

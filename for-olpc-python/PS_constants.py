@@ -1,4 +1,8 @@
-### Constants
+### PS_constants
+### - holds all constants stripped from dependent files - to ease import crazyness
+### Dependencies: None
+### - !! need to rename constants to indicate where they camer from so relationships easier to understand.
+
 
 ### from PS_Plant
 kGenderMale = 0

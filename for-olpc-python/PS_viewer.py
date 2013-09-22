@@ -19,7 +19,7 @@ import gtkdrawingsurface
 #example_tdo.readFromFile("./3dobject/l_squash.tdo")
 
 import PS_plant
-import ucursor
+import PS_cursor
 
 import hotshot
 prof = None
@@ -162,7 +162,7 @@ class MainWindow(object):
         self.setPlantListContents(plants)
 
         ShowWindow(self.window)
-        ucursor.windowsToWaitWith.append(self.window.window)
+        PS_cursor.windowsToWaitWith.append(self.window.window)
 
     def setPlantListContents(self, plants):
         self.plants = plants
@@ -184,7 +184,7 @@ class MainWindow(object):
     def _grow(self, widget, days):
         if not self.drawingArea.plant:
             return
-        ucursor.cursor_startWait()
+        PS_cursor.cursor_startWait()
         try:
             if days == -1:
                 self.drawingArea.plant.reset()
@@ -192,7 +192,7 @@ class MainWindow(object):
                 for day in range(days):
                     self.drawingArea.plant.nextDay()
         finally:
-            ucursor.cursor_stopWait()
+            PS_cursor.cursor_stopWait()
         InvalidateWidget(self.drawingArea)
 
     def turn(self, widget, amount):
@@ -209,13 +209,13 @@ class MainWindow(object):
         if fileName == None:
             return
         print "Opening", fileName
-        ucursor.cursor_startWait()
+        PS_cursor.cursor_startWait()
         try:
             plants = uplant.PlantLoader().loadPlantsFromFile(fileName, inPlantMover=1, justLoad=1)
             self.fileName = fileName
             self.setPlantListContents(plants)
         finally:
-            ucursor.cursor_stopWait()
+            PS_cursor.cursor_stopWait()
         InvalidateWidget(self.drawingArea)
 
 def main():

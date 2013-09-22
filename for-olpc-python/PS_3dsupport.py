@@ -1,13 +1,15 @@
-### 3dsupport
+### PS_3dsupport
+### - used to make 3D instances for drawing in window
+### - Dependencies: (effectively none)
 
-###
-# KfMatrix manipulations of KfPoint3D, KfTriangle
-# fast trig cache of 256 rot values in circle.
+### - KfMatrix manipulations of KfPoint3D, KfTriangle
+### - fast trig cache of 256 rot values in circle.
+
 
 
 from PS_common import *
 import math
-import PS_support # only using darkerColorWithSubtraction
+import PS_support # only using color.darkerColorWithSubtraction which is not really needed...
 
 
 
@@ -133,6 +135,8 @@ class KfPoint3D(object):
         self.y *= aScale
         self.z *= aScale
 
+### !! refactored to class instead
+
 ##def KfPoint3D_setXYZ(thePoint, aX, aY, aZ):
 ##    thePoint.x = aX
 ##    thePoint.y = aY
@@ -156,6 +160,7 @@ class KfPoint3D(object):
 ##    thePoint.y = thePoint.y - aPoint.y
 ##    thePoint.z = thePoint.z - aPoint.z
 
+#!! refactor ?
 def KfPoint3D_matchXYZ(pointOne, pointTwo, matchDistance):
     result = False
     # v1.6b1 added

@@ -1,16 +1,26 @@
-# unit umerist
+### PS_merist
+### - in growth cycle, calculates when budding happens
+### Dependencies:
+###     - PS_part for class, func
+###     - PS_travers for linearGrowthResult
+###     - PS_math for safediv, pointsAreCloseEnough
+###     - PS_inflor for flowers (only used here?)
+###     - PS_support for error message
+
+
 
 from PS_common import *
 from PS_constants import *
 import PS_part
-import uintern
-import uleaf
 import PS_travers
+import PS_inflor
+import PS_intern
+import PS_leaf
 import PS_math
 import udomain
 import PS_support  # justused for message erros
-import PS_inflor
-import PS_3dexport
+
+#import PS_3dexport
 
 import udebug
 
@@ -18,7 +28,8 @@ import udebug
 
 class PdMeristem(PS_part.PdPlantPart):
     def __init__(self):
-        PS_part.PdPlantPart.__init__(self)
+        super(PdMeristem, self).__init__()
+        #PS_part.PdPlantPart.__init__(self)
         # structure
         self.phytomerAttachedTo = None
         #
@@ -119,9 +130,9 @@ class PdMeristem(PS_part.PdPlantPart):
 
     def optimalInitialPhytomerBiomass_pctMPB(self):
         ''' Add up % available biomass for new phytomer '''
-        result = uintern.PdInternode.optimalInitialBiomass_pctMPB(self.plant) + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
+        result = PS_intern.PdInternode.optimalInitialBiomass_pctMPB(self.plant) + PS_leaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
         if self.plant.pMeristem.branchingAndLeafArrangement == kArrangementOpposite:
-            result = result + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
+            result = result + PS_leaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
         return result
 
     def accumulateOrCreatePhytomer(self):
@@ -210,9 +221,9 @@ class PdMeristem(PS_part.PdPlantPart):
                 if ((not self.isApical) and (self.phytomerAttachedTo.isFirstPhytomer) and (not self.plant.pMeristem.branchingIsSympodial)):
                     return
                 try:
-                    optimalBiomass_pctMPB = uintern.PdInternode.optimalInitialBiomass_pctMPB(self.plant) + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
+                    optimalBiomass_pctMPB = PS_intern.PdInternode.optimalInitialBiomass_pctMPB(self.plant) + PS_leaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
                     if self.plant.pMeristem.branchingAndLeafArrangement == kArrangementOpposite:
-                        optimalBiomass_pctMPB = optimalBiomass_pctMPB + uleaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
+                        optimalBiomass_pctMPB = optimalBiomass_pctMPB + PS_leaf.PdLeaf.optimalInitialBiomass_pctMPB(self.plant)
                     self.biomassDemand_pctMPB = PS_travers.linearGrowthResult(self.liveBiomass_pctMPB, optimalBiomass_pctMPB, self.plant.pInternode.minDaysToCreateInternode)
                     traverser.total = traverser.total + self.biomassDemand_pctMPB
                 except Exception, e:
@@ -470,7 +481,7 @@ class PdMeristem(PS_part.PdPlantPart):
             # (in the number of days it had to create a phytomer) divided by the optimal biomass of a phytomer.
             # v1.6b1
             return
-        newPhytomer = uintern.PdInternode().NewWithPlantFractionOfInitialOptimalSize(self.plant, fractionOfFullSize)
+        newPhytomer = PS_intern.PdInternode().NewWithPlantFractionOfInitialOptimalSize(self.plant, fractionOfFullSize)
         newPhytomer.phytomerAttachedTo = self.phytomerAttachedTo
         if (self.phytomerAttachedTo != None):
             if self.isApical:

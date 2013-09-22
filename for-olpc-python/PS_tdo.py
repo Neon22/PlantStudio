@@ -6,7 +6,7 @@ from PS_common import *
 from PS_constants import *
 import copy
 #import delphi_compatability
-import usstream
+import PS_sstream
 import PS_3dsupport
 import ucollect
 
@@ -479,7 +479,7 @@ class KfObject3D(object):
                 raise GeneralException.create("Problem: Expected start of 3D object.")
 
         #read info for 3D object from file at current position
-        stream = usstream.KfStringStream()
+        stream = PS_sstream.KfStringStream()
         inputLine = inputFile.readln()
         while inputLine != None:
             if embeddedInPlant and inputLine.strip() == "":
@@ -605,7 +605,7 @@ class KfObject3D(object):
         stream = None
         try:
             #read info for 3D object from file at current position
-            stream = usstream.KfStringStream.create
+            stream = PS_sstream.KfStringStream.create
             while readingMemoLine <= len(aMemo.Lines) - 1:
                 inputLine = aMemo.Lines.Strings[readingMemoLine]
                 readingMemoLine += 1
@@ -646,8 +646,8 @@ class KfObject3D(object):
         self.points = []
         self.originPointIndex = 0
         self.triangles.clear()
-        stream = usstream.KfStringStream.create
-        partStream = usstream.KfStringStream.create
+        stream = PS_sstream.KfStringStream.create
+        partStream = PS_sstream.KfStringStream.create
         try:
             stream.onStringSeparator(aString, ",")
             part = "none"

@@ -1,4 +1,13 @@
-#import math
+### PS_common
+### - holds common functions to load to all PS files
+
+### - string extraction
+### - text file manipulation
+### - Classes: Singlepoint and Rect - mainly for 2D
+
+
+
+
 import os
 
 ### Minimal set of imports for including in Plantstudio

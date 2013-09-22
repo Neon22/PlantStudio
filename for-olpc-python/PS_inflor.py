@@ -1,3 +1,12 @@
+### PS_inflor
+### - in growth cycle, calculates when fruit happen
+### Dependencies:
+###     - PS_part for class, func
+###     - PS_travers for linearGrowthResult
+###     - PS_fruit - only user of this
+###     - PS_math for safediv, pointsAreCloseEnough
+###     - PS_support for error message
+
 
 #The inflorescence is very simple; it creates a specified number of flowers over a specified period
 #  of days. Each inflorescence on the plant has the same number of flowers. Since an inflorescence is
@@ -14,14 +23,13 @@
 
 from PS_common import *
 from PS_constants import *
-#import delphi_compatability
 import ucollect
 import PS_part
 import PS_math
 import PS_travers
 import udomain
-import ufruit
-import PS_3dexport
+import PS_fruit # only place imports this
+#import PS_3dexport
 import PS_support
 
 import math
@@ -31,7 +39,8 @@ import udebug
 
 class PdInflorescence(PS_part.PdPlantPart):
     def __init__(self):
-        PS_part.PdPlantPart.__init__(self)
+        super(PdInflorescence, self).__init__()
+        #PS_part.PdPlantPart.__init__(self)
         # structure
         self.phytomerAttachedTo = None
         #
@@ -275,7 +284,7 @@ class PdInflorescence(PS_part.PdPlantPart):
             # create new flower/fruit object
             # v1.6b1
             return
-        aFlowerFruit = ufruit.PdFlowerFruit()
+        aFlowerFruit = PS_fruit.PdFlowerFruit()
         aFlowerFruit.initializeGender(self.plant, self.gender)
         self.flowers.Add(aFlowerFruit)
 
@@ -573,7 +582,7 @@ class PdInflorescence(PS_part.PdPlantPart):
 ##        self.fractionOfOptimalSizeWhenCreated = filer.streamSingle(self.fractionOfOptimalSizeWhenCreated)
 ##        if filer.isReading():
 ##            self.meristemThatCreatedMe = None
-##        self.flowers.streamUsingFiler(filer, ufruit.PdFlowerFruit)
+##        self.flowers.streamUsingFiler(filer, PS_fruit.PdFlowerFruit)
 ##        if filer.isReading() and (len(self.flowers) > 0):
 ##            for flower in self.flowers:
 ##                # fix up plant in flowers if needed

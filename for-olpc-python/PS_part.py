@@ -1,18 +1,16 @@
-# unit upart
-
-###
-# Base class for Plant parts.
-# Inherited by PdInternode, PdMeristem, PdInflorescence, PdFlowerFruit, PdLeaf
-
+### PS_part
+### - base class for Plant parts and traversing
+### - Inherited by PdInternode, PdMeristem, PdInflorescence, PdFlowerFruit, PdLeaf
+### Dependencies:
+###     - PS_travers only used for PdPlantStatistics
+###     - PS_support for error message
+###     - PS_3dexport for DXF names
 
 
 from PS_common import *
 from PS_constants import *
-#import ufiler
-#mport uplant
-#mport delphi_compatability
+import udomain  #!!
 import PS_travers
-import udomain
 import PS_3dexport
 import PS_support
 
@@ -37,7 +35,7 @@ import udebug
 # const
 kMaxLineOutputPoints = 200
 
-class PdPlantPart(object):#ufiler.PdStreamableObject): # object):#!! removed
+class PdPlantPart(object):  #ufiler.PdStreamableObject): #!! removed (used for copying between windows in old system)
     def __init__(self):
         # structure
         self.plant = None
